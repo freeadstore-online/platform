@@ -1,0 +1,499 @@
+{
+  "tools": [
+    {
+      "id": "ad-copy-generator",
+      "name": "Ad Copy Generator",
+      "description": "Write platform-specific ad copy for Google, Meta, LinkedIn, TikTok, X. Character limits, CTA options, tone selection.",
+      "icon": "✍️",
+      "iconBg": "#ef4444",
+      "category": "create",
+      "section": "create"
+    },
+    {
+      "id": "ai-ad-generator",
+      "name": "AI Ad Generator",
+      "description": "Describe your product, get 6 professional ad images. Smart color, layout, and typography matching by industry and mood.",
+      "icon": "🤖",
+      "iconBg": "#8b5cf6",
+      "category": "create",
+      "section": "create"
+    },
+    {
+      "id": "social-ad-maker",
+      "name": "Social Ad / Meme Maker",
+      "description": "Quick visual ads in 30 seconds. Meme style, quote cards, promo badges. Pick background, add text, download. Done.",
+      "icon": "🎨",
+      "iconBg": "#ec4899",
+      "category": "create",
+      "section": "create"
+    },
+    {
+      "id": "ad-image-maker",
+      "name": "Ad Image Maker",
+      "description": "Canvas editor with platform dimensions. Text overlay, brand colors, templates. Export PNG/JPG.",
+      "icon": "🖼️",
+      "iconBg": "#f97316",
+      "category": "create",
+      "section": "create"
+    },
+    {
+      "id": "video-storyboard",
+      "name": "Video Ad Storyboard",
+      "description": "Scene-by-scene planner with timing, transitions, script, shot descriptions. Export PDF.",
+      "icon": "🎬",
+      "iconBg": "#8b5cf6",
+      "category": "create",
+      "section": "create"
+    },
+    {
+      "id": "headline-generator",
+      "name": "Headline Generator",
+      "description": "10+ headline variants from your product description. A/B ranked by predicted CTR.",
+      "icon": "💡",
+      "iconBg": "#eab308",
+      "category": "create",
+      "section": "create"
+    },
+    {
+      "id": "carousel-builder",
+      "name": "Carousel Ad Builder",
+      "description": "Multi-card carousel for Meta/LinkedIn. Drag-reorder, per-card copy + image. Export all.",
+      "icon": "🔄",
+      "iconBg": "#3b82f6",
+      "category": "create",
+      "section": "create"
+    },
+    {
+      "id": "story-ad-maker",
+      "name": "Story/Reel Ad Maker",
+      "description": "9:16 vertical canvas with text animation timing, music cue markers, CTA overlays.",
+      "icon": "📱",
+      "iconBg": "#ec4899",
+      "category": "create",
+      "section": "create"
+    },
+    {
+      "id": "display-banner-set",
+      "name": "Display Banner Set",
+      "description": "Generate all IAB standard sizes from one design.",
+      "icon": "📐",
+      "iconBg": "#10b981",
+      "category": "create",
+      "section": "create"
+    },
+    {
+      "id": "rsa-builder",
+      "name": "Responsive Search Ad Builder",
+      "description": "Google RSA format: 15 headlines + 4 descriptions. Character count, pin controls, strength meter.",
+      "icon": "🔍",
+      "iconBg": "#06b6d4",
+      "category": "create",
+      "section": "create"
+    },
+    {
+      "id": "shopping-ad-preview",
+      "name": "Shopping Ad Preview",
+      "description": "Product image + price + title in Google/Meta Shopping format.",
+      "icon": "🛒",
+      "iconBg": "#f59e0b",
+      "category": "create",
+      "section": "create"
+    },
+    {
+      "id": "meta-ad-preview",
+      "name": "Meta Ad Preview",
+      "description": "See your ad in Feed, Stories, Reels, Marketplace, Right Column. Pixel-perfect mockup.",
+      "icon": "📘",
+      "iconBg": "#3b82f6",
+      "category": "preview",
+      "section": "preview"
+    },
+    {
+      "id": "google-search-preview",
+      "name": "Google Search Ad Preview",
+      "description": "SERP preview with sitelinks, callouts, structured snippets. Desktop and mobile.",
+      "icon": "🔎",
+      "iconBg": "#10b981",
+      "category": "preview",
+      "section": "preview"
+    },
+    {
+      "id": "google-display-preview",
+      "name": "Google Display Preview",
+      "description": "Banner ad on simulated publisher sites — news, blog, app contexts.",
+      "icon": "🖥️",
+      "iconBg": "#f59e0b",
+      "category": "preview",
+      "section": "preview"
+    },
+    {
+      "id": "linkedin-ad-preview",
+      "name": "LinkedIn Ad Preview",
+      "description": "Sponsored Content, Message Ad, Text Ad formats. Professional feed context.",
+      "icon": "💼",
+      "iconBg": "#0a66c2",
+      "category": "preview",
+      "section": "preview"
+    },
+    {
+      "id": "tiktok-ad-preview",
+      "name": "TikTok Ad Preview",
+      "description": "In-feed, TopView, Branded Hashtag Challenge formats. Mobile-only preview.",
+      "icon": "🎵",
+      "iconBg": "#000000",
+      "category": "preview",
+      "section": "preview"
+    },
+    {
+      "id": "x-ad-preview",
+      "name": "X/Twitter Ad Preview",
+      "description": "Promoted Tweet, Promoted Trend, Timeline Takeover. Light and dark modes.",
+      "icon": "🐦",
+      "iconBg": "#1d9bf0",
+      "category": "preview",
+      "section": "preview"
+    },
+    {
+      "id": "youtube-ad-preview",
+      "name": "YouTube Ad Preview",
+      "description": "Pre-roll, mid-roll, bumper, Discovery ad formats.",
+      "icon": "▶️",
+      "iconBg": "#ff0000",
+      "category": "preview",
+      "section": "preview"
+    },
+    {
+      "id": "app-store-preview",
+      "name": "App Store Ad Preview",
+      "description": "Apple Search Ads, Google Play install ads. Both store contexts.",
+      "icon": "📲",
+      "iconBg": "#8b5cf6",
+      "category": "preview",
+      "section": "preview"
+    },
+    {
+      "id": "amazon-ad-preview",
+      "name": "Amazon Sponsored Preview",
+      "description": "Sponsored Products, Brands, Display in marketplace context.",
+      "icon": "📦",
+      "iconBg": "#ff9900",
+      "category": "preview",
+      "section": "preview"
+    },
+    {
+      "id": "email-ad-preview",
+      "name": "Email Ad Preview",
+      "description": "Sponsored newsletter placement, inbox ad formats. Gmail and Outlook.",
+      "icon": "📧",
+      "iconBg": "#6366f1",
+      "category": "preview",
+      "section": "preview"
+    },
+    {
+      "id": "budget-calculator",
+      "name": "Budget Calculator",
+      "description": "Daily/monthly budget from target impressions, clicks, or conversions.",
+      "icon": "💰",
+      "iconBg": "#10b981",
+      "category": "budget",
+      "section": "budget"
+    },
+    {
+      "id": "cpc-estimator",
+      "name": "CPC/CPM/CPA Estimator",
+      "description": "Estimate costs by industry, audience size, platform, and placement type.",
+      "icon": "📊",
+      "iconBg": "#3b82f6",
+      "category": "budget",
+      "section": "budget"
+    },
+    {
+      "id": "roas-calculator",
+      "name": "ROAS Calculator",
+      "description": "Revenue vs ad spend analysis. Break-even point, margin-aware projections.",
+      "icon": "📈",
+      "iconBg": "#ef4444",
+      "category": "budget",
+      "section": "budget"
+    },
+    {
+      "id": "bid-strategy-planner",
+      "name": "Bid Strategy Planner",
+      "description": "Manual CPC vs automated bidding comparison. Projected outcomes.",
+      "icon": "🎯",
+      "iconBg": "#f97316",
+      "category": "budget",
+      "section": "budget"
+    },
+    {
+      "id": "budget-allocator",
+      "name": "Budget Allocator",
+      "description": "Split budget across platforms based on audience overlap and benchmarks.",
+      "icon": "🔀",
+      "iconBg": "#8b5cf6",
+      "category": "budget",
+      "section": "budget"
+    },
+    {
+      "id": "spend-pacing",
+      "name": "Spend Pacing Tracker",
+      "description": "Daily spend tracker with projections. Over/under-pacing alerts.",
+      "icon": "⏱️",
+      "iconBg": "#06b6d4",
+      "category": "budget",
+      "section": "budget"
+    },
+    {
+      "id": "audience-builder",
+      "name": "Audience Builder",
+      "description": "Demographics + interests + behaviors → estimated reach per platform.",
+      "icon": "👥",
+      "iconBg": "#ec4899",
+      "category": "audience",
+      "section": "audience"
+    },
+    {
+      "id": "lookalike-planner",
+      "name": "Lookalike Planner",
+      "description": "Define seed audience characteristics. Estimate expansion tiers.",
+      "icon": "🪞",
+      "iconBg": "#8b5cf6",
+      "category": "audience",
+      "section": "audience"
+    },
+    {
+      "id": "overlap-analyzer",
+      "name": "Audience Overlap Analyzer",
+      "description": "Compare two audience definitions. Find redundancy.",
+      "icon": "🔗",
+      "iconBg": "#f97316",
+      "category": "audience",
+      "section": "audience"
+    },
+    {
+      "id": "exclusion-builder",
+      "name": "Exclusion List Builder",
+      "description": "Negative keywords, excluded placements, audience suppressions.",
+      "icon": "🚫",
+      "iconBg": "#ef4444",
+      "category": "audience",
+      "section": "audience"
+    },
+    {
+      "id": "persona-to-targeting",
+      "name": "Persona to Targeting",
+      "description": "Take a marketing persona → translate to platform targeting options.",
+      "icon": "🎭",
+      "iconBg": "#10b981",
+      "category": "audience",
+      "section": "audience"
+    },
+    {
+      "id": "match-planner",
+      "name": "Customer Match Planner",
+      "description": "Plan first-party data segments. Privacy-compliant.",
+      "icon": "📋",
+      "iconBg": "#3b82f6",
+      "category": "audience",
+      "section": "audience"
+    },
+    {
+      "id": "ab-test-designer",
+      "name": "A/B Test Designer",
+      "description": "Create ad variants, define hypothesis, calculate sample size.",
+      "icon": "⚡",
+      "iconBg": "#eab308",
+      "category": "optimize",
+      "section": "optimize"
+    },
+    {
+      "id": "fatigue-detector",
+      "name": "Creative Fatigue Detector",
+      "description": "Input metrics over time → detect when creative is exhausted.",
+      "icon": "😴",
+      "iconBg": "#f97316",
+      "category": "optimize",
+      "section": "optimize"
+    },
+    {
+      "id": "frequency-calculator",
+      "name": "Frequency Calculator",
+      "description": "Impressions vs unique reach → optimal frequency cap.",
+      "icon": "🔁",
+      "iconBg": "#8b5cf6",
+      "category": "optimize",
+      "section": "optimize"
+    },
+    {
+      "id": "landing-page-grader",
+      "name": "Landing Page Grader",
+      "description": "Score any URL for ad relevance, load speed, CTA clarity.",
+      "icon": "📄",
+      "iconBg": "#10b981",
+      "category": "optimize",
+      "section": "optimize"
+    },
+    {
+      "id": "quality-score-sim",
+      "name": "Quality Score Simulator",
+      "description": "Google Ads Quality Score estimator from ad + keyword + landing page.",
+      "icon": "⭐",
+      "iconBg": "#3b82f6",
+      "category": "optimize",
+      "section": "optimize"
+    },
+    {
+      "id": "relevance-scorer",
+      "name": "Ad Relevance Scorer",
+      "description": "Meta relevance diagnostics simulator. Quality, engagement, conversion.",
+      "icon": "📊",
+      "iconBg": "#ec4899",
+      "category": "optimize",
+      "section": "optimize"
+    },
+    {
+      "id": "utm-builder",
+      "name": "UTM Builder",
+      "description": "Generate UTM parameters. Save templates, bulk generate. Copy or CSV.",
+      "icon": "🔗",
+      "iconBg": "#6366f1",
+      "category": "analytics",
+      "section": "analytics"
+    },
+    {
+      "id": "attribution-comparer",
+      "name": "Attribution Model Comparer",
+      "description": "Same data through last-click, first-click, linear, time-decay models.",
+      "icon": "🔀",
+      "iconBg": "#ef4444",
+      "category": "analytics",
+      "section": "analytics"
+    },
+    {
+      "id": "funnel-visualizer",
+      "name": "Funnel Visualizer",
+      "description": "Ad impression → click → landing → action. Drop-off at each stage.",
+      "icon": "🏗️",
+      "iconBg": "#f59e0b",
+      "category": "analytics",
+      "section": "analytics"
+    },
+    {
+      "id": "roas-dashboard",
+      "name": "ROAS Dashboard",
+      "description": "Input spend + revenue by channel. Visualize cross-channel performance.",
+      "icon": "📈",
+      "iconBg": "#10b981",
+      "category": "analytics",
+      "section": "analytics"
+    },
+    {
+      "id": "lift-calculator",
+      "name": "Conversion Lift Calculator",
+      "description": "Estimate incremental conversions from ads vs organic baseline.",
+      "icon": "📊",
+      "iconBg": "#3b82f6",
+      "category": "analytics",
+      "section": "analytics"
+    },
+    {
+      "id": "report-generator",
+      "name": "Report Generator",
+      "description": "Weekly/monthly ad performance report. Charts, insights. Export PDF.",
+      "icon": "📝",
+      "iconBg": "#8b5cf6",
+      "category": "analytics",
+      "section": "analytics"
+    },
+    {
+      "id": "policy-checker",
+      "name": "Ad Policy Checker",
+      "description": "Paste ad copy + image → check against Meta/Google/LinkedIn policies.",
+      "icon": "✅",
+      "iconBg": "#10b981",
+      "category": "compliance",
+      "section": "compliance"
+    },
+    {
+      "id": "text-image-analyzer",
+      "name": "Text-on-Image Analyzer",
+      "description": "Check if image exceeds text ratio best practices.",
+      "icon": "🔤",
+      "iconBg": "#f97316",
+      "category": "compliance",
+      "section": "compliance"
+    },
+    {
+      "id": "disclaimer-generator",
+      "name": "Disclaimer Generator",
+      "description": "Auto-generate disclaimers: finance, health, alcohol, political.",
+      "icon": "⚖️",
+      "iconBg": "#6366f1",
+      "category": "compliance",
+      "section": "compliance"
+    },
+    {
+      "id": "privacy-audit",
+      "name": "GDPR/Privacy Ad Audit",
+      "description": "Check ad + landing page for consent and data collection compliance.",
+      "icon": "🔒",
+      "iconBg": "#ef4444",
+      "category": "compliance",
+      "section": "compliance"
+    },
+    {
+      "id": "competitive-ads",
+      "name": "Competitive Ad Library",
+      "description": "Browse Meta Ad Library / Google Ads Transparency with better UX.",
+      "icon": "🔍",
+      "iconBg": "#3b82f6",
+      "category": "compliance",
+      "section": "compliance"
+    },
+    {
+      "id": "platform-comparison",
+      "name": "Platform Comparison",
+      "description": "Side-by-side: audience, cost, formats, targeting for all ad platforms.",
+      "icon": "⚔️",
+      "iconBg": "#ec4899",
+      "category": "learn",
+      "section": "learn"
+    },
+    {
+      "id": "ad-format-reference",
+      "name": "Ad Format Reference",
+      "description": "Every ad format, every platform. Specs, dimensions, character limits.",
+      "icon": "📏",
+      "iconBg": "#f59e0b",
+      "category": "learn",
+      "section": "learn"
+    },
+    {
+      "id": "industry-benchmarks",
+      "name": "Industry Benchmarks",
+      "description": "Average CPC, CTR, CVR by industry and platform. 2026 data.",
+      "icon": "📊",
+      "iconBg": "#8b5cf6",
+      "category": "learn",
+      "section": "learn"
+    },
+    {
+      "id": "campaign-type-guide",
+      "name": "Campaign Type Guide",
+      "description": "When to use awareness vs traffic vs conversion vs leads.",
+      "icon": "🗺️",
+      "iconBg": "#10b981",
+      "category": "learn",
+      "section": "learn"
+    },
+    {
+      "id": "glossary",
+      "name": "Advertising Glossary",
+      "description": "Every advertising term explained. CPC, CPM, ROAS, CTR, 100+ more.",
+      "icon": "📖",
+      "iconBg": "#3b82f6",
+      "category": "learn",
+      "section": "learn"
+    }
+  ]
+}

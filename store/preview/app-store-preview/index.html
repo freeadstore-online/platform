@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>App Store Ad Preview - FreeAdStore</title>
+<meta name="description" content="Preview how your app appears as a search ad in Apple App Store and Google Play Store. Pixel-accurate mockups with phone frames. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--panel:#ffffff;--line:#e5e7eb;--radius:10px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 24px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px;font-family:'Fraunces',serif}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:#f1f3f4}
+
+/* TABS */
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--line);background:var(--panel);flex-shrink:0;padding:0 20px}
+.tab{padding:12px 18px;font-size:.78rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);font-family:inherit;background:none;border-top:none;border-left:none;border-right:none;transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* PREVIEW AREA */
+.preview-area{flex:1;overflow-y:auto;display:flex;align-items:flex-start;justify-content:center;padding:24px}
+
+/* PANELS */
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.03em}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 3px;font-weight:500}
+input[type=text],input[type=number],textarea,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;resize:none}
+input[type=text]:focus,input[type=number]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{min-height:50px;line-height:1.4}
+
+/* IMAGE UPLOAD */
+.drop-zone{border:2px dashed var(--line);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg);position:relative}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:#fef2f2}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop-zone-text{font-size:.75rem;color:var(--muted)}
+.drop-zone-text strong{color:var(--text)}
+.icon-preview{width:60px;height:60px;border-radius:14px;margin:0 auto 8px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.icon-preview img{width:100%;height:100%;object-fit:cover}
+.icon-preview .remove-icon{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:.7rem;display:flex;align-items:center;justify-content:center}
+.icon-container{position:relative;display:inline-block}
+
+/* Rating input */
+.rating-row{display:flex;gap:8px;align-items:center}
+.rating-row input[type=number]{width:70px}
+.rating-row .review-input{flex:1}
+
+/* Screenshots */
+.screenshots-grid{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.screenshot-thumb{width:50px;height:90px;border-radius:6px;overflow:hidden;position:relative;background:#e5e7eb}
+.screenshot-thumb img{width:100%;height:100%;object-fit:cover}
+.screenshot-thumb .remove-ss{position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:.6rem;display:flex;align-items:center;justify-content:center}
+
+/* ============================================================
+   PHONE FRAME
+   ============================================================ */
+.phone-frame{width:375px;height:720px;border-radius:36px;background:#111;padding:12px;box-shadow:0 8px 40px rgba(0,0,0,.25);position:relative}
+.phone-screen{width:100%;height:100%;border-radius:26px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+.phone-notch{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:120px;height:28px;background:#111;border-radius:0 0 14px 14px;z-index:10}
+.phone-time{position:absolute;top:16px;left:32px;font-size:14px;font-weight:600;color:#000;z-index:5;font-family:-apple-system,system-ui,sans-serif}
+.phone-status{position:absolute;top:16px;right:32px;display:flex;gap:4px;align-items:center;z-index:5}
+.phone-status svg{width:16px;height:16px;color:#000}
+
+/* ============================================================
+   APPLE SEARCH ADS
+   ============================================================ */
+.ios-screen{font-family:-apple-system,'SF Pro Display','Helvetica Neue',sans-serif}
+.ios-search-bar{margin:44px 16px 0;padding:10px 12px;background:#e9e9eb;border-radius:10px;display:flex;align-items:center;gap:8px}
+.ios-search-bar svg{width:16px;height:16px;color:#8e8e93;flex-shrink:0}
+.ios-search-bar span{font-size:16px;color:#8e8e93}
+.ios-search-tabs{display:flex;gap:0;margin:12px 16px 0;border-bottom:1px solid #e5e5ea}
+.ios-search-tabs span{flex:1;text-align:center;padding:8px;font-size:13px;color:#8e8e93;cursor:default}
+.ios-search-tabs span.active{color:#007aff;border-bottom:2px solid #007aff;font-weight:600}
+.ios-suggested-label{font-size:20px;font-weight:700;color:#000;padding:16px 16px 8px}
+
+/* Ad result card */
+.ios-ad-card{margin:0 16px 8px;padding:12px;background:#fff;border-radius:12px;border:1px solid #e5e5ea}
+.ios-ad-badge{display:inline-block;font-size:10px;font-weight:600;color:#007aff;background:#e8f0fe;border-radius:4px;padding:1px 6px;margin-bottom:8px}
+.ios-ad-row{display:flex;align-items:center;gap:12px}
+.ios-ad-icon{width:52px;height:52px;border-radius:12px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:700;flex-shrink:0;overflow:hidden}
+.ios-ad-icon img{width:100%;height:100%;object-fit:cover}
+.ios-ad-info{flex:1;min-width:0}
+.ios-ad-name{font-size:15px;font-weight:600;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ios-ad-subtitle{font-size:12px;color:#8e8e93;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.ios-ad-rating{display:flex;align-items:center;gap:4px;margin-top:2px}
+.ios-ad-stars{display:flex;gap:0}
+.ios-ad-stars svg{width:12px;height:12px}
+.ios-ad-rating-count{font-size:11px;color:#8e8e93}
+.ios-ad-get{padding:6px 18px;border-radius:99px;background:#007aff;color:#fff;font-size:14px;font-weight:700;border:none;cursor:default;flex-shrink:0;font-family:inherit}
+.ios-ad-price{font-size:10px;color:#8e8e93;text-align:center;margin-top:2px}
+.ios-ad-screenshots{display:flex;gap:8px;margin-top:10px;overflow-x:auto;padding-bottom:4px}
+.ios-ad-screenshot{width:100px;height:180px;border-radius:8px;background:#e5e5ea;flex-shrink:0;overflow:hidden;border:1px solid #d1d1d6}
+.ios-ad-screenshot img{width:100%;height:100%;object-fit:cover}
+
+/* Organic results (blurred) */
+.ios-organic{margin:0 16px 8px;padding:12px;opacity:.45;filter:blur(.3px)}
+.ios-organic-row{display:flex;align-items:center;gap:12px}
+.ios-organic-icon{width:52px;height:52px;border-radius:12px;background:#e5e5ea;flex-shrink:0}
+.ios-organic-info{flex:1;min-width:0}
+.ios-organic-name{font-size:15px;font-weight:600;color:#000}
+.ios-organic-sub{font-size:12px;color:#8e8e93;margin-top:1px}
+.ios-organic-get{padding:6px 18px;border-radius:99px;background:#e5e5ea;color:#007aff;font-size:14px;font-weight:700;border:none;flex-shrink:0}
+
+/* ============================================================
+   GOOGLE PLAY
+   ============================================================ */
+.gp-screen{font-family:'Google Sans',-apple-system,Roboto,sans-serif;background:#fff}
+.gp-status-bar{height:44px;background:#fff}
+.gp-search-bar{margin:0 16px;padding:10px 12px;background:#f1f3f4;border-radius:24px;display:flex;align-items:center;gap:10px}
+.gp-search-bar svg{width:18px;height:18px;color:#5f6368;flex-shrink:0}
+.gp-search-bar span{font-size:15px;color:#5f6368}
+.gp-search-bar .gp-mic{margin-left:auto}
+.gp-tabs{display:flex;gap:0;margin:12px 0 0;border-bottom:1px solid #e8eaed;padding:0 16px}
+.gp-tabs span{padding:10px 16px;font-size:13px;color:#5f6368;cursor:default}
+.gp-tabs span.active{color:#1a73e8;font-weight:500;border-bottom:2px solid #1a73e8}
+.gp-section-label{font-size:12px;color:#5f6368;padding:12px 16px 4px;font-weight:500}
+
+/* Ad result */
+.gp-ad-card{padding:12px 16px}
+.gp-ad-label{font-size:11px;color:#5f6368;margin-bottom:6px;font-weight:500}
+.gp-ad-label span{background:#dadce0;color:#5f6368;padding:1px 4px;border-radius:3px;font-size:10px;font-weight:700;margin-right:4px}
+.gp-ad-row{display:flex;align-items:center;gap:14px}
+.gp-ad-icon{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#4285f4,#34a853);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:700;flex-shrink:0;overflow:hidden}
+.gp-ad-icon img{width:100%;height:100%;object-fit:cover}
+.gp-ad-info{flex:1;min-width:0}
+.gp-ad-name{font-size:15px;font-weight:500;color:#202124;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gp-ad-developer{font-size:13px;color:#5f6368;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gp-ad-meta{display:flex;align-items:center;gap:6px;margin-top:2px}
+.gp-ad-rating{font-size:12px;color:#202124;font-weight:500;display:flex;align-items:center;gap:2px}
+.gp-ad-rating svg{width:11px;height:11px;fill:#ffc107}
+.gp-ad-size{font-size:12px;color:#5f6368}
+.gp-ad-install{padding:8px 20px;border-radius:8px;background:#01875f;color:#fff;font-size:13px;font-weight:500;border:none;cursor:default;flex-shrink:0;font-family:inherit}
+.gp-ad-screenshots{display:flex;gap:8px;margin:10px 16px 0;overflow-x:auto;padding-bottom:4px}
+.gp-ad-screenshot{width:90px;height:160px;border-radius:8px;background:#f1f3f4;flex-shrink:0;overflow:hidden;border:1px solid #e8eaed}
+.gp-ad-screenshot img{width:100%;height:100%;object-fit:cover}
+
+/* Organic results */
+.gp-organic{padding:12px 16px;opacity:.45;filter:blur(.3px)}
+.gp-organic-row{display:flex;align-items:center;gap:14px}
+.gp-organic-icon{width:48px;height:48px;border-radius:10px;background:#e8eaed;flex-shrink:0}
+.gp-organic-info{flex:1;min-width:0}
+.gp-organic-name{font-size:15px;font-weight:500;color:#202124}
+.gp-organic-dev{font-size:13px;color:#5f6368}
+.gp-organic-meta{display:flex;align-items:center;gap:6px;margin-top:2px;font-size:12px;color:#5f6368}
+.gp-organic-rating{display:flex;align-items:center;gap:2px;font-weight:500;color:#202124}
+.gp-organic-rating svg{width:11px;height:11px;fill:#ffc107}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .preview-area{min-height:500px}
+  .phone-frame{width:320px;height:620px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Controls -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&larr; FreeAdStore</a>
+      <h1>App Store Ad Preview</h1>
+      <p>See how your app ad appears in Apple Search Ads and Google Play.</p>
+    </div>
+    <div class="sidebar-scroll" id="controls"></div>
+  </div>
+  <!-- RIGHT: Preview -->
+  <div class="main">
+    <div class="tab-bar" id="tabBar"></div>
+    <div class="preview-area" id="previewArea"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  appName: 'FocusFlow',
+  developer: 'Acme Studios',
+  iconData: null,
+  iconGradient: ['#667eea','#764ba2'],
+  price: 'Free',
+  rating: 4.7,
+  reviewCount: 12400,
+  description: 'Productivity & Focus Timer',
+  screenshots: [],
+  activeTab: 'apple'
+};
+
+const TABS = [
+  {id:'apple', label:'Apple Search Ads'},
+  {id:'google', label:'Google Play'}
+];
+
+const GRADIENTS = [
+  ['#667eea','#764ba2'],['#f093fb','#f5576c'],['#4facfe','#00f2fe'],
+  ['#43e97b','#38f9d7'],['#fa709a','#fee140'],['#a18cd1','#fbc2eb'],
+  ['#ff9a9e','#fecfef'],['#fbc2eb','#a6c1ee'],['#667eea','#f093fb']
+];
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ============================================================
+// BUILD CONTROLS
+// ============================================================
+function buildControls(){
+  const c = document.getElementById('controls');
+  const initial = (S.appName || 'A').charAt(0).toUpperCase();
+
+  c.innerHTML = `
+  <div class="panel">
+    <div class="panel-title">App Details</div>
+    <label>App Name</label>
+    <input type="text" id="inpName" value="${esc(S.appName)}" placeholder="My App Name">
+    <label>Developer Name</label>
+    <input type="text" id="inpDev" value="${esc(S.developer)}" placeholder="Developer or company">
+    <label>Short Description / Category</label>
+    <input type="text" id="inpDesc" value="${esc(S.description)}" placeholder="e.g. Productivity, Photo & Video">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">App Icon</div>
+    <div class="drop-zone" id="iconDrop">
+      <input type="file" accept="image/*" id="iconInput">
+      <div class="icon-container">
+        ${S.iconData
+          ? `<div class="icon-preview"><img src="${S.iconData}" alt="Icon"></div>`
+          : `<div class="icon-preview" style="background:linear-gradient(135deg,${S.iconGradient[0]},${S.iconGradient[1]});color:#fff;font-size:24px;font-weight:700">${initial}</div>`
+        }
+      </div>
+      <div class="drop-zone-text" style="margin-top:6px">
+        ${S.iconData ? '<strong>Click to replace</strong>' : '<strong>Upload icon</strong> or use gradient placeholder'}
+      </div>
+    </div>
+    ${S.iconData ? `<div style="text-align:center;margin-top:4px"><button id="removeIcon" style="font-size:.7rem;color:var(--accent);background:none;border:none;cursor:pointer;font-family:inherit">Remove icon</button></div>` : ''}
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Pricing</div>
+    <select id="selPrice">
+      <option value="Free"${S.price==='Free'?' selected':''}>Free</option>
+      <option value="$0.99"${S.price==='$0.99'?' selected':''}>$0.99</option>
+      <option value="$1.99"${S.price==='$1.99'?' selected':''}>$1.99</option>
+      <option value="$2.99"${S.price==='$2.99'?' selected':''}>$2.99</option>
+      <option value="$4.99"${S.price==='$4.99'?' selected':''}>$4.99</option>
+      <option value="$9.99"${S.price==='$9.99'?' selected':''}>$9.99</option>
+      <option value="$14.99"${S.price==='$14.99'?' selected':''}>$14.99</option>
+      <option value="$19.99"${S.price==='$19.99'?' selected':''}>$19.99</option>
+    </select>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Rating</div>
+    <div class="rating-row">
+      <input type="number" id="inpRating" value="${S.rating}" min="1" max="5" step="0.1" style="width:70px">
+      <div class="review-input">
+        <input type="number" id="inpReviews" value="${S.reviewCount}" min="0" step="1" placeholder="Reviews">
+      </div>
+    </div>
+    <div style="font-size:.62rem;color:var(--muted);margin-top:3px">Rating (1-5) and review count</div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Screenshots <span style="font-size:.6rem;color:var(--muted);font-weight:400;text-transform:none">(optional, up to 4)</span></div>
+    <div class="drop-zone" id="ssDrop">
+      <input type="file" accept="image/*" id="ssInput" multiple>
+      <div class="drop-zone-text"><strong>Upload screenshots</strong><br><span style="font-size:.65rem">Phone screenshots, up to 4</span></div>
+    </div>
+    ${S.screenshots.length > 0 ? `
+    <div class="screenshots-grid">
+      ${S.screenshots.map((ss, i) => `
+        <div class="screenshot-thumb">
+          <img src="${ss}" alt="Screenshot ${i+1}">
+          <button class="remove-ss" data-idx="${i}">&times;</button>
+        </div>
+      `).join('')}
+    </div>` : ''}
+  </div>
+  `;
+  bindControls();
+}
+
+// ============================================================
+// BIND CONTROLS
+// ============================================================
+function bindControls(){
+  const $ = id => document.getElementById(id);
+
+  $('inpName').oninput = e => { S.appName = e.target.value; render(); };
+  $('inpDev').oninput = e => { S.developer = e.target.value; render(); };
+  $('inpDesc').oninput = e => { S.description = e.target.value; render(); };
+  $('selPrice').onchange = e => { S.price = e.target.value; render(); };
+  $('inpRating').oninput = e => { S.rating = Math.min(5, Math.max(0, parseFloat(e.target.value)||0)); render(); };
+  $('inpReviews').oninput = e => { S.reviewCount = parseInt(e.target.value)||0; render(); };
+
+  // Icon upload
+  const iconDrop = $('iconDrop');
+  const iconInput = $('iconInput');
+  iconDrop.addEventListener('dragover', e => { e.preventDefault(); iconDrop.classList.add('dragover'); });
+  iconDrop.addEventListener('dragleave', () => iconDrop.classList.remove('dragover'));
+  iconDrop.addEventListener('drop', e => { e.preventDefault(); iconDrop.classList.remove('dragover'); const f = e.dataTransfer.files[0]; if(f && f.type.startsWith('image/')) loadIcon(f); });
+  iconInput.addEventListener('change', e => { const f = e.target.files[0]; if(f) loadIcon(f); });
+  const removeIcon = $('removeIcon');
+  if(removeIcon) removeIcon.onclick = () => { S.iconData = null; buildControls(); render(); };
+
+  // Screenshot upload
+  const ssDrop = $('ssDrop');
+  const ssInput = $('ssInput');
+  ssDrop.addEventListener('dragover', e => { e.preventDefault(); ssDrop.classList.add('dragover'); });
+  ssDrop.addEventListener('dragleave', () => ssDrop.classList.remove('dragover'));
+  ssDrop.addEventListener('drop', e => { e.preventDefault(); ssDrop.classList.remove('dragover'); loadScreenshots(e.dataTransfer.files); });
+  ssInput.addEventListener('change', e => loadScreenshots(e.target.files));
+
+  // Remove screenshots
+  document.querySelectorAll('.remove-ss').forEach(btn => {
+    btn.onclick = () => { S.screenshots.splice(parseInt(btn.dataset.idx), 1); buildControls(); render(); };
+  });
+}
+
+function loadIcon(file){
+  const r = new FileReader();
+  r.onload = e => { S.iconData = e.target.result; buildControls(); render(); };
+  r.readAsDataURL(file);
+}
+
+function loadScreenshots(files){
+  const remaining = 4 - S.screenshots.length;
+  const toLoad = Math.min(files.length, remaining);
+  let loaded = 0;
+  for(let i = 0; i < toLoad; i++){
+    if(!files[i].type.startsWith('image/')) continue;
+    const r = new FileReader();
+    r.onload = e => { S.screenshots.push(e.target.result); loaded++; if(loaded >= toLoad){ buildControls(); render(); } };
+    r.readAsDataURL(files[i]);
+  }
+}
+
+function formatCount(n){
+  if(n >= 1000000) return (n/1000000).toFixed(1).replace(/\.0$/,'') + 'M';
+  if(n >= 1000) return (n/1000).toFixed(1).replace(/\.0$/,'') + 'K';
+  return String(n);
+}
+
+function renderStars(rating, platform){
+  const fullStars = Math.floor(rating);
+  const halfStar = rating - fullStars >= 0.25 && rating - fullStars < 0.75;
+  const almostFull = rating - fullStars >= 0.75;
+  const total = fullStars + (almostFull ? 1 : 0);
+  const fillColor = platform === 'apple' ? '#ff9500' : '#ffc107';
+  const emptyColor = platform === 'apple' ? '#d1d1d6' : '#dadce0';
+  let html = '';
+  for(let i = 0; i < 5; i++){
+    if(i < total){
+      html += `<svg viewBox="0 0 24 24" fill="${fillColor}"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
+    } else if(i === total && halfStar){
+      html += `<svg viewBox="0 0 24 24"><defs><linearGradient id="half${platform}"><stop offset="50%" stop-color="${fillColor}"/><stop offset="50%" stop-color="${emptyColor}"/></linearGradient></defs><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="url(#half${platform})"/></svg>`;
+    } else {
+      html += `<svg viewBox="0 0 24 24" fill="${emptyColor}"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
+    }
+  }
+  return html;
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function buildTabs(){
+  document.getElementById('tabBar').innerHTML = TABS.map(t =>
+    `<button class="tab${t.id===S.activeTab?' active':''}" data-tab="${t.id}">${t.label}</button>`
+  ).join('');
+  document.getElementById('tabBar').onclick = e => {
+    const tab = e.target.closest('[data-tab]');
+    if(!tab) return;
+    S.activeTab = tab.dataset.tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === S.activeTab));
+    render();
+  };
+}
+
+// ============================================================
+// ICON HTML
+// ============================================================
+function iconHTML(size, borderRadius, platform){
+  const initial = (S.appName || 'A').charAt(0).toUpperCase();
+  if(S.iconData){
+    return `<div style="width:${size}px;height:${size}px;border-radius:${borderRadius}px;overflow:hidden;flex-shrink:0"><img src="${S.iconData}" alt="Icon" style="width:100%;height:100%;object-fit:cover"></div>`;
+  }
+  const grad = S.iconGradient;
+  return `<div style="width:${size}px;height:${size}px;border-radius:${borderRadius}px;background:linear-gradient(135deg,${grad[0]},${grad[1]});display:flex;align-items:center;justify-content:center;color:#fff;font-size:${Math.round(size*0.42)}px;font-weight:700;flex-shrink:0">${initial}</div>`;
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render(){
+  const area = document.getElementById('previewArea');
+  if(S.activeTab === 'apple') area.innerHTML = renderApple();
+  else area.innerHTML = renderGoogle();
+}
+
+function renderApple(){
+  const ssHTML = S.screenshots.length > 0
+    ? S.screenshots.map(ss => `<div class="ios-ad-screenshot"><img src="${ss}" alt="Screenshot"></div>`).join('')
+    : `<div class="ios-ad-screenshot"></div><div class="ios-ad-screenshot"></div><div class="ios-ad-screenshot"></div>`;
+
+  return `
+  <div class="phone-frame">
+    <div class="phone-notch"></div>
+    <div class="phone-time">9:41</div>
+    <div class="phone-status">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 0 0-6 0zm-4-4l2 2a7.074 7.074 0 0 1 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 22h20V2z" opacity=".3"/><path d="M2 22h20V2L2 22zm18-2H6.83L20 6.83V20z"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="6" width="18" height="12" rx="2"/><rect x="20" y="9" width="2" height="6" rx="1"/><rect x="4" y="8" width="10" height="8" rx="1" fill="#34c759"/></svg>
+    </div>
+    <div class="phone-screen ios-screen" style="overflow-y:auto">
+      <div class="ios-search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span>${esc(S.appName || 'Search')}</span>
+      </div>
+      <div class="ios-search-tabs">
+        <span class="active">Search</span>
+        <span>Arcade</span>
+        <span>Apps</span>
+      </div>
+      <div class="ios-suggested-label">Suggested</div>
+
+      <!-- Ad card -->
+      <div class="ios-ad-card">
+        <div class="ios-ad-badge">Ad</div>
+        <div class="ios-ad-row">
+          ${iconHTML(52, 12, 'apple')}
+          <div class="ios-ad-info">
+            <div class="ios-ad-name">${esc(S.appName || 'App Name')}</div>
+            <div class="ios-ad-subtitle">${esc(S.description)}</div>
+            <div class="ios-ad-rating">
+              <div class="ios-ad-stars">${renderStars(S.rating, 'apple')}</div>
+              <span class="ios-ad-rating-count">(${formatCount(S.reviewCount)})</span>
+            </div>
+          </div>
+          <div style="text-align:center">
+            <button class="ios-ad-get">${S.price === 'Free' ? 'GET' : S.price}</button>
+            ${S.price !== 'Free' ? '' : `<div class="ios-ad-price">In-App Purchases</div>`}
+          </div>
+        </div>
+        <div class="ios-ad-screenshots">${ssHTML}</div>
+      </div>
+
+      <!-- Organic results -->
+      <div class="ios-organic">
+        <div class="ios-organic-row">
+          <div class="ios-organic-icon"></div>
+          <div class="ios-organic-info">
+            <div class="ios-organic-name">Similar App One</div>
+            <div class="ios-organic-sub">Lifestyle</div>
+          </div>
+          <button class="ios-organic-get">GET</button>
+        </div>
+      </div>
+      <div class="ios-organic">
+        <div class="ios-organic-row">
+          <div class="ios-organic-icon"></div>
+          <div class="ios-organic-info">
+            <div class="ios-organic-name">Another Related App</div>
+            <div class="ios-organic-sub">Productivity</div>
+          </div>
+          <button class="ios-organic-get">GET</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderGoogle(){
+  const ssHTML = S.screenshots.length > 0
+    ? S.screenshots.map(ss => `<div class="gp-ad-screenshot"><img src="${ss}" alt="Screenshot"></div>`).join('')
+    : '';
+
+  return `
+  <div class="phone-frame">
+    <div class="phone-notch"></div>
+    <div class="phone-time">9:41</div>
+    <div class="phone-status">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 0 0-6 0zm-4-4l2 2a7.074 7.074 0 0 1 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 22h20V2z" opacity=".3"/><path d="M2 22h20V2L2 22zm18-2H6.83L20 6.83V20z"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="6" width="18" height="12" rx="2"/><rect x="20" y="9" width="2" height="6" rx="1"/><rect x="4" y="8" width="10" height="8" rx="1" fill="#34c759"/></svg>
+    </div>
+    <div class="phone-screen gp-screen" style="overflow-y:auto">
+      <div class="gp-status-bar"></div>
+      <div class="gp-search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span>${esc(S.appName || 'Search')}</span>
+        <svg class="gp-mic" viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;color:#4285f4"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+      </div>
+      <div class="gp-tabs">
+        <span class="active">For you</span>
+        <span>Top charts</span>
+        <span>Categories</span>
+      </div>
+      <div class="gp-section-label">Suggested for you</div>
+
+      <!-- Ad card -->
+      <div class="gp-ad-card">
+        <div class="gp-ad-label"><span>Ad</span> Suggested for you</div>
+        <div class="gp-ad-row">
+          ${iconHTML(48, 10, 'google')}
+          <div class="gp-ad-info">
+            <div class="gp-ad-name">${esc(S.appName || 'App Name')}</div>
+            <div class="gp-ad-developer">${esc(S.developer)}</div>
+            <div class="gp-ad-meta">
+              <span class="gp-ad-rating">${S.rating.toFixed(1)} <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
+              <span class="gp-ad-size">${formatCount(S.reviewCount)} reviews</span>
+            </div>
+          </div>
+          <button class="gp-ad-install">${S.price === 'Free' ? 'Install' : S.price}</button>
+        </div>
+      </div>
+      ${ssHTML ? `<div class="gp-ad-screenshots">${ssHTML}</div>` : ''}
+
+      <!-- Organic -->
+      <div style="border-top:1px solid #e8eaed;margin:4px 16px 0"></div>
+      <div class="gp-organic">
+        <div class="gp-organic-row">
+          <div class="gp-organic-icon"></div>
+          <div class="gp-organic-info">
+            <div class="gp-organic-name">Competitor App</div>
+            <div class="gp-organic-dev">Other Studios</div>
+            <div class="gp-organic-meta">
+              <span class="gp-organic-rating">4.3 <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="gp-organic">
+        <div class="gp-organic-row">
+          <div class="gp-organic-icon"></div>
+          <div class="gp-organic-info">
+            <div class="gp-organic-name">Another App</div>
+            <div class="gp-organic-dev">Dev Team Inc</div>
+            <div class="gp-organic-meta">
+              <span class="gp-organic-rating">4.1 <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildControls();
+buildTabs();
+render();
+</script>
+</body>
+</html>

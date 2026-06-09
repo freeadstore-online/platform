@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Customer Match Planner - FreeAdStore</title>
+<meta name="description" content="Plan first-party data segments for customer match ads. Estimated match rates, audience sizing, privacy compliance. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#ef4444;--accent-light:#fef2f2;--accent-dark:#dc2626;--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--panel:#ffffff;--line:#e5e7eb;--green:#10b981;--yellow:#f59e0b;--blue:#3b82f6;--purple:#8b5cf6}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+.top-bar{display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+.back{font-size:13px;font-weight:500;color:var(--accent);white-space:nowrap}
+.back:hover{text-decoration:underline}
+.top-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:700;flex:1}
+.top-title span{color:var(--accent)}
+
+.layout{display:flex;height:calc(100vh - 45px);overflow:hidden}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);overflow-y:auto;display:flex;flex-direction:column}
+.main{flex:1;overflow-y:auto;padding:24px 32px;background:var(--bg)}
+
+.sidebar-header{padding:16px 16px 0;border-bottom:1px solid var(--line);padding-bottom:12px}
+.sidebar-header h2{font-size:15px;font-weight:800;margin-bottom:4px}
+.sidebar-header p{font-size:11px;color:var(--muted);line-height:1.4}
+.sidebar-content{padding:16px;flex:1;overflow-y:auto}
+
+.section{margin-bottom:20px}
+.section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.section-title::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px}
+
+.field{margin-bottom:12px}
+.field-label{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;display:block}
+
+.text-input{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg)}
+.text-input:focus{outline:none;border-color:var(--accent)}
+
+.select{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg);color:var(--text);cursor:pointer}
+.select:focus{outline:none;border-color:var(--accent)}
+
+.pills{display:flex;flex-wrap:wrap;gap:5px}
+.pill{padding:5px 12px;border-radius:99px;border:1px solid var(--line);background:var(--panel);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;color:var(--muted)}
+.pill:hover{border-color:var(--accent);color:var(--text)}
+.pill.active{background:var(--accent);border-color:var(--accent);color:white}
+
+.slider-wrap{margin:8px 0}
+.slider-wrap input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:6px;background:var(--line);border-radius:3px;outline:none}
+.slider-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent);border:3px solid white;box-shadow:0 1px 4px rgba(0,0,0,.2);cursor:pointer}
+.slider-wrap input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--accent);border:3px solid white;box-shadow:0 1px 4px rgba(0,0,0,.2);cursor:pointer}
+.slider-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px}
+.slider-value-display{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:700;color:var(--text);text-align:center;margin:4px 0}
+
+.reset-btn{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);font-family:inherit;transition:all .15s;margin-top:8px}
+.reset-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Main area */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card h3{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+@media(max-width:900px){.stats-row{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.stats-row{grid-template-columns:1fr}}
+.stat-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.stat-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.stat-value{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;line-height:1.1}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:4px}
+
+/* Match rate bars */
+.match-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.match-row:last-child{margin-bottom:0}
+.match-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;color:white;flex-shrink:0;font-weight:800}
+.match-name{font-size:12px;font-weight:600;width:60px;flex-shrink:0}
+.match-bar-wrap{flex:1;display:flex;flex-direction:column;gap:2px}
+.match-bar-track{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.match-bar-fill{height:100%;border-radius:4px;transition:width .4s ease}
+.match-stats{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
+.match-rate{font-weight:700;color:var(--text)}
+.match-count{font-weight:600}
+
+/* Privacy checklist */
+.checklist{list-style:none}
+.check-item{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--bg);font-size:12px;line-height:1.5}
+.check-item:last-child{border-bottom:none}
+.check-icon{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.check-pass{background:#dcfce7;color:#16a34a}
+.check-warn{background:#fef3c7;color:#d97706}
+.check-fail{background:#fef2f2;color:#dc2626}
+.check-text{flex:1}
+.check-label{font-weight:600}
+.check-desc{color:var(--muted);font-size:11px}
+
+/* Tips */
+.tips-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.tips-card h3{font-size:13px;font-weight:700;margin-bottom:10px}
+.tip{font-size:12px;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--bg);line-height:1.5;display:flex;gap:6px}
+.tip:last-child{border-bottom:none}
+.tip-icon{flex-shrink:0}
+
+/* Data hygiene score */
+.hygiene-meter{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.hygiene-bar{flex:1;height:10px;background:var(--line);border-radius:5px;overflow:hidden}
+.hygiene-fill{height:100%;border-radius:5px;transition:width .4s ease}
+.hygiene-label{font-size:13px;font-weight:700;min-width:50px;text-align:right}
+
+.export-bar{display:flex;gap:8px;flex-wrap:wrap}
+.export-btn{padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .15s}
+.export-primary{background:var(--accent);color:white}
+.export-primary:hover{background:var(--accent-dark)}
+.export-secondary{background:var(--panel);color:var(--text);border:1px solid var(--line)}
+.export-secondary:hover{border-color:var(--accent)}
+.copied-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:white;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transition:all .3s ease;z-index:999;pointer-events:none}
+.copied-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+@media(max-width:768px){
+  .layout{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;max-height:50vh;border-right:none;border-bottom:1px solid var(--line)}
+  .main{padding:16px}
+  .stats-row{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a class="back" href="/">&larr; FreeAdStore</a>
+  <div class="top-title">Customer Match <span>Planner</span></div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>Plan Your Segment</h2>
+      <p>No real data is uploaded. Estimate match rates and audience sizes for your first-party data segments.</p>
+    </div>
+
+    <div class="sidebar-content">
+      <div class="section">
+        <div class="section-title">Segment Type</div>
+        <div class="pills" id="typePills">
+          <button class="pill active" data-value="email">Email list</button>
+          <button class="pill" data-value="phone">Phone list</button>
+          <button class="pill" data-value="website">Website visitors</button>
+          <button class="pill" data-value="app">App users</button>
+          <button class="pill" data-value="crm">CRM contacts</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">List Size</div>
+        <div class="slider-value-display" id="sizeDisplay">10,000</div>
+        <div class="slider-wrap">
+          <input type="range" id="sizeSlider" min="1" max="20" value="5" step="1">
+        </div>
+        <div class="slider-labels">
+          <span>500</span>
+          <span>1M+</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Data Freshness</div>
+        <div class="pills single" id="freshnessPills">
+          <button class="pill active" data-value="recent">0-30 days</button>
+          <button class="pill" data-value="moderate">1-6 months</button>
+          <button class="pill" data-value="old">6-12 months</button>
+          <button class="pill" data-value="stale">1+ year</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Data Quality</div>
+        <div class="pills single" id="qualityPills">
+          <button class="pill active" data-value="verified">Verified/Double opt-in</button>
+          <button class="pill" data-value="standard">Standard</button>
+          <button class="pill" data-value="mixed">Mixed quality</button>
+          <button class="pill" data-value="unknown">Unknown</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Target Platforms</div>
+        <div class="pills" id="platformPills">
+          <button class="pill active" data-value="google">Google</button>
+          <button class="pill active" data-value="meta">Meta</button>
+          <button class="pill active" data-value="linkedin">LinkedIn</button>
+          <button class="pill" data-value="tiktok">TikTok</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Region</div>
+        <div class="pills single" id="regionPills">
+          <button class="pill active" data-value="us">US / Canada</button>
+          <button class="pill" data-value="eu">Europe</button>
+          <button class="pill" data-value="apac">APAC</button>
+          <button class="pill" data-value="global">Global mix</button>
+        </div>
+      </div>
+
+      <button class="reset-btn" onclick="resetAll()">Reset All</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Stats Overview -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">List Size</div>
+        <div class="stat-value" id="statSize" style="color:var(--text)">10K</div>
+        <div class="stat-sub" id="statType">Email list</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Match Rate</div>
+        <div class="stat-value" id="statMatch" style="color:var(--accent)">--</div>
+        <div class="stat-sub">across platforms</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Expected Matches</div>
+        <div class="stat-value" id="statMatches" style="color:var(--green)">--</div>
+        <div class="stat-sub">usable audience</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Data Hygiene</div>
+        <div class="stat-value" id="statHygiene" style="color:var(--blue)">--</div>
+        <div class="stat-sub">quality score</div>
+      </div>
+    </div>
+
+    <!-- Data Hygiene Score -->
+    <div class="card">
+      <h3>Data Hygiene Score</h3>
+      <div class="hygiene-meter">
+        <div class="hygiene-bar"><div class="hygiene-fill" id="hygieneBar"></div></div>
+        <div class="hygiene-label" id="hygieneLabel">--</div>
+      </div>
+      <div id="hygieneDetails" style="font-size:12px;color:var(--muted);line-height:1.6"></div>
+    </div>
+
+    <!-- Match Rates by Platform -->
+    <div class="card">
+      <h3>Estimated Match Rate by Platform</h3>
+      <div id="matchRates"></div>
+    </div>
+
+    <!-- Privacy Compliance Checklist -->
+    <div class="card">
+      <h3>Privacy Compliance Checklist</h3>
+      <ul class="checklist" id="checklist"></ul>
+    </div>
+
+    <!-- Tips -->
+    <div class="tips-card">
+      <h3>Improve Your Match Rate</h3>
+      <div id="tipsList"></div>
+    </div>
+
+    <div class="export-bar">
+      <button class="export-btn export-primary" onclick="copyPlan()">Copy Match Plan</button>
+      <button class="export-btn export-secondary" onclick="exportJSON()">Export JSON</button>
+    </div>
+  </div>
+</div>
+
+<div class="copied-toast" id="toast">Copied to clipboard</div>
+
+<script>
+(function(){
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+
+  const SIZE_STEPS = [500, 1000, 2000, 3000, 5000, 10000, 15000, 20000, 30000, 50000, 75000, 100000, 150000, 200000, 300000, 500000, 750000, 1000000, 1500000, 2000000];
+
+  const PLATFORMS = {
+    google:   { name:'Google',   color:'#10b981', icon:'G', baseRate: { email:0.60, phone:0.50, website:0.75, app:0.70, crm:0.55 } },
+    meta:     { name:'Meta',     color:'#3b82f6', icon:'M', baseRate: { email:0.50, phone:0.55, website:0.65, app:0.60, crm:0.45 } },
+    linkedin: { name:'LinkedIn', color:'#0a66c2', icon:'Li', baseRate: { email:0.40, phone:0.25, website:0.35, app:0.20, crm:0.50 } },
+    tiktok:   { name:'TikTok',   color:'#000',    icon:'T', baseRate: { email:0.35, phone:0.45, website:0.50, app:0.55, crm:0.30 } }
+  };
+
+  const FRESHNESS_MULT = { recent:1.0, moderate:0.85, old:0.65, stale:0.45 };
+  const QUALITY_MULT = { verified:1.1, standard:1.0, mixed:0.75, unknown:0.55 };
+  const REGION_MULT = { us:1.0, eu:0.85, apac:0.70, global:0.80 };
+
+  // Multi-select pills (type, platforms)
+  document.querySelectorAll('#platformPills .pill').forEach(pill => {
+    pill.addEventListener('click', () => { pill.classList.toggle('active'); recalculate(); });
+  });
+
+  // Single-select pills
+  function setupSinglePills(containerId) {
+    const container = $(containerId);
+    container.querySelectorAll('.pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        container.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        recalculate();
+      });
+    });
+  }
+
+  // Type pills (single select)
+  setupSinglePills('typePills');
+  setupSinglePills('freshnessPills');
+  setupSinglePills('qualityPills');
+  setupSinglePills('regionPills');
+
+  // Size slider
+  $('sizeSlider').addEventListener('input', function() {
+    const idx = parseInt(this.value) - 1;
+    const size = SIZE_STEPS[Math.min(idx, SIZE_STEPS.length - 1)];
+    $('sizeDisplay').textContent = fmtNum(size);
+    recalculate();
+  });
+
+  function getSelections() {
+    const type = document.querySelector('#typePills .pill.active')?.dataset.value || 'email';
+    const sizeIdx = parseInt($('sizeSlider').value) - 1;
+    const size = SIZE_STEPS[Math.min(sizeIdx, SIZE_STEPS.length - 1)];
+    const freshness = document.querySelector('#freshnessPills .pill.active')?.dataset.value || 'recent';
+    const quality = document.querySelector('#qualityPills .pill.active')?.dataset.value || 'verified';
+    const platforms = [];
+    document.querySelectorAll('#platformPills .pill.active').forEach(p => platforms.push(p.dataset.value));
+    const region = document.querySelector('#regionPills .pill.active')?.dataset.value || 'us';
+    return { type, size, freshness, quality, platforms, region };
+  }
+
+  function computeMatchRate(platform, sel) {
+    const base = PLATFORMS[platform].baseRate[sel.type] || 0.50;
+    const rate = base * FRESHNESS_MULT[sel.freshness] * QUALITY_MULT[sel.quality] * REGION_MULT[sel.region];
+    return Math.min(Math.max(rate, 0.05), 0.95);
+  }
+
+  function computeHygieneScore(sel) {
+    let score = 50;
+    // Freshness
+    if (sel.freshness === 'recent') score += 20;
+    else if (sel.freshness === 'moderate') score += 10;
+    else if (sel.freshness === 'old') score -= 5;
+    else score -= 15;
+
+    // Quality
+    if (sel.quality === 'verified') score += 25;
+    else if (sel.quality === 'standard') score += 10;
+    else if (sel.quality === 'mixed') score -= 5;
+    else score -= 15;
+
+    // Type bonus
+    if (sel.type === 'website' || sel.type === 'app') score += 5;
+    if (sel.type === 'email') score += 3;
+
+    // Size bonus (larger lists tend to have more noise)
+    if (sel.size > 500000) score -= 5;
+    if (sel.size > 1000000) score -= 5;
+
+    return Math.min(Math.max(score, 10), 100);
+  }
+
+  function fmtNum(n) {
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(0) + 'K';
+    return n.toLocaleString();
+  }
+
+  function fmtPct(n) { return Math.round(n * 100) + '%'; }
+
+  function recalculate() {
+    const sel = getSelections();
+    const typeLabels = { email:'Email list', phone:'Phone list', website:'Website visitors', app:'App users', crm:'CRM contacts' };
+
+    // Stats
+    $('statSize').textContent = fmtNum(sel.size);
+    $('statType').textContent = typeLabels[sel.type];
+
+    // Match rates per platform
+    const rates = {};
+    let totalRate = 0;
+    sel.platforms.forEach(pk => {
+      rates[pk] = computeMatchRate(pk, sel);
+      totalRate += rates[pk];
+    });
+    const avgRate = sel.platforms.length > 0 ? totalRate / sel.platforms.length : 0;
+    const avgMatches = Math.round(sel.size * avgRate);
+
+    $('statMatch').textContent = fmtPct(avgRate);
+    $('statMatches').textContent = fmtNum(avgMatches);
+
+    // Hygiene
+    const hygiene = computeHygieneScore(sel);
+    $('statHygiene').textContent = hygiene + '/100';
+
+    let hygieneColor;
+    if (hygiene >= 80) hygieneColor = 'var(--green)';
+    else if (hygiene >= 60) hygieneColor = 'var(--blue)';
+    else if (hygiene >= 40) hygieneColor = 'var(--yellow)';
+    else hygieneColor = 'var(--accent)';
+
+    $('hygieneBar').style.width = hygiene + '%';
+    $('hygieneBar').style.background = hygieneColor;
+    $('hygieneLabel').textContent = hygiene + '/100';
+    $('hygieneLabel').style.color = hygieneColor;
+    $('statHygiene').style.color = hygieneColor;
+
+    let hygieneDetails = '';
+    if (hygiene >= 80) hygieneDetails = 'Your data quality is excellent. Fresh, verified data produces the highest match rates and best campaign performance.';
+    else if (hygiene >= 60) hygieneDetails = 'Good data quality. Consider verifying emails and updating stale records to improve match rates by 10-15%.';
+    else if (hygiene >= 40) hygieneDetails = 'Moderate data quality. Expect lower match rates and some wasted spend. Deduplicate and clean before uploading.';
+    else hygieneDetails = 'Data quality is poor. Stale or unverified data will produce very low match rates. Clean, deduplicate, and verify before uploading.';
+    $('hygieneDetails').textContent = hygieneDetails;
+
+    // Match rate bars
+    let matchHtml = '';
+    sel.platforms.forEach(pk => {
+      const p = PLATFORMS[pk];
+      const rate = rates[pk];
+      const matched = Math.round(sel.size * rate);
+      const lowRate = Math.max(rate - 0.08, 0.03);
+      const highRate = Math.min(rate + 0.08, 0.95);
+
+      matchHtml += '<div class="match-row">';
+      matchHtml += '<div class="match-icon" style="background:' + p.color + '">' + p.icon + '</div>';
+      matchHtml += '<div class="match-name">' + p.name + '</div>';
+      matchHtml += '<div class="match-bar-wrap">';
+      matchHtml += '<div class="match-bar-track"><div class="match-bar-fill" style="width:' + (rate * 100) + '%;background:' + p.color + '"></div></div>';
+      matchHtml += '<div class="match-stats">';
+      matchHtml += '<span class="match-rate">' + fmtPct(lowRate) + ' - ' + fmtPct(highRate) + ' match rate</span>';
+      matchHtml += '<span class="match-count">' + fmtNum(matched) + ' matched</span>';
+      matchHtml += '</div></div></div>';
+    });
+
+    if (sel.platforms.length === 0) {
+      matchHtml = '<div style="font-size:12px;color:var(--muted);font-style:italic;padding:12px 0">Select at least one platform to see match rates.</div>';
+    }
+    $('matchRates').innerHTML = matchHtml;
+
+    // Privacy checklist
+    renderChecklist(sel);
+
+    // Tips
+    renderTips(sel, avgRate, hygiene);
+  }
+
+  function renderChecklist(sel) {
+    const items = [];
+
+    // Consent
+    items.push({
+      status: sel.quality === 'verified' ? 'pass' : sel.quality === 'standard' ? 'warn' : 'fail',
+      label: 'User consent collected',
+      desc: sel.quality === 'verified'
+        ? 'Double opt-in verified -- compliant with GDPR/CAN-SPAM.'
+        : 'Ensure you have explicit consent before uploading. Required by all platforms and privacy regulations.'
+    });
+
+    // Data hashing
+    items.push({
+      status: 'pass',
+      label: 'Data hashed before upload',
+      desc: 'All platforms hash (SHA-256) PII before matching. Never upload plaintext emails/phones in transit.'
+    });
+
+    // GDPR
+    items.push({
+      status: sel.region === 'eu' ? 'warn' : 'pass',
+      label: 'GDPR compliance',
+      desc: sel.region === 'eu'
+        ? 'EU data requires lawful basis (consent or legitimate interest). Review your DPA with each platform.'
+        : 'Non-EU data has fewer restrictions, but follow platform terms of service.'
+    });
+
+    // CCPA
+    items.push({
+      status: sel.region === 'us' ? 'warn' : 'pass',
+      label: 'CCPA / state privacy laws',
+      desc: 'If your list includes California residents, ensure opt-out mechanisms are in place and honored.'
+    });
+
+    // Retention
+    items.push({
+      status: sel.freshness === 'stale' ? 'fail' : sel.freshness === 'old' ? 'warn' : 'pass',
+      label: 'Data retention policy',
+      desc: sel.freshness === 'stale'
+        ? 'Data over 1 year old may violate retention policies. Review and purge outdated records.'
+        : 'Keep data fresh. Set auto-expiry rules for audience lists on each platform.'
+    });
+
+    // Minimum size
+    items.push({
+      status: sel.size >= 1000 ? 'pass' : 'fail',
+      label: 'Minimum list size',
+      desc: sel.size >= 1000
+        ? 'List size (' + fmtNum(sel.size) + ') meets platform minimums (Google: 1K, Meta: 1K, LinkedIn: 300).'
+        : 'Most platforms require 1,000+ records. Google requires 1,000 for Customer Match. Grow your list first.'
+    });
+
+    // Suppression list
+    items.push({
+      status: 'warn',
+      label: 'Suppression/opt-out list applied',
+      desc: 'Remove users who have opted out, unsubscribed, or filed complaints before uploading to any platform.'
+    });
+
+    const list = $('checklist');
+    list.innerHTML = items.map(item => {
+      const iconClass = item.status === 'pass' ? 'check-pass' : item.status === 'warn' ? 'check-warn' : 'check-fail';
+      const iconText = item.status === 'pass' ? '*' : item.status === 'warn' ? '!' : 'x';
+      return '<li class="check-item">' +
+        '<span class="check-icon ' + iconClass + '">' + iconText + '</span>' +
+        '<div class="check-text"><div class="check-label">' + item.label + '</div><div class="check-desc">' + item.desc + '</div></div>' +
+        '</li>';
+    }).join('');
+  }
+
+  function renderTips(sel, avgRate, hygiene) {
+    const tips = [];
+
+    if (sel.type === 'email') {
+      tips.push({ icon:'>', text:'Hash emails as lowercase SHA-256 before upload. Remove leading/trailing whitespace.' });
+      tips.push({ icon:'>', text:'Include both personal and work emails when possible -- match rates improve 15-20% with dual-email uploads.' });
+    }
+    if (sel.type === 'phone') {
+      tips.push({ icon:'>', text:'Format phone numbers in E.164 format (+1XXXXXXXXXX). Include country code for international lists.' });
+      tips.push({ icon:'>', text:'Phone match rates are lower on LinkedIn and desktop-focused platforms since users often register with email.' });
+    }
+    if (sel.type === 'website') {
+      tips.push({ icon:'*', text:'Website visitor audiences auto-refresh. Set a 30-90 day lookback window to keep the audience fresh and relevant.' });
+    }
+    if (sel.type === 'crm') {
+      tips.push({ icon:'>', text:'CRM uploads with multiple identifiers (email + phone + name) achieve 20-30% higher match rates than single-field uploads.' });
+    }
+
+    if (avgRate < 0.4) {
+      tips.push({ icon:'!', text:'Expected match rate is low (' + fmtPct(avgRate) + '). Clean your list: remove bounces, duplicates, and role-based emails (info@, support@).' });
+    }
+
+    if (sel.freshness === 'stale' || sel.freshness === 'old') {
+      tips.push({ icon:'!', text:'Stale data degrades match rates. People change emails, phone numbers, and accounts. Re-collect where possible.' });
+    }
+
+    if (hygiene < 50) {
+      tips.push({ icon:'!', text:'Run your list through an email verification service (ZeroBounce, NeverBounce) before uploading to improve match rates.' });
+    }
+
+    tips.push({ icon:'*', text:'Upload the same list to multiple platforms for maximum reach. Each platform has a different user base and match strengths.' });
+    tips.push({ icon:'*', text:'After matching, create a lookalike/similar audience from the matched segment to scale your reach 5-10x.' });
+    tips.push({ icon:'*', text:'Refresh your audience lists monthly. Platforms deprecate stale segments and match rates decay over time.' });
+
+    $('tipsList').innerHTML = tips.map(t =>
+      '<div class="tip"><span class="tip-icon">' + t.icon + '</span><span>' + t.text + '</span></div>'
+    ).join('');
+  }
+
+  // Export
+  window.copyPlan = function() {
+    const sel = getSelections();
+    const typeLabels = { email:'Email list', phone:'Phone list', website:'Website visitors', app:'App users', crm:'CRM contacts' };
+    const lines = ['CUSTOMER MATCH PLAN', '---'];
+    lines.push('Segment: ' + typeLabels[sel.type]);
+    lines.push('List Size: ' + fmtNum(sel.size));
+    lines.push('Data Freshness: ' + sel.freshness);
+    lines.push('Data Quality: ' + sel.quality);
+    lines.push('Region: ' + sel.region.toUpperCase());
+    lines.push('');
+    lines.push('MATCH RATES');
+    sel.platforms.forEach(pk => {
+      const rate = computeMatchRate(pk, sel);
+      const matched = Math.round(sel.size * rate);
+      lines.push('  ' + PLATFORMS[pk].name + ': ' + fmtPct(rate) + ' (' + fmtNum(matched) + ' matched)');
+    });
+    lines.push('');
+    lines.push('Data Hygiene Score: ' + computeHygieneScore(sel) + '/100');
+    lines.push('');
+    lines.push('Generated by FreeAdStore Customer Match Planner');
+    navigator.clipboard.writeText(lines.join('\n')).then(() => showToast('Copied to clipboard'));
+  };
+
+  window.exportJSON = function() {
+    const sel = getSelections();
+    const data = { segment: sel, matchRates: {}, hygieneScore: computeHygieneScore(sel) };
+    sel.platforms.forEach(pk => {
+      const rate = computeMatchRate(pk, sel);
+      data.matchRates[PLATFORMS[pk].name] = { rate: Math.round(rate * 100) + '%', matched: Math.round(sel.size * rate) };
+    });
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'match-plan.json'; a.click();
+    URL.revokeObjectURL(url);
+    showToast('JSON downloaded');
+  };
+
+  window.resetAll = function() {
+    document.querySelectorAll('#typePills .pill').forEach((p, i) => p.classList.toggle('active', i === 0));
+    $('sizeSlider').value = 5;
+    $('sizeDisplay').textContent = fmtNum(SIZE_STEPS[4]);
+    document.querySelectorAll('#freshnessPills .pill').forEach((p, i) => p.classList.toggle('active', i === 0));
+    document.querySelectorAll('#qualityPills .pill').forEach((p, i) => p.classList.toggle('active', i === 0));
+    document.querySelectorAll('#platformPills .pill').forEach((p, i) => p.classList.toggle('active', i < 3));
+    document.querySelectorAll('#regionPills .pill').forEach((p, i) => p.classList.toggle('active', i === 0));
+    recalculate();
+  };
+
+  function showToast(msg) {
+    const toast = $('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+
+  recalculate();
+})();
+</script>
+</body>
+</html>

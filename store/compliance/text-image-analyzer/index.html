@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Text-on-Image Analyzer — FreeAdStore</title>
+<meta name="description" content="Check your ad image text density against Meta's 20% rule. Upload an image or use the slider to see how text coverage affects ad delivery. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#ef4444;--accent-hover:#dc2626;--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--panel:#ffffff;--line:#e5e7eb;--green:#16a34a;--yellow:#f59e0b;--red:#ef4444;--blue:#3b82f6;--sidebar-w:360px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+.layout{display:flex;min-height:100vh}
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--panel);border-right:1px solid var(--line);padding:1.25rem;overflow-y:auto;display:flex;flex-direction:column;gap:.1rem}
+.main{flex:1;padding:1.5rem 2rem;overflow-y:auto;max-height:100vh}
+
+.back{display:inline-flex;align-items:center;gap:.35rem;font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:.75rem}
+.back:hover{color:var(--accent);text-decoration:none}
+
+.sidebar h1{font-family:'Fraunces',serif;font-size:1.25rem;font-weight:700;margin-bottom:.15rem}
+.sidebar .subtitle{font-size:.72rem;color:var(--muted);line-height:1.45;margin-bottom:.85rem}
+
+.field{margin-bottom:.7rem}
+.field label{display:block;font-size:.72rem;font-weight:600;color:var(--muted);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.3px}
+.field .hint{font-size:.65rem;color:var(--muted);margin-top:.2rem}
+
+.drop-zone{border:2px dashed var(--line);border-radius:8px;padding:1.5rem;text-align:center;cursor:pointer;transition:all .15s;font-size:.78rem;color:var(--muted);background:var(--bg);min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3rem}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:#fef2f2}
+.drop-zone.has-file{border-style:solid;border-color:var(--green);background:#f0fdf4;color:var(--green)}
+.drop-zone .drop-icon{font-size:1.5rem;opacity:.4;margin-bottom:.25rem}
+.drop-zone img{max-width:100%;max-height:160px;border-radius:6px;margin-top:.5rem}
+
+.divider{display:flex;align-items:center;gap:.75rem;margin:1rem 0;font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--line)}
+
+.slider-group{margin-bottom:.7rem}
+.slider-group label{display:block;font-size:.72rem;font-weight:600;color:var(--muted);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.3px}
+.slider-wrap{display:flex;align-items:center;gap:.75rem}
+.slider-wrap input[type=range]{flex:1;accent-color:var(--accent);height:6px}
+.slider-value{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;min-width:44px;text-align:right}
+
+.btn-analyze{width:100%;padding:.65rem;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;transition:background .15s;margin-top:.5rem}
+.btn-analyze:hover{background:var(--accent-hover)}
+
+.main h2{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;margin-bottom:1rem}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;text-align:center;color:var(--muted)}
+.empty-state .icon{font-size:3rem;margin-bottom:1rem;opacity:.4}
+.empty-state p{font-size:.88rem;max-width:380px;line-height:1.5}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:1.1rem;margin-bottom:.85rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card h3{font-size:.88rem;font-weight:700;margin-bottom:.65rem;display:flex;align-items:center;gap:.4rem}
+
+/* Result badge */
+.result-badge{text-align:center;padding:1.5rem;margin-bottom:1rem}
+.result-badge .badge{display:inline-block;padding:.6rem 1.5rem;border-radius:12px;font-family:'Fraunces',serif;font-size:1.5rem;font-weight:700}
+.result-badge .badge.pass{background:#dcfce7;color:#16a34a;border:2px solid #a7f3d0}
+.result-badge .badge.warning{background:#fef3c7;color:#d97706;border:2px solid #fde68a}
+.result-badge .badge.fail{background:#fef2f2;color:#dc2626;border:2px solid #fecaca}
+.result-badge .pct{font-size:.88rem;font-weight:600;margin-top:.5rem;color:var(--text)}
+.result-badge .sublabel{font-size:.75rem;color:var(--muted);margin-top:.15rem}
+
+/* Canvas area */
+.canvas-wrap{position:relative;display:flex;justify-content:center;margin-bottom:1rem;background:#f3f4f6;border-radius:10px;padding:.5rem;min-height:200px;align-items:center}
+.canvas-wrap canvas{max-width:100%;border-radius:6px}
+
+/* Visual demo */
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.demo-card{border:1px solid var(--line);border-radius:10px;overflow:hidden;text-align:center}
+.demo-card .demo-visual{height:140px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.demo-card .demo-label{padding:.5rem;font-size:.72rem;font-weight:700;border-top:1px solid var(--line)}
+.demo-card .demo-label.good{background:#dcfce7;color:#16a34a}
+.demo-card .demo-label.bad{background:#fef2f2;color:#dc2626}
+
+/* Best practices */
+.practice{display:flex;align-items:flex-start;gap:.6rem;padding:.55rem 0;border-bottom:1px solid #f3f4f6;font-size:.78rem;line-height:1.5}
+.practice:last-child{border-bottom:none}
+.practice .p-icon{flex-shrink:0;font-size:.7rem;margin-top:2px}
+
+/* Platform table */
+.plat-table{width:100%;border-collapse:collapse;font-size:.75rem;margin-top:.5rem}
+.plat-table th{text-align:left;font-weight:600;color:var(--muted);padding:6px 10px;border-bottom:1px solid var(--line);font-size:.68rem;text-transform:uppercase;letter-spacing:.03em;background:var(--bg)}
+.plat-table td{padding:6px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top}
+
+@media(max-width:900px){
+  .layout{flex-direction:column}
+  .sidebar{width:100%;min-width:unset;border-right:none;border-bottom:1px solid var(--line);max-height:unset}
+  .main{max-height:unset;padding:1.25rem}
+  .demo-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <aside class="sidebar">
+    <a href="/" class="back">&larr; FreeAdStore</a>
+    <h1>Text-on-Image Analyzer</h1>
+    <p class="subtitle">Check your ad image against Meta's text density guidelines. Upload an image for contrast-based analysis, or use the slider for a quick estimate.</p>
+
+    <div class="field">
+      <label>Upload Ad Image</label>
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-icon">&#128444;</div>
+        Drag & drop your ad image here<br>
+        <span style="font-size:.62rem">JPG, PNG, or WebP</span>
+      </div>
+      <input type="file" id="imageInput" accept="image/*" style="display:none">
+      <div class="hint">Image will be analyzed for text-like high-contrast regions</div>
+    </div>
+
+    <div class="divider">or estimate manually</div>
+
+    <div class="slider-group">
+      <label>Estimated Text Coverage</label>
+      <div class="slider-wrap">
+        <input type="range" id="textSlider" min="0" max="100" value="15">
+        <span class="slider-value" id="sliderValue">15%</span>
+      </div>
+      <div class="hint" style="font-size:.65rem;color:var(--muted);margin-top:.3rem">Drag to estimate what percentage of your image is covered by text</div>
+    </div>
+
+    <button class="btn-analyze" id="analyzeBtn">Analyze Text Density</button>
+  </aside>
+
+  <main class="main" id="mainArea">
+    <div class="empty-state" id="emptyState">
+      <div class="icon">&#128444;</div>
+      <p>Upload an ad image or set the text coverage slider, then click <strong>Analyze</strong> to check against platform text-on-image policies.</p>
+    </div>
+    <div id="results" style="display:none"></div>
+  </main>
+</div>
+
+<script>
+(function(){
+  let uploadedImage = null;
+  let imageElement = null;
+  let useSlider = false;
+
+  const dropZone = document.getElementById('dropZone');
+  const imageInput = document.getElementById('imageInput');
+  const textSlider = document.getElementById('textSlider');
+  const sliderValue = document.getElementById('sliderValue');
+
+  dropZone.addEventListener('click', () => imageInput.click());
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+  });
+  imageInput.addEventListener('change', e => { if(e.target.files.length) handleFile(e.target.files[0]); });
+
+  textSlider.addEventListener('input', () => {
+    sliderValue.textContent = textSlider.value + '%';
+    useSlider = true;
+  });
+
+  function handleFile(file){
+    if(!file.type.startsWith('image/')) return;
+    uploadedImage = file;
+    useSlider = false;
+    const reader = new FileReader();
+    reader.onload = function(e){
+      imageElement = new Image();
+      imageElement.onload = () => {
+        dropZone.innerHTML = '';
+        dropZone.classList.add('has-file');
+        const preview = document.createElement('img');
+        preview.src = e.target.result;
+        dropZone.appendChild(preview);
+        const nameEl = document.createElement('div');
+        nameEl.textContent = file.name;
+        nameEl.style.cssText = 'font-size:.7rem;margin-top:.3rem';
+        dropZone.appendChild(nameEl);
+      };
+      imageElement.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  document.getElementById('analyzeBtn').addEventListener('click', () => {
+    if(!useSlider && !imageElement){
+      useSlider = true;
+    }
+
+    let textPct;
+    let canvasResult = null;
+
+    if(!useSlider && imageElement){
+      const result = analyzeImageContrast(imageElement);
+      textPct = result.pct;
+      canvasResult = result.canvas;
+    } else {
+      textPct = parseInt(textSlider.value);
+    }
+
+    renderResults(textPct, canvasResult);
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('results').style.display = '';
+    document.getElementById('mainArea').scrollTop = 0;
+  });
+
+  function analyzeImageContrast(img){
+    const canvas = document.createElement('canvas');
+    const maxW = 400;
+    const scale = Math.min(1, maxW / img.width);
+    canvas.width = Math.round(img.width * scale);
+    canvas.height = Math.round(img.height * scale);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    const gridSize = 8;
+    const cols = Math.ceil(canvas.width / gridSize);
+    const rows = Math.ceil(canvas.height / gridSize);
+    let textCells = 0;
+    let totalCells = 0;
+
+    const overlay = document.createElement('canvas');
+    overlay.width = canvas.width;
+    overlay.height = canvas.height;
+    const octx = overlay.getContext('2d');
+    octx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+    for(let r = 0; r < rows; r++){
+      for(let c = 0; c < cols; c++){
+        const x = c * gridSize;
+        const y = r * gridSize;
+        const w = Math.min(gridSize, canvas.width - x);
+        const h = Math.min(gridSize, canvas.height - y);
+
+        let minL = 255, maxL = 0;
+        let edgeCount = 0;
+
+        for(let py = y; py < y + h; py++){
+          for(let px = x; px < x + w; px++){
+            const i = (py * canvas.width + px) * 4;
+            const lum = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
+            minL = Math.min(minL, lum);
+            maxL = Math.max(maxL, lum);
+
+            if(px > x && py > y){
+              const li = (py * canvas.width + (px-1)) * 4;
+              const ti = ((py-1) * canvas.width + px) * 4;
+              const lumL = 0.299 * data[li] + 0.587 * data[li+1] + 0.114 * data[li+2];
+              const lumT = 0.299 * data[ti] + 0.587 * data[ti+1] + 0.114 * data[ti+2];
+              if(Math.abs(lum - lumL) > 40) edgeCount++;
+              if(Math.abs(lum - lumT) > 40) edgeCount++;
+            }
+          }
+        }
+
+        const contrast = maxL - minL;
+        const pixelCount = w * h;
+        const edgeDensity = edgeCount / (pixelCount * 2);
+        const isText = contrast > 80 && edgeDensity > 0.15;
+
+        totalCells++;
+        if(isText){
+          textCells++;
+          octx.fillStyle = 'rgba(239, 68, 68, 0.35)';
+          octx.fillRect(x, y, w, h);
+          octx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
+          octx.lineWidth = 0.5;
+          octx.strokeRect(x, y, w, h);
+        }
+      }
+    }
+
+    const pct = Math.round((textCells / totalCells) * 100);
+    return {pct, canvas: overlay};
+  }
+
+  function getVerdict(pct){
+    if(pct <= 15) return {label:'PASS', cls:'pass', desc:'Text coverage is well within recommended limits. Your ad should receive full delivery.'};
+    if(pct <= 20) return {label:'WARNING', cls:'warning', desc:'Text coverage is at the edge of Meta\'s recommendation. Consider reducing text for optimal delivery.'};
+    return {label:'FAIL', cls:'fail', desc:'Text coverage exceeds the recommended 20% guideline. This may reduce ad delivery and increase costs.'};
+  }
+
+  function renderResults(pct, canvasEl){
+    const verdict = getVerdict(pct);
+
+    let html = '<h2>Text Density Analysis</h2>';
+
+    /* Result badge */
+    html += `
+    <div class="result-badge">
+      <div class="badge ${verdict.cls}">${verdict.label}</div>
+      <div class="pct">${pct}% text coverage detected</div>
+      <div class="sublabel">${verdict.desc}</div>
+    </div>`;
+
+    /* Canvas overlay (if image was analyzed) */
+    if(canvasEl){
+      html += `
+      <div class="card">
+        <h3>&#9632; Text Density Heatmap</h3>
+        <p style="font-size:.75rem;color:var(--muted);margin-bottom:.75rem">Red-highlighted regions indicate areas with high contrast and edge density (text-like patterns). This is an approximation -- actual text detection by Meta uses ML models.</p>
+        <div class="canvas-wrap" id="canvasWrap"></div>
+      </div>`;
+    }
+
+    /* Visual coverage demo (if slider used) */
+    if(!canvasEl){
+      html += `
+      <div class="card">
+        <h3>&#9632; Text Coverage Visualization</h3>
+        <div style="position:relative;height:200px;background:linear-gradient(135deg,#dbeafe,#eff6ff);border-radius:8px;overflow:hidden;margin-bottom:.5rem">
+          <div style="position:absolute;top:0;left:0;width:100%;height:${pct}%;background:rgba(239,68,68,0.2);border-bottom:2px dashed var(--accent);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--accent)">${pct}% text</div>
+          <div style="position:absolute;bottom:0;left:0;width:100%;height:${100-pct}%;display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--muted)">${100-pct}% image</div>
+        </div>
+      </div>`;
+    }
+
+    /* Threshold reference */
+    html += `
+    <div class="card">
+      <h3>&#9670; Text Coverage Thresholds</h3>
+      <div style="display:flex;gap:2px;margin-bottom:.75rem;height:32px;border-radius:6px;overflow:hidden;font-size:.65rem;font-weight:700;color:#fff">
+        <div style="flex:15;background:var(--green);display:flex;align-items:center;justify-content:center">0-15%</div>
+        <div style="flex:5;background:var(--yellow);display:flex;align-items:center;justify-content:center">15-20%</div>
+        <div style="flex:80;background:var(--red);display:flex;align-items:center;justify-content:center">20%+</div>
+      </div>
+      <div style="position:relative;height:16px;margin-bottom:1rem">
+        <div style="position:absolute;left:${Math.min(pct, 98)}%;top:0;transform:translateX(-50%)">
+          <div style="width:2px;height:16px;background:var(--text);margin:0 auto"></div>
+          <div style="font-size:.6rem;font-weight:700;white-space:nowrap;transform:translateX(-50%);margin-left:1px;margin-top:2px">Your ad: ${pct}%</div>
+        </div>
+      </div>
+    </div>`;
+
+    /* Best practices */
+    html += `
+    <div class="card">
+      <h3>&#9745; Best Practices</h3>
+      <div class="practice"><span class="p-icon" style="color:var(--green)">&#10003;</span><span>Keep text under 20% of the image area for best delivery on Meta platforms</span></div>
+      <div class="practice"><span class="p-icon" style="color:var(--green)">&#10003;</span><span>Use the headline and primary text fields instead of burning text into the image</span></div>
+      <div class="practice"><span class="p-icon" style="color:var(--green)">&#10003;</span><span>Logos count as text -- keep them small and in a corner</span></div>
+      <div class="practice"><span class="p-icon" style="color:var(--green)">&#10003;</span><span>If you must use text overlay, use large, readable fonts with high contrast</span></div>
+      <div class="practice"><span class="p-icon" style="color:var(--green)">&#10003;</span><span>Watermarks, disclaimers, and fine print all count toward the text percentage</span></div>
+      <div class="practice"><span class="p-icon" style="color:var(--accent)">&#9888;</span><span>The 20% rule is now a recommendation, not a hard limit -- but Meta still throttles delivery for text-heavy images</span></div>
+    </div>`;
+
+    /* Good vs Bad examples */
+    html += `
+    <div class="card">
+      <h3>&#9670; Good vs. Bad Examples</h3>
+      <div class="demo-grid">
+        <div class="demo-card">
+          <div class="demo-visual" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe)">
+            <div style="position:absolute;bottom:8px;left:8px;background:rgba(255,255,255,.9);padding:4px 10px;border-radius:4px;font-size:.65rem;font-weight:700;color:#1a1a1a">Shop Now</div>
+            <div style="width:48px;height:48px;border-radius:50%;background:rgba(59,130,246,.3);position:absolute;top:20px;right:20px"></div>
+          </div>
+          <div class="demo-label good">Minimal text (~5%) -- Full delivery</div>
+        </div>
+        <div class="demo-card">
+          <div class="demo-visual" style="background:linear-gradient(135deg,#fef2f2,#fee2e2)">
+            <div style="position:absolute;top:8px;left:8px;right:8px;font-size:.55rem;font-weight:800;color:#1a1a1a;line-height:1.3;text-transform:uppercase">
+              BIGGEST SALE EVER! UP TO 70% OFF ALL ITEMS! FREE SHIPPING ON ORDERS OVER $50! HURRY ENDS TONIGHT! USE CODE SAVE70 AT CHECKOUT! LIMITED TIME ONLY!
+            </div>
+          </div>
+          <div class="demo-label bad">Excessive text (~60%) -- Reduced delivery</div>
+        </div>
+      </div>
+    </div>`;
+
+    /* Platform-by-platform policies */
+    html += `
+    <div class="card">
+      <h3>&#9881; Platform Text-on-Image Policies</h3>
+      <table class="plat-table">
+        <thead>
+          <tr><th>Platform</th><th>Text Rule</th><th>Enforcement</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Meta (Facebook/Instagram)</strong></td>
+            <td>20% recommendation (no longer a hard reject)</td>
+            <td>Delivery throttling -- ads with >20% text get fewer impressions and higher CPM. Not rejected outright since 2020.</td>
+          </tr>
+          <tr>
+            <td><strong>Google Ads</strong></td>
+            <td>No explicit text percentage rule</td>
+            <td>Focus on image quality and relevance. Text-heavy images may lower Quality Score for display ads.</td>
+          </tr>
+          <tr>
+            <td><strong>LinkedIn</strong></td>
+            <td>No formal percentage rule</td>
+            <td>Recommends minimal text overlay. Carousel cards with clean imagery perform 2x better in B2B.</td>
+          </tr>
+          <tr>
+            <td><strong>TikTok</strong></td>
+            <td>No text percentage rule</td>
+            <td>Native-looking content preferred. Heavy text overlays feel inauthentic and reduce engagement.</td>
+          </tr>
+          <tr>
+            <td><strong>Pinterest</strong></td>
+            <td>Minimal text recommended</td>
+            <td>Pins with less text overlay get higher distribution in Smart Feed. Lifestyle imagery outperforms text-heavy.</td>
+          </tr>
+          <tr>
+            <td><strong>X (Twitter)</strong></td>
+            <td>No text percentage rule</td>
+            <td>No restrictions, but clean images with minimal text get higher engagement rates.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>`;
+
+    /* History note */
+    html += `
+    <div class="card">
+      <h3>&#9881; About the 20% Rule</h3>
+      <div style="font-size:.78rem;color:var(--muted);line-height:1.6">
+        <p style="margin-bottom:.5rem"><strong>2012-2020:</strong> Facebook enforced a strict 20% text rule using a 5x5 grid overlay. If text appeared in more than 5 of 25 grid squares, the ad was rejected outright.</p>
+        <p style="margin-bottom:.5rem"><strong>2020-present:</strong> Meta removed the hard rule and replaced it with a delivery-based system. Ads with more text get progressively fewer impressions rather than being rejected. The categories were: OK, Low, Medium, High text.</p>
+        <p><strong>Bottom line:</strong> The 20% threshold is no longer enforced as a binary pass/fail, but it remains the practical guideline. Ads under 20% text get the best delivery and lowest costs. This tool helps you check before you publish.</p>
+      </div>
+    </div>`;
+
+    document.getElementById('results').innerHTML = html;
+
+    /* Inject canvas if available */
+    if(canvasEl){
+      const wrap = document.getElementById('canvasWrap');
+      if(wrap) wrap.appendChild(canvasEl);
+    }
+  }
+})();
+</script>
+</body>
+</html>

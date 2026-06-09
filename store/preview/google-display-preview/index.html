@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Display Ad Preview - FreeAdStore</title>
+<meta name="description" content="Preview how your Google Display Network ads appear on real websites. Test banner sizes 300x250, 728x90, 160x600, 320x50. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--panel:#ffffff;--line:#e5e7eb;--radius:10px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 24px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px;font-family:'Fraunces',serif}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:#f1f3f4}
+
+/* PANELS */
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.03em}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 3px;font-weight:500}
+input[type=text],textarea,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;resize:none}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{min-height:60px;line-height:1.4}
+.char-count{font-size:.65rem;color:var(--muted);text-align:right;margin-top:2px;font-variant-numeric:tabular-nums}
+.char-count.over{color:var(--accent)}
+
+/* IMAGE UPLOAD */
+.drop-zone{border:2px dashed var(--line);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg);position:relative}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:#fef2f2}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop-zone-text{font-size:.75rem;color:var(--muted)}
+.drop-zone-text strong{color:var(--text)}
+.image-preview-wrap{position:relative;border-radius:var(--radius);overflow:hidden;margin-top:6px}
+.image-preview-wrap img{width:100%;display:block;border-radius:var(--radius)}
+.image-preview-wrap .remove-img{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+
+/* SIZE TOGGLE */
+.size-toggle{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.size-btn{padding:8px;border:1px solid var(--line);border-radius:var(--radius);font-size:.75rem;font-weight:600;cursor:pointer;font-family:inherit;background:var(--bg);text-align:center;transition:all .12s}
+.size-btn:hover{border-color:var(--accent)}
+.size-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* PREVIEW AREA */
+.preview-area{flex:1;overflow-y:auto;padding:24px}
+
+/* ============================================================
+   FAKE WEBPAGE CONTEXT
+   ============================================================ */
+.webpage{max-width:960px;margin:0 auto;font-family:Georgia,'Times New Roman',serif;color:#333;background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.1);overflow:hidden}
+.webpage-nav{background:#1a1a2e;padding:10px 24px;display:flex;align-items:center;gap:20px}
+.webpage-nav .logo{font-family:-apple-system,system-ui,sans-serif;font-size:16px;font-weight:700;color:#fff;letter-spacing:-.3px}
+.webpage-nav .nav-links{display:flex;gap:16px}
+.webpage-nav .nav-links span{font-size:13px;color:rgba(255,255,255,.7);cursor:default;font-family:-apple-system,system-ui,sans-serif}
+.webpage-body{padding:24px}
+
+/* Article */
+.article-meta{font-size:12px;color:#999;font-family:-apple-system,system-ui,sans-serif;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.article-title{font-size:28px;line-height:1.3;margin-bottom:8px;color:#111;font-weight:700}
+.article-subtitle{font-size:16px;color:#666;line-height:1.5;margin-bottom:16px;font-style:italic}
+.article-author{display:flex;align-items:center;gap:8px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #eee;font-family:-apple-system,system-ui,sans-serif}
+.article-author-avatar{width:36px;height:36px;border-radius:50%;background:#e0e0e0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#666}
+.article-author-info{font-size:13px;color:#666}
+.article-author-info strong{color:#333}
+.article-text{font-size:17px;line-height:1.8;margin-bottom:16px;color:#333}
+.article-text.faded{opacity:.5;filter:blur(.3px)}
+
+/* Ad container inside article */
+.ad-slot{margin:20px 0;display:flex;justify-content:center;position:relative}
+.ad-slot-label{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:9px;color:#999;font-family:-apple-system,system-ui,sans-serif;text-transform:uppercase;letter-spacing:.1em;white-space:nowrap}
+
+/* Sidebar layout for leaderboard vs skyscraper */
+.webpage-with-sidebar{display:flex;gap:24px}
+.webpage-content{flex:1;min-width:0}
+.webpage-sidebar{width:180px;flex-shrink:0;padding-top:8px}
+.webpage-sidebar .sidebar-ad{position:sticky;top:20px}
+
+/* The actual display ad */
+.display-ad{border:1px solid #ddd;border-radius:4px;overflow:hidden;position:relative;background:#fff;display:flex;flex-direction:column;cursor:pointer;transition:box-shadow .15s}
+.display-ad:hover{box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.display-ad .ad-image{flex:1;background:#e8e8e8;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.display-ad .ad-image img{width:100%;height:100%;object-fit:cover}
+.display-ad .ad-image .placeholder-icon{color:#bbb;font-size:24px}
+.display-ad .ad-overlay{position:absolute;bottom:0;left:0;right:0;padding:8px 10px;background:linear-gradient(transparent,rgba(0,0,0,.7))}
+.display-ad .ad-overlay-headline{font-size:14px;font-weight:700;color:#fff;font-family:-apple-system,system-ui,sans-serif;line-height:1.2;margin-bottom:2px}
+.display-ad .ad-overlay-desc{font-size:11px;color:rgba(255,255,255,.85);font-family:-apple-system,system-ui,sans-serif;line-height:1.3}
+.display-ad .ad-bottom{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#f8f8f8;border-top:1px solid #eee}
+.display-ad .ad-brand{font-size:11px;color:#555;font-family:-apple-system,system-ui,sans-serif;font-weight:600;display:flex;align-items:center;gap:4px}
+.display-ad .ad-cta-btn{padding:4px 12px;border-radius:4px;background:#1a73e8;color:#fff;font-size:11px;font-weight:600;font-family:-apple-system,system-ui,sans-serif;border:none;cursor:pointer}
+.display-ad .ad-info{position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.8);display:flex;align-items:center;justify-content:center}
+.display-ad .ad-info svg{width:10px;height:10px;color:#666}
+.ad-label-gdn{font-size:9px;color:#999;font-family:-apple-system,system-ui,sans-serif;text-align:center;margin-top:4px}
+
+/* Leaderboard 728x90 — horizontal layout */
+.display-ad.horizontal{flex-direction:row}
+.display-ad.horizontal .ad-image{width:40%;height:100%}
+.display-ad.horizontal .ad-text-col{flex:1;display:flex;flex-direction:column;justify-content:center;padding:8px 12px}
+.display-ad.horizontal .ad-text-headline{font-size:15px;font-weight:700;color:#111;font-family:-apple-system,system-ui,sans-serif;line-height:1.2;margin-bottom:3px}
+.display-ad.horizontal .ad-text-desc{font-size:11px;color:#666;font-family:-apple-system,system-ui,sans-serif;line-height:1.3;margin-bottom:6px}
+.display-ad.horizontal .ad-text-cta{display:inline-block;padding:4px 14px;border-radius:4px;background:#1a73e8;color:#fff;font-size:11px;font-weight:600;font-family:-apple-system,system-ui,sans-serif;align-self:flex-start}
+.display-ad.horizontal .ad-bottom{display:none}
+.display-ad.horizontal .ad-overlay{display:none}
+
+/* Mobile banner 320x50 — compact */
+.display-ad.compact{flex-direction:row;align-items:center}
+.display-ad.compact .ad-image{width:50px;height:50px;flex-shrink:0}
+.display-ad.compact .ad-compact-text{flex:1;padding:4px 8px;min-width:0}
+.display-ad.compact .ad-compact-headline{font-size:12px;font-weight:700;color:#111;font-family:-apple-system,system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.display-ad.compact .ad-compact-brand{font-size:10px;color:#888;font-family:-apple-system,system-ui,sans-serif}
+.display-ad.compact .ad-compact-cta{padding:4px 10px;border-radius:4px;background:#1a73e8;color:#fff;font-size:10px;font-weight:600;font-family:-apple-system,system-ui,sans-serif;margin-right:6px;flex-shrink:0}
+.display-ad.compact .ad-bottom{display:none}
+.display-ad.compact .ad-overlay{display:none}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .preview-area{min-height:500px}
+  .webpage-with-sidebar{flex-direction:column}
+  .webpage-sidebar{width:100%}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Controls -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&larr; FreeAdStore</a>
+      <h1>Google Display Ad Preview</h1>
+      <p>See how your display ad looks on real websites. Test all banner sizes.</p>
+    </div>
+    <div class="sidebar-scroll" id="controls"></div>
+  </div>
+  <!-- RIGHT: Preview -->
+  <div class="main">
+    <div class="preview-area" id="previewArea"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  headline: 'Get 50% Off Today',
+  description: 'Premium tools for modern teams. Start your free trial now.',
+  businessName: 'Acme Software',
+  cta: 'Learn More',
+  imageData: null,
+  bannerSize: '300x250'
+};
+
+const CTA_OPTIONS = ['Learn More','Shop Now','Sign Up','Get Quote','Apply Now','Contact Us','Download','Book Now','Get Offer','Subscribe','Order Now','See More'];
+const BANNER_SIZES = [
+  {id:'300x250', label:'300 x 250', w:300, h:250, name:'Medium Rectangle'},
+  {id:'728x90', label:'728 x 90', w:728, h:90, name:'Leaderboard'},
+  {id:'160x600', label:'160 x 600', w:160, h:600, name:'Wide Skyscraper'},
+  {id:'320x50', label:'320 x 50', w:320, h:50, name:'Mobile Banner'}
+];
+
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function charCountHTML(current, limit){
+  const cls = current > limit ? 'char-count over' : 'char-count';
+  return `<div class="${cls}">${current} / ${limit}</div>`;
+}
+
+// ============================================================
+// BUILD CONTROLS
+// ============================================================
+function buildControls(){
+  const c = document.getElementById('controls');
+  c.innerHTML = `
+  <div class="panel">
+    <div class="panel-title">Headline</div>
+    <input type="text" id="inpHeadline" value="${esc(S.headline)}" placeholder="30 characters max" maxlength="60">
+    ${charCountHTML(S.headline.length, 30)}
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Description</div>
+    <textarea id="inpDesc" rows="2" placeholder="90 characters max" maxlength="180">${esc(S.description)}</textarea>
+    ${charCountHTML(S.description.length, 90)}
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Business Name</div>
+    <input type="text" id="inpBusiness" value="${esc(S.businessName)}" placeholder="Your company name">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Image</div>
+    <div class="drop-zone" id="dropZone">
+      <input type="file" accept="image/*" id="fileInput">
+      <div class="drop-zone-text">
+        <strong>Drop image here</strong> or click to upload<br>
+        <span style="font-size:.65rem;color:var(--muted)">Recommended: 1200x628</span>
+      </div>
+    </div>
+    ${S.imageData ? `<div class="image-preview-wrap"><img src="${S.imageData}" alt="Ad image"><button class="remove-img" id="removeImg">&times;</button></div>` : ''}
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Call to Action</div>
+    <select id="selCta">
+      ${CTA_OPTIONS.map(o => `<option value="${o}"${o===S.cta?' selected':''}>${o}</option>`).join('')}
+    </select>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Banner Size</div>
+    <div class="size-toggle">
+      ${BANNER_SIZES.map(sz => `<button class="size-btn${sz.id===S.bannerSize?' active':''}" data-size="${sz.id}">${sz.label}</button>`).join('')}
+    </div>
+    <div style="font-size:.62rem;color:var(--muted);margin-top:4px;text-align:center" id="sizeName"></div>
+  </div>
+  `;
+  bindControls();
+  updateSizeName();
+}
+
+function updateSizeName(){
+  const sz = BANNER_SIZES.find(s => s.id === S.bannerSize);
+  document.getElementById('sizeName').textContent = sz ? sz.name : '';
+}
+
+// ============================================================
+// BIND CONTROLS
+// ============================================================
+let activeId = null, cursorPos = null;
+document.addEventListener('focusin', e => { if(e.target.matches('input[type=text],textarea')) activeId = e.target.id; });
+document.addEventListener('selectionchange', () => { const el = document.activeElement; if(el && el.matches && el.matches('input[type=text],textarea')) cursorPos = el.selectionStart; });
+
+function restoreFocus(){
+  if(activeId){
+    const el = document.getElementById(activeId);
+    if(el){ el.focus(); try{ if(cursorPos!=null) el.setSelectionRange(cursorPos,cursorPos); }catch(e){} }
+  }
+}
+
+function bindControls(){
+  const $ = id => document.getElementById(id);
+
+  $('inpHeadline').oninput = e => { S.headline = e.target.value; buildControls(); restoreFocus(); render(); };
+  $('inpDesc').oninput = e => { S.description = e.target.value; buildControls(); restoreFocus(); render(); };
+  $('inpBusiness').oninput = e => { S.businessName = e.target.value; render(); };
+  $('selCta').onchange = e => { S.cta = e.target.value; render(); };
+
+  // Banner size
+  document.querySelectorAll('.size-btn').forEach(btn => {
+    btn.onclick = () => {
+      S.bannerSize = btn.dataset.size;
+      document.querySelectorAll('.size-btn').forEach(b => b.classList.toggle('active', b.dataset.size === S.bannerSize));
+      updateSizeName();
+      render();
+    };
+  });
+
+  // Image upload
+  const dropZone = $('dropZone');
+  const fileInput = $('fileInput');
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
+  dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); const f = e.dataTransfer.files[0]; if(f && f.type.startsWith('image/')) loadImage(f); });
+  fileInput.addEventListener('change', e => { const f = e.target.files[0]; if(f) loadImage(f); });
+
+  const removeBtn = $('removeImg');
+  if(removeBtn) removeBtn.onclick = () => { S.imageData = null; buildControls(); render(); };
+}
+
+function loadImage(file){
+  const r = new FileReader();
+  r.onload = e => { S.imageData = e.target.result; buildControls(); render(); };
+  r.readAsDataURL(file);
+}
+
+// ============================================================
+// BUILD THE DISPLAY AD HTML
+// ============================================================
+function buildAdHTML(sz){
+  const initial = (S.businessName || 'A').charAt(0).toUpperCase();
+  const imgHTML = S.imageData
+    ? `<img src="${S.imageData}" alt="Ad">`
+    : `<div class="placeholder-icon"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+
+  // 728x90 leaderboard — horizontal layout
+  if(sz.id === '728x90'){
+    return `
+    <div class="display-ad horizontal" style="width:${sz.w}px;height:${sz.h}px">
+      <div class="ad-image">${imgHTML}</div>
+      <div class="ad-text-col">
+        <div class="ad-text-headline">${esc(S.headline)}</div>
+        <div class="ad-text-desc">${esc(S.description.length > 60 ? S.description.slice(0,60)+'...' : S.description)}</div>
+        <div class="ad-text-cta">${esc(S.cta)}</div>
+      </div>
+      <div class="ad-info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+    </div>`;
+  }
+
+  // 320x50 mobile banner — compact layout
+  if(sz.id === '320x50'){
+    return `
+    <div class="display-ad compact" style="width:${sz.w}px;height:${sz.h}px">
+      <div class="ad-image">${imgHTML}</div>
+      <div class="ad-compact-text">
+        <div class="ad-compact-headline">${esc(S.headline)}</div>
+        <div class="ad-compact-brand">${esc(S.businessName)}</div>
+      </div>
+      <div class="ad-compact-cta">${esc(S.cta)}</div>
+      <div class="ad-info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+    </div>`;
+  }
+
+  // 300x250 / 160x600 — standard vertical layout
+  return `
+  <div class="display-ad" style="width:${sz.w}px;height:${sz.h}px">
+    <div class="ad-image">
+      ${imgHTML}
+      <div class="ad-overlay">
+        <div class="ad-overlay-headline">${esc(S.headline)}</div>
+        ${sz.id !== '160x600' ? `<div class="ad-overlay-desc">${esc(S.description.length > 70 ? S.description.slice(0,70)+'...' : S.description)}</div>` : ''}
+      </div>
+      <div class="ad-info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+    </div>
+    <div class="ad-bottom">
+      <div class="ad-brand">
+        <span style="width:16px;height:16px;border-radius:50%;background:#1a73e8;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700">${initial}</span>
+        ${esc(S.businessName)}
+      </div>
+      <div class="ad-cta-btn">${esc(S.cta)}</div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render(){
+  const area = document.getElementById('previewArea');
+  const sz = BANNER_SIZES.find(s => s.id === S.bannerSize);
+
+  // Build the ad
+  const adHTML = buildAdHTML(sz);
+  const adWithLabel = `<div class="ad-slot"><div class="ad-slot-label">Advertisement</div>${adHTML}</div><div class="ad-label-gdn">Ads by Google</div>`;
+
+  let html = '<div class="webpage">';
+
+  // Nav bar
+  html += `
+  <div class="webpage-nav">
+    <div class="logo">The Daily Chronicle</div>
+    <div class="nav-links">
+      <span>World</span><span>Business</span><span>Technology</span><span>Opinion</span><span>Science</span>
+    </div>
+  </div>`;
+
+  // Article content varies by banner size
+  if(sz.id === '160x600'){
+    // Skyscraper: sidebar layout
+    html += `<div class="webpage-body"><div class="webpage-with-sidebar">
+      <div class="webpage-content">
+        <div class="article-meta">Technology &bull; June 9, 2026</div>
+        <div class="article-title">The Rise of AI-Powered Design Tools in Modern Workflows</div>
+        <div class="article-subtitle">How creative teams are adopting artificial intelligence to streamline their design processes and deliver faster results.</div>
+        <div class="article-author">
+          <div class="article-author-avatar">JD</div>
+          <div class="article-author-info"><strong>Jane Doe</strong><br>5 min read</div>
+        </div>
+        <div class="article-text">The landscape of design tools has undergone a dramatic transformation in recent years. What once required hours of manual work can now be accomplished in minutes, thanks to advances in machine learning and generative AI. Teams across the industry are reporting significant productivity gains.</div>
+        <div class="article-text">Early adopters have seen a 40% reduction in time-to-market for new creative assets. The technology isn't replacing designers but rather augmenting their capabilities, allowing them to focus on higher-level strategic decisions while AI handles repetitive tasks.</div>
+        <div class="article-text faded">Industry analysts predict that by 2027, over 80% of enterprise design workflows will incorporate some form of AI assistance. The implications for both productivity and creative quality are substantial, though questions remain about the long-term impact on creative roles...</div>
+      </div>
+      <div class="webpage-sidebar">
+        <div class="sidebar-ad">${adWithLabel}</div>
+      </div>
+    </div></div>`;
+  } else if(sz.id === '728x90'){
+    // Leaderboard: between header and article
+    html += `<div class="webpage-body">
+      ${adWithLabel}
+      <div style="margin-top:20px">
+        <div class="article-meta">Technology &bull; June 9, 2026</div>
+        <div class="article-title">The Rise of AI-Powered Design Tools in Modern Workflows</div>
+        <div class="article-subtitle">How creative teams are adopting artificial intelligence to streamline their design processes.</div>
+        <div class="article-author">
+          <div class="article-author-avatar">JD</div>
+          <div class="article-author-info"><strong>Jane Doe</strong><br>5 min read</div>
+        </div>
+        <div class="article-text">The landscape of design tools has undergone a dramatic transformation in recent years. What once required hours of manual work can now be accomplished in minutes, thanks to advances in machine learning and generative AI.</div>
+        <div class="article-text faded">Early adopters have seen a 40% reduction in time-to-market for new creative assets. The technology isn't replacing designers but rather augmenting their capabilities, allowing them to focus on higher-level strategic decisions...</div>
+      </div>
+    </div>`;
+  } else if(sz.id === '320x50'){
+    // Mobile banner: sticky-style at bottom of mobile article
+    html += `<div class="webpage-body" style="max-width:360px;margin:0 auto;padding:16px">
+      <div class="article-meta">Technology &bull; June 9, 2026</div>
+      <div class="article-title" style="font-size:22px">AI-Powered Design Tools Are Changing Everything</div>
+      <div class="article-author">
+        <div class="article-author-avatar">JD</div>
+        <div class="article-author-info"><strong>Jane Doe</strong><br>5 min read</div>
+      </div>
+      <div class="article-text" style="font-size:15px">The landscape of design tools has undergone a dramatic transformation. What once required hours of manual work can now be accomplished in minutes.</div>
+      <div class="article-text" style="font-size:15px">Early adopters have seen a 40% reduction in time-to-market for new creative assets.</div>
+      ${adWithLabel}
+      <div class="article-text faded" style="font-size:15px">Industry analysts predict that by 2027, over 80% of enterprise design workflows will incorporate some form of AI assistance...</div>
+    </div>`;
+  } else {
+    // 300x250 medium rectangle: inline with article
+    html += `<div class="webpage-body">
+      <div class="article-meta">Technology &bull; June 9, 2026</div>
+      <div class="article-title">The Rise of AI-Powered Design Tools in Modern Workflows</div>
+      <div class="article-subtitle">How creative teams are adopting artificial intelligence to streamline their design processes and deliver faster results.</div>
+      <div class="article-author">
+        <div class="article-author-avatar">JD</div>
+        <div class="article-author-info"><strong>Jane Doe</strong><br>5 min read</div>
+      </div>
+      <div class="article-text">The landscape of design tools has undergone a dramatic transformation in recent years. What once required hours of manual work can now be accomplished in minutes, thanks to advances in machine learning and generative AI. Teams across the industry are reporting significant productivity gains.</div>
+      ${adWithLabel}
+      <div class="article-text">Early adopters have seen a 40% reduction in time-to-market for new creative assets. The technology isn't replacing designers but rather augmenting their capabilities, allowing them to focus on higher-level strategic decisions while AI handles repetitive tasks.</div>
+      <div class="article-text faded">Industry analysts predict that by 2027, over 80% of enterprise design workflows will incorporate some form of AI assistance. The implications for both productivity and creative quality are substantial...</div>
+    </div>`;
+  }
+
+  html += '</div>';
+  area.innerHTML = html;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildControls();
+render();
+</script>
+</body>
+</html>

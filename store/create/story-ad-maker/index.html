@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Story/Reel Ad Maker - FreeAdStore</title>
+<meta name="description" content="Design story and reel ads for Instagram, Facebook, TikTok, and YouTube Shorts. Live 9:16 phone preview with text overlays, gradients, and PNG export. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:rgba(239,68,68,.08);--accent-hover:#dc2626;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#22c55e;--yellow:#eab308;--red:#ef4444}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:600;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+a.back span{font-weight:400;color:var(--muted)}
+
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 20px 20px}
+.sidebar-head{padding:16px 20px 0;flex-shrink:0}
+.sidebar-head h1{font-family:'Fraunces',serif;font-size:1.35rem;font-weight:700;margin-bottom:2px;color:var(--text)}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:14px;line-height:1.4}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--bg)}
+.main-header{padding:16px 24px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.main-header h2{font-size:.85rem;font-weight:700;color:var(--text)}
+.main-scroll{flex:1;overflow-y:auto;padding:16px 24px 24px;display:flex;align-items:flex-start;justify-content:center}
+
+.panel{margin-bottom:16px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 4px;font-weight:500}
+input[type=text],input[type=color],textarea,select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;transition:border-color .15s}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:60px}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+
+.pill-row{display:flex;gap:5px;flex-wrap:wrap}
+.pill{padding:5px 12px;border:1px solid var(--line);border-radius:8px;font-size:.72rem;font-weight:600;cursor:pointer;background:var(--panel);font-family:inherit;transition:all .12s;color:var(--text)}
+.pill:hover{border-color:var(--accent);color:var(--accent)}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.btn{padding:10px 20px;border-radius:var(--radius);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff;width:100%}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(239,68,68,.3)}
+.btn-primary:active{transform:translateY(0)}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line);padding:7px 14px;font-size:.75rem;font-weight:600}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:6px 12px;font-size:.72rem}
+
+input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;height:6px;-webkit-appearance:none;background:var(--line);border-radius:3px;outline:none;margin:8px 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.range-label{display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:var(--muted)}
+.range-label .range-val{font-weight:700;color:var(--accent);font-size:.82rem}
+
+.sep{height:1px;background:var(--line);margin:16px 0}
+
+/* COLOR INPUTS */
+.color-row{display:flex;gap:8px;align-items:center}
+.color-row input[type=color]{width:40px;height:36px;padding:2px;border-radius:8px;cursor:pointer;border:1px solid var(--line)}
+.color-row input[type=text]{flex:1}
+
+/* GRADIENT PRESETS */
+.grad-row{display:flex;gap:6px;flex-wrap:wrap}
+.grad-swatch{width:36px;height:36px;border-radius:8px;border:2px solid transparent;cursor:pointer;transition:all .12s}
+.grad-swatch:hover,.grad-swatch.active{border-color:var(--accent);transform:scale(1.1)}
+
+/* PHONE FRAME */
+.phone-wrap{position:relative;width:360px;flex-shrink:0}
+.phone-frame{width:360px;height:640px;border-radius:40px;overflow:hidden;position:relative;border:3px solid #1a1a1a;background:#000;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.phone-screen{width:100%;height:100%;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:28px;background:#1a1a1a;border-radius:0 0 16px 16px;z-index:10}
+
+/* Story UI elements */
+.story-progress{position:absolute;top:36px;left:12px;right:12px;display:flex;gap:3px;z-index:10}
+.story-progress-bar{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.3)}
+.story-progress-bar.filled{background:rgba(255,255,255,.9)}
+.story-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.story-bg img{width:100%;height:100%;object-fit:cover}
+.story-brand{position:absolute;top:52px;left:16px;display:flex;align-items:center;gap:8px;z-index:10}
+.story-brand-avatar{width:28px;height:28px;border-radius:50%;border:2px solid #fff;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.6rem;font-weight:800}
+.story-brand-name{color:#fff;font-size:.72rem;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+.story-sponsor{color:rgba(255,255,255,.7);font-size:.55rem;margin-left:6px}
+.story-text{position:absolute;left:20px;right:20px;z-index:10;text-align:center;line-height:1.3;font-weight:800;text-shadow:0 2px 8px rgba(0,0,0,.5);word-break:break-word}
+.story-cta{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);z-index:10;padding:12px 32px;border-radius:24px;font-size:.78rem;font-weight:700;color:#fff;background:rgba(255,255,255,.2);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.3);cursor:default;white-space:nowrap}
+.story-music{position:absolute;bottom:24px;left:16px;right:16px;z-index:10;display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.7);font-size:.6rem}
+.story-music svg{flex-shrink:0}
+.story-music-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* TikTok style extras */
+.tiktok-actions{position:absolute;right:12px;bottom:100px;display:flex;flex-direction:column;gap:16px;z-index:10}
+.tiktok-action{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center}
+.tiktok-action svg{width:18px;height:18px;color:#fff}
+
+/* Upload area in sidebar */
+.upload-area{border:2px dashed var(--line);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:all .15s;font-size:.72rem;color:var(--muted)}
+.upload-area:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.upload-area.has-img{border-style:solid;border-color:var(--green)}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;padding:10px 20px;border-radius:10px;font-size:.78rem;font-weight:600;opacity:0;transition:all .3s ease;z-index:1000;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.export-bar{padding:12px 24px;border-top:1px solid var(--line);background:var(--panel);display:flex;gap:8px;flex-shrink:0;align-items:center;justify-content:flex-end}
+.export-bar .count{font-size:.72rem;color:var(--muted);margin-right:auto}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:none}
+  .main{min-height:60vh}
+  .main-scroll{padding:16px}
+  .phone-wrap{width:100%;max-width:360px;margin:0 auto}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/"><span>&larr;</span> FreeAdStore</a>
+      <h1>Story/Reel Ad Maker</h1>
+      <p>Design 9:16 story ads for Instagram, TikTok, Facebook, and YouTube Shorts.</p>
+    </div>
+    <div class="sidebar-scroll" id="controls"></div>
+  </div>
+  <div class="main">
+    <div class="main-header">
+      <h2 id="resultsTitle">Preview</h2>
+      <div style="display:flex;gap:6px">
+        <button class="btn-outline btn-sm" id="btnDownload">Download PNG</button>
+      </div>
+    </div>
+    <div class="main-scroll" id="mainContent">
+      <div class="phone-wrap">
+        <div class="phone-frame">
+          <div class="phone-notch"></div>
+          <div class="phone-screen" id="phoneScreen"></div>
+        </div>
+      </div>
+    </div>
+    <div class="export-bar">
+      <span class="count" id="exportCount">1080 x 1920</span>
+      <button class="btn-outline btn-sm" id="btnDownload2">Download as PNG</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInput" accept="image/*" style="display:none">
+<canvas id="exportCanvas" style="display:none"></canvas>
+
+<script>
+const PLATFORMS = [
+  {id:'ig-story',name:'Instagram Story'},
+  {id:'fb-story',name:'Facebook Story'},
+  {id:'tiktok',name:'TikTok'},
+  {id:'yt-shorts',name:'YouTube Shorts'},
+];
+
+const GRADIENTS = [
+  {name:'Sunset',css:'linear-gradient(135deg,#f97316,#ef4444,#ec4899)',stops:[{c:'#f97316',p:0},{c:'#ef4444',p:.5},{c:'#ec4899',p:1}]},
+  {name:'Ocean',css:'linear-gradient(135deg,#06b6d4,#3b82f6,#8b5cf6)',stops:[{c:'#06b6d4',p:0},{c:'#3b82f6',p:.5},{c:'#8b5cf6',p:1}]},
+  {name:'Forest',css:'linear-gradient(135deg,#22c55e,#14b8a6,#06b6d4)',stops:[{c:'#22c55e',p:0},{c:'#14b8a6',p:.5},{c:'#06b6d4',p:1}]},
+  {name:'Night',css:'linear-gradient(135deg,#1e293b,#334155,#475569)',stops:[{c:'#1e293b',p:0},{c:'#334155',p:.5},{c:'#475569',p:1}]},
+  {name:'Berry',css:'linear-gradient(135deg,#8b5cf6,#ec4899,#ef4444)',stops:[{c:'#8b5cf6',p:0},{c:'#ec4899',p:.5},{c:'#ef4444',p:1}]},
+  {name:'Gold',css:'linear-gradient(135deg,#eab308,#f97316,#ef4444)',stops:[{c:'#eab308',p:0},{c:'#f97316',p:.5},{c:'#ef4444',p:1}]},
+  {name:'Midnight',css:'linear-gradient(135deg,#0f172a,#1e1b4b,#312e81)',stops:[{c:'#0f172a',p:0},{c:'#1e1b4b',p:.5},{c:'#312e81',p:1}]},
+  {name:'Coral',css:'linear-gradient(135deg,#fb7185,#f43f5e,#e11d48)',stops:[{c:'#fb7185',p:0},{c:'#f43f5e',p:.5},{c:'#e11d48',p:1}]},
+];
+
+const CTA_TEXTS = ['Swipe Up','Learn More','Shop Now','Sign Up','Book Now','Download','Get Offer','Watch More'];
+const TEXT_POSITIONS = ['top','center','bottom'];
+
+let S = {
+  brand: '',
+  platform: 'ig-story',
+  text: '',
+  ctaText: 'Swipe Up',
+  textPos: 'center',
+  textColor: '#ffffff',
+  bgType: 'gradient',
+  bgColor: '#1e293b',
+  bgGradient: 0,
+  fontSize: 32,
+  imgData: null,
+};
+
+function buildControls() {
+  const c = document.getElementById('controls');
+  c.innerHTML = `
+  <div class="panel">
+    <div class="panel-title">Brand</div>
+    <label>Brand Name</label>
+    <input type="text" id="inpBrand" value="${esc(S.brand)}" placeholder="e.g. Acme, Nike">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Platform</div>
+    <div class="pill-row" id="platRow">
+      ${PLATFORMS.map(p => `<button class="pill${p.id===S.platform?' active':''}" data-plat="${p.id}">${p.name}</button>`).join('')}
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Background</div>
+    <div class="pill-row" id="bgTypeRow" style="margin-bottom:10px">
+      <button class="pill${S.bgType==='gradient'?' active':''}" data-bg="gradient">Gradient</button>
+      <button class="pill${S.bgType==='color'?' active':''}" data-bg="color">Solid Color</button>
+      <button class="pill${S.bgType==='image'?' active':''}" data-bg="image">Image</button>
+    </div>
+    <div id="bgOptions"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Text Overlay</div>
+    <label>Text</label>
+    <textarea id="inpText" placeholder="Your headline or message..." oninput="S.text=this.value;renderPreview()">${esc(S.text)}</textarea>
+    <label>Position</label>
+    <div class="pill-row" id="posRow">
+      ${TEXT_POSITIONS.map(p => `<button class="pill${p===S.textPos?' active':''}" data-pos="${p}">${p.charAt(0).toUpperCase()+p.slice(1)}</button>`).join('')}
+    </div>
+    <label>Text Color</label>
+    <div class="color-row">
+      <input type="color" id="inpTextColor" value="${S.textColor}" oninput="S.textColor=this.value;renderPreview()">
+      <input type="text" value="${S.textColor}" id="inpTextColorHex" oninput="S.textColor=this.value;document.getElementById('inpTextColor').value=this.value;renderPreview()">
+    </div>
+    <label>Font Size</label>
+    <div class="range-label"><span>16px</span><span class="range-val" id="fontSizeVal">${S.fontSize}px</span><span>64px</span></div>
+    <input type="range" id="rangeFontSize" min="16" max="64" value="${S.fontSize}">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Call to Action</div>
+    <label>CTA Text</label>
+    <select id="selCta">
+      ${CTA_TEXTS.map(c => `<option${c===S.ctaText?' selected':''}>${c}</option>`).join('')}
+    </select>
+  </div>
+  `;
+  renderBgOptions();
+  bindControls();
+  renderPreview();
+}
+
+function esc(s) { return s.replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+function escHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+function renderBgOptions() {
+  const el = document.getElementById('bgOptions');
+  if (S.bgType === 'gradient') {
+    el.innerHTML = `
+      <div class="grad-row">
+        ${GRADIENTS.map((g,i) => `<div class="grad-swatch${i===S.bgGradient?' active':''}" data-grad="${i}" style="background:${g.css}" title="${g.name}"></div>`).join('')}
+      </div>
+    `;
+    el.querySelectorAll('.grad-swatch').forEach(sw => {
+      sw.onclick = () => {
+        S.bgGradient = +sw.dataset.grad;
+        el.querySelectorAll('.grad-swatch').forEach(s => s.classList.toggle('active', +s.dataset.grad === S.bgGradient));
+        renderPreview();
+      };
+    });
+  } else if (S.bgType === 'color') {
+    el.innerHTML = `
+      <div class="color-row">
+        <input type="color" value="${S.bgColor}" oninput="S.bgColor=this.value;renderPreview()">
+        <input type="text" value="${S.bgColor}" oninput="S.bgColor=this.value;renderPreview()">
+      </div>
+    `;
+  } else {
+    el.innerHTML = `
+      <div class="upload-area${S.imgData?' has-img':''}" id="uploadArea">
+        ${S.imgData ? 'Image uploaded. Click to change.' : 'Click to upload background image'}
+      </div>
+    `;
+    document.getElementById('uploadArea').onclick = () => {
+      const fi = document.getElementById('fileInput');
+      fi.onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => { S.imgData = ev.target.result; renderBgOptions(); renderPreview(); };
+        reader.readAsDataURL(file);
+        fi.value = '';
+      };
+      fi.click();
+    };
+  }
+}
+
+function bindControls() {
+  const $ = id => document.getElementById(id);
+  $('inpBrand').oninput = e => { S.brand = e.target.value; renderPreview(); };
+  $('platRow').onclick = e => {
+    const el = e.target.closest('[data-plat]');
+    if (!el) return;
+    S.platform = el.dataset.plat;
+    document.querySelectorAll('#platRow .pill').forEach(p => p.classList.toggle('active', p.dataset.plat === S.platform));
+    renderPreview();
+  };
+  $('bgTypeRow').onclick = e => {
+    const el = e.target.closest('[data-bg]');
+    if (!el) return;
+    S.bgType = el.dataset.bg;
+    document.querySelectorAll('#bgTypeRow .pill').forEach(p => p.classList.toggle('active', p.dataset.bg === S.bgType));
+    renderBgOptions();
+    renderPreview();
+  };
+  $('posRow').onclick = e => {
+    const el = e.target.closest('[data-pos]');
+    if (!el) return;
+    S.textPos = el.dataset.pos;
+    document.querySelectorAll('#posRow .pill').forEach(p => p.classList.toggle('active', p.dataset.pos === S.textPos));
+    renderPreview();
+  };
+  $('rangeFontSize').oninput = e => {
+    S.fontSize = +e.target.value;
+    $('fontSizeVal').textContent = S.fontSize + 'px';
+    renderPreview();
+  };
+  $('selCta').onchange = e => { S.ctaText = e.target.value; renderPreview(); };
+  $('btnDownload').onclick = downloadPng;
+  $('btnDownload2').onclick = downloadPng;
+}
+
+function renderPreview() {
+  const screen = document.getElementById('phoneScreen');
+  const brand = S.brand.trim() || 'Brand';
+  const initial = brand.charAt(0).toUpperCase();
+  const plat = PLATFORMS.find(p => p.id === S.platform);
+
+  document.getElementById('resultsTitle').textContent = `${plat.name} Preview`;
+
+  // Background
+  let bgStyle = '';
+  if (S.bgType === 'gradient') {
+    bgStyle = `background:${GRADIENTS[S.bgGradient].css}`;
+  } else if (S.bgType === 'color') {
+    bgStyle = `background:${S.bgColor}`;
+  } else if (S.bgType === 'image' && S.imgData) {
+    bgStyle = `background:url(${S.imgData}) center/cover`;
+  } else {
+    bgStyle = 'background:#1e293b';
+  }
+
+  // Text position
+  const posMap = {top:'top:120px',center:'top:50%;transform:translateY(-50%)',bottom:'bottom:140px'};
+  const textStyle = `${posMap[S.textPos]};color:${S.textColor};font-size:${S.fontSize * 0.5}px`;
+
+  // Platform-specific UI
+  const isIG = S.platform === 'ig-story';
+  const isFB = S.platform === 'fb-story';
+  const isTikTok = S.platform === 'tiktok';
+  const isYT = S.platform === 'yt-shorts';
+
+  let progressBars = '';
+  if (isIG || isFB) {
+    progressBars = `<div class="story-progress">
+      <div class="story-progress-bar filled"></div>
+      <div class="story-progress-bar"></div>
+      <div class="story-progress-bar"></div>
+    </div>`;
+  }
+
+  let tiktokActions = '';
+  if (isTikTok) {
+    tiktokActions = `<div class="tiktok-actions">
+      <div class="tiktok-action"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+      <div class="tiktok-action"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <div class="tiktok-action"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></div>
+    </div>`;
+  }
+
+  let ytOverlay = '';
+  if (isYT) {
+    ytOverlay = `<div style="position:absolute;bottom:80px;left:12px;z-index:10;display:flex;align-items:center;gap:6px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="rgba(255,255,255,.7)"/></svg>
+      <span style="color:rgba(255,255,255,.7);font-size:.55rem">Shorts</span>
+    </div>`;
+  }
+
+  const musicBar = `<div class="story-music">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+    <span class="story-music-text">Original Sound - ${escHtml(brand)}</span>
+  </div>`;
+
+  screen.innerHTML = `
+    <div class="story-bg" style="${bgStyle}">
+      ${S.bgType === 'image' && S.imgData ? `<img src="${S.imgData}" alt="">` : ''}
+    </div>
+    ${progressBars}
+    <div class="story-brand">
+      <div class="story-brand-avatar">${initial}</div>
+      <span class="story-brand-name">${escHtml(brand)}</span>
+      <span class="story-sponsor">Sponsored</span>
+    </div>
+    ${S.text ? `<div class="story-text" style="${textStyle}">${escHtml(S.text)}</div>` : ''}
+    ${S.ctaText ? `<div class="story-cta">${escHtml(S.ctaText)}</div>` : ''}
+    ${tiktokActions}
+    ${ytOverlay}
+    ${musicBar}
+  `;
+}
+
+function downloadPng() {
+  const canvas = document.getElementById('exportCanvas');
+  canvas.width = 1080;
+  canvas.height = 1920;
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  if (S.bgType === 'gradient') {
+    const g = GRADIENTS[S.bgGradient];
+    const grad = ctx.createLinearGradient(0, 0, 1080, 1920);
+    g.stops.forEach(s => grad.addColorStop(s.p, s.c));
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 1080, 1920);
+  } else if (S.bgType === 'color') {
+    ctx.fillStyle = S.bgColor;
+    ctx.fillRect(0, 0, 1080, 1920);
+  } else {
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(0, 0, 1080, 1920);
+  }
+
+  const drawOverlays = () => {
+    const brand = S.brand.trim() || 'Brand';
+    const initial = brand.charAt(0).toUpperCase();
+
+    // Brand avatar + name
+    ctx.fillStyle = 'rgba(239,68,68,1)';
+    ctx.beginPath();
+    ctx.arc(80, 170, 36, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 28px Manrope, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(initial, 80, 180);
+    ctx.textAlign = 'left';
+    ctx.font = 'bold 30px Manrope, sans-serif';
+    ctx.fillText(brand, 130, 178);
+    ctx.fillStyle = 'rgba(255,255,255,.6)';
+    ctx.font = '22px Manrope, sans-serif';
+    const brandW = ctx.measureText(brand).width;
+    ctx.fillText('Sponsored', 130 + brandW + 16, 178);
+
+    // Text overlay
+    if (S.text) {
+      ctx.fillStyle = S.textColor;
+      ctx.font = `800 ${S.fontSize * 1.5}px Manrope, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.shadowBlur = 12;
+
+      let ty;
+      if (S.textPos === 'top') ty = 380;
+      else if (S.textPos === 'bottom') ty = 1400;
+      else ty = 960;
+
+      // Word wrap
+      const maxW = 900;
+      const words = S.text.split(/\n/);
+      const lines = [];
+      words.forEach(para => {
+        const ws = para.split(' ');
+        let line = '';
+        ws.forEach(w => {
+          const test = line ? line + ' ' + w : w;
+          if (ctx.measureText(test).width > maxW && line) {
+            lines.push(line);
+            line = w;
+          } else {
+            line = test;
+          }
+        });
+        if (line) lines.push(line);
+      });
+      const lineH = S.fontSize * 1.8;
+      const startY = ty - (lines.length - 1) * lineH / 2;
+      lines.forEach((l, i) => ctx.fillText(l, 540, startY + i * lineH));
+
+      ctx.shadowBlur = 0;
+      ctx.textAlign = 'left';
+    }
+
+    // CTA button
+    if (S.ctaText) {
+      ctx.font = 'bold 32px Manrope, sans-serif';
+      const ctaW = ctx.measureText(S.ctaText).width + 80;
+      const bx = (1080 - ctaW) / 2;
+      const by = 1700;
+      ctx.fillStyle = 'rgba(255,255,255,0.2)';
+      ctx.beginPath();
+      ctx.roundRect(bx, by, ctaW, 68, 34);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.fillText(S.ctaText, 540, by + 45);
+      ctx.textAlign = 'left';
+    }
+
+    // Music bar
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.font = '22px Manrope, sans-serif';
+    ctx.fillText('Original Sound - ' + brand, 60, 1870);
+
+    // Export
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const platName = S.platform.replace(/[^a-z]/g, '-');
+      a.download = `${(S.brand || 'story').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${platName}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('PNG downloaded (1080x1920)');
+    });
+  };
+
+  if (S.bgType === 'image' && S.imgData) {
+    const img = new Image();
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, 1080, 1920);
+      drawOverlays();
+    };
+    img.src = S.imgData;
+  } else {
+    drawOverlays();
+  }
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+buildControls();
+</script>
+</body>
+</html>

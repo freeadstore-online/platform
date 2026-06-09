@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Exclusion List Builder - FreeAdStore</title>
+<meta name="description" content="Build exclusion lists for ads: negative keywords, excluded placements, audience suppressions. Bulk input, copy, and CSV export. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#ef4444;--accent-light:#fef2f2;--accent-dark:#dc2626;--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--panel:#ffffff;--line:#e5e7eb;--green:#10b981;--yellow:#f59e0b;--blue:#3b82f6;--purple:#8b5cf6}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+.top-bar{display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+.back{font-size:13px;font-weight:500;color:var(--accent);white-space:nowrap}
+.back:hover{text-decoration:underline}
+.top-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:700;flex:1}
+.top-title span{color:var(--accent)}
+
+.layout{display:flex;height:calc(100vh - 45px);overflow:hidden}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);overflow-y:auto;display:flex;flex-direction:column}
+.main{flex:1;overflow-y:auto;padding:24px 32px;background:var(--bg)}
+
+.sidebar-header{padding:16px 16px 0;border-bottom:1px solid var(--line);padding-bottom:12px}
+.sidebar-header h2{font-size:15px;font-weight:800;margin-bottom:4px}
+.sidebar-header p{font-size:11px;color:var(--muted);line-height:1.4}
+
+.sidebar-content{padding:0;flex:1;overflow-y:auto;display:flex;flex-direction:column}
+
+/* Tabs */
+.tab-bar{display:flex;border-bottom:1px solid var(--line);background:var(--bg)}
+.tab{flex:1;text-align:center;padding:10px 4px;font-size:11px;font-weight:700;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:all .15s;font-family:inherit;background:none;border-top:none;border-left:none;border-right:none}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.tab-panel{display:none;padding:16px;flex:1;overflow-y:auto;flex-direction:column}
+.tab-panel.active{display:flex}
+
+.section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.section-title::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px}
+
+.field{margin-bottom:12px}
+.field-label{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;display:block}
+
+.text-input{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg)}
+.text-input:focus{outline:none;border-color:var(--accent)}
+
+.add-row{display:flex;gap:6px;margin-bottom:12px}
+.add-row .text-input{flex:1}
+.add-btn{padding:7px 14px;border-radius:6px;background:var(--accent);color:white;font-size:12px;font-weight:700;border:none;cursor:pointer;font-family:inherit;white-space:nowrap}
+.add-btn:hover{background:var(--accent-dark)}
+
+textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:11px;font-family:'Manrope',system-ui,sans-serif;background:var(--bg);resize:vertical;min-height:80px;line-height:1.5}
+textarea:focus{outline:none;border-color:var(--accent)}
+
+.bulk-hint{font-size:10px;color:var(--muted);margin-top:4px}
+.import-btn{width:100%;padding:8px;border:1px dashed var(--line);border-radius:8px;background:transparent;font-size:11px;font-weight:600;cursor:pointer;color:var(--muted);font-family:inherit;margin-top:8px;transition:all .15s}
+.import-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Suggested exclusions */
+.suggest-title{font-size:11px;font-weight:700;color:var(--text);margin:14px 0 6px}
+.suggest-pills{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.suggest-pill{padding:4px 10px;border-radius:99px;border:1px dashed var(--line);background:var(--panel);font-size:10px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit;color:var(--muted)}
+.suggest-pill:hover{border-color:var(--accent);color:var(--accent);border-style:solid}
+.suggest-pill.added{background:var(--accent-light);border-color:var(--accent);color:var(--accent);border-style:solid}
+
+/* Main area */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card h3{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+@media(max-width:700px){.stats-row{grid-template-columns:1fr}}
+.stat-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.stat-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.stat-value{font-family:'Fraunces',serif;font-size:1.8rem;font-weight:700;line-height:1.1}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:4px}
+
+/* Item list */
+.item-list{list-style:none;max-height:300px;overflow-y:auto}
+.item-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bg);font-size:12px}
+.item-row:last-child{border-bottom:none}
+.item-type{font-size:9px;font-weight:700;text-transform:uppercase;padding:2px 6px;border-radius:4px;flex-shrink:0}
+.item-text{flex:1;word-break:break-all}
+.item-remove{width:20px;height:20px;border-radius:4px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit;line-height:1}
+.item-remove:hover{border-color:var(--accent);color:var(--accent)}
+.empty-state{font-size:12px;color:var(--muted);font-style:italic;padding:12px 0}
+
+.export-bar{display:flex;gap:8px;flex-wrap:wrap}
+.export-btn{padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .15s}
+.export-primary{background:var(--accent);color:white}
+.export-primary:hover{background:var(--accent-dark)}
+.export-secondary{background:var(--panel);color:var(--text);border:1px solid var(--line)}
+.export-secondary:hover{border-color:var(--accent)}
+.copied-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:white;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transition:all .3s ease;z-index:999;pointer-events:none}
+.copied-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+@media(max-width:768px){
+  .layout{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;max-height:55vh;border-right:none;border-bottom:1px solid var(--line)}
+  .main{padding:16px}
+  .stats-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a class="back" href="/">&larr; FreeAdStore</a>
+  <div class="top-title">Exclusion List <span>Builder</span></div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>Build Exclusion Lists</h2>
+      <p>Negative keywords, excluded placements, and audience suppressions to reduce wasted ad spend.</p>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab active" data-tab="keywords" onclick="switchTab('keywords')">Neg. Keywords</button>
+      <button class="tab" data-tab="placements" onclick="switchTab('placements')">Placements</button>
+      <button class="tab" data-tab="audiences" onclick="switchTab('audiences')">Suppressions</button>
+    </div>
+
+    <div class="sidebar-content">
+      <!-- Negative Keywords Tab -->
+      <div class="tab-panel active" id="panel-keywords">
+        <div class="section-title">Add Negative Keywords</div>
+
+        <div class="add-row">
+          <input type="text" class="text-input" id="kwInput" placeholder="e.g. free, cheap, jobs">
+          <button class="add-btn" onclick="addKeyword()">Add</button>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Bulk Add (one per line)</div>
+          <textarea id="kwBulk" placeholder="free&#10;cheap&#10;salary&#10;reddit"></textarea>
+          <div class="bulk-hint">Paste a list, one keyword per line</div>
+          <button class="import-btn" onclick="importBulkKeywords()">Import Bulk List</button>
+        </div>
+
+        <div class="suggest-title">Suggested Negative Keywords</div>
+        <div class="suggest-pills" id="kwSuggestions">
+          <button class="suggest-pill" data-value="free">free</button>
+          <button class="suggest-pill" data-value="cheap">cheap</button>
+          <button class="suggest-pill" data-value="jobs">jobs</button>
+          <button class="suggest-pill" data-value="salary">salary</button>
+          <button class="suggest-pill" data-value="reddit">reddit</button>
+          <button class="suggest-pill" data-value="how to">how to</button>
+          <button class="suggest-pill" data-value="tutorial">tutorial</button>
+          <button class="suggest-pill" data-value="download">download</button>
+          <button class="suggest-pill" data-value="diy">diy</button>
+          <button class="suggest-pill" data-value="template">template</button>
+          <button class="suggest-pill" data-value="example">example</button>
+          <button class="suggest-pill" data-value="wiki">wiki</button>
+          <button class="suggest-pill" data-value="youtube">youtube</button>
+          <button class="suggest-pill" data-value="login">login</button>
+          <button class="suggest-pill" data-value="porn">porn</button>
+          <button class="suggest-pill" data-value="scam">scam</button>
+          <button class="suggest-pill" data-value="complaint">complaint</button>
+          <button class="suggest-pill" data-value="review">review</button>
+        </div>
+      </div>
+
+      <!-- Placements Tab -->
+      <div class="tab-panel" id="panel-placements">
+        <div class="section-title">Exclude Placements</div>
+
+        <div class="add-row">
+          <input type="text" class="text-input" id="plInput" placeholder="e.g. reddit.com, games category">
+          <button class="add-btn" onclick="addPlacement()">Add</button>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Bulk Add (one per line)</div>
+          <textarea id="plBulk" placeholder="reddit.com&#10;quora.com&#10;kids apps&#10;dating apps"></textarea>
+          <div class="bulk-hint">Sites, apps, channels, or categories</div>
+          <button class="import-btn" onclick="importBulkPlacements()">Import Bulk List</button>
+        </div>
+
+        <div class="suggest-title">Suggested Exclusions -- Sites</div>
+        <div class="suggest-pills" id="plSuggestSites">
+          <button class="suggest-pill" data-value="reddit.com">reddit.com</button>
+          <button class="suggest-pill" data-value="quora.com">quora.com</button>
+          <button class="suggest-pill" data-value="pinterest.com">pinterest.com</button>
+          <button class="suggest-pill" data-value="wikipedia.org">wikipedia.org</button>
+          <button class="suggest-pill" data-value="craigslist.org">craigslist.org</button>
+        </div>
+
+        <div class="suggest-title">Suggested Exclusions -- Categories</div>
+        <div class="suggest-pills" id="plSuggestCats">
+          <button class="suggest-pill" data-value="Kids games & apps">Kids games</button>
+          <button class="suggest-pill" data-value="Dating apps">Dating apps</button>
+          <button class="suggest-pill" data-value="Gambling sites">Gambling</button>
+          <button class="suggest-pill" data-value="Made-for-ads sites">Made-for-ads</button>
+          <button class="suggest-pill" data-value="Parked domains">Parked domains</button>
+          <button class="suggest-pill" data-value="Error pages">Error pages</button>
+          <button class="suggest-pill" data-value="Below-the-fold only">Below-the-fold</button>
+        </div>
+      </div>
+
+      <!-- Audience Suppressions Tab -->
+      <div class="tab-panel" id="panel-audiences">
+        <div class="section-title">Audience Suppressions</div>
+
+        <div class="add-row">
+          <input type="text" class="text-input" id="auInput" placeholder="e.g. Past purchasers, Newsletter subscribers">
+          <button class="add-btn" onclick="addAudience()">Add</button>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Bulk Add (one per line)</div>
+          <textarea id="auBulk" placeholder="Existing customers&#10;Free trial users&#10;Employees"></textarea>
+          <div class="bulk-hint">Customer segments to suppress from targeting</div>
+          <button class="import-btn" onclick="importBulkAudiences()">Import Bulk List</button>
+        </div>
+
+        <div class="suggest-title">Common Suppressions</div>
+        <div class="suggest-pills" id="auSuggestions">
+          <button class="suggest-pill" data-value="Existing customers">Existing customers</button>
+          <button class="suggest-pill" data-value="Past purchasers (30d)">Past purchasers (30d)</button>
+          <button class="suggest-pill" data-value="Recent converters (7d)">Recent converters (7d)</button>
+          <button class="suggest-pill" data-value="Newsletter subscribers">Newsletter subs</button>
+          <button class="suggest-pill" data-value="Free trial users">Free trial users</button>
+          <button class="suggest-pill" data-value="Churned users">Churned users</button>
+          <button class="suggest-pill" data-value="Employees">Employees</button>
+          <button class="suggest-pill" data-value="Competitors">Competitors</button>
+          <button class="suggest-pill" data-value="Bot/invalid traffic">Bot traffic</button>
+          <button class="suggest-pill" data-value="Under-18 audiences">Under-18</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Neg. Keywords</div>
+        <div class="stat-value" id="kwCount" style="color:var(--accent)">0</div>
+        <div class="stat-sub">search exclusions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Placements</div>
+        <div class="stat-value" id="plCount" style="color:var(--blue)">0</div>
+        <div class="stat-sub">excluded sites/apps</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Suppressions</div>
+        <div class="stat-value" id="auCount" style="color:var(--purple)">0</div>
+        <div class="stat-sub">audience segments</div>
+      </div>
+    </div>
+
+    <!-- Negative Keywords List -->
+    <div class="card" id="kwCard">
+      <h3><span style="color:var(--accent)">Negative Keywords</span> <span style="font-size:11px;font-weight:500;color:var(--muted)" id="kwCardCount"></span></h3>
+      <ul class="item-list" id="kwList">
+        <li class="empty-state">No negative keywords added yet. Use the sidebar to add keywords.</li>
+      </ul>
+    </div>
+
+    <!-- Placements List -->
+    <div class="card" id="plCard">
+      <h3><span style="color:var(--blue)">Excluded Placements</span> <span style="font-size:11px;font-weight:500;color:var(--muted)" id="plCardCount"></span></h3>
+      <ul class="item-list" id="plList">
+        <li class="empty-state">No excluded placements added yet.</li>
+      </ul>
+    </div>
+
+    <!-- Audience Suppressions List -->
+    <div class="card" id="auCard">
+      <h3><span style="color:var(--purple)">Audience Suppressions</span> <span style="font-size:11px;font-weight:500;color:var(--muted)" id="auCardCount"></span></h3>
+      <ul class="item-list" id="auList">
+        <li class="empty-state">No audience suppressions added yet.</li>
+      </ul>
+    </div>
+
+    <!-- Export -->
+    <div class="export-bar">
+      <button class="export-btn export-primary" onclick="copyAll()">Copy All Lists</button>
+      <button class="export-btn export-secondary" onclick="exportCSV()">Export CSV</button>
+      <button class="export-btn export-secondary" onclick="clearAll()">Clear All</button>
+    </div>
+  </div>
+</div>
+
+<div class="copied-toast" id="toast">Copied to clipboard</div>
+
+<script>
+(function(){
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+
+  // Data stores
+  const lists = { keywords: [], placements: [], audiences: [] };
+  const TYPES = {
+    keywords:    { label:'Keyword',    color:'#ef4444', bg:'#fef2f2' },
+    placements:  { label:'Placement',  color:'#3b82f6', bg:'#eff6ff' },
+    audiences:   { label:'Suppression',color:'#8b5cf6', bg:'#f5f3ff' }
+  };
+
+  // Tab switching
+  window.switchTab = function(tabId) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tabId));
+  };
+
+  // Add items
+  function addItem(type, value) {
+    const clean = value.trim();
+    if (!clean) return false;
+    if (lists[type].includes(clean)) return false;
+    lists[type].push(clean);
+    render();
+    return true;
+  }
+
+  function removeItem(type, index) {
+    lists[type].splice(index, 1);
+    render();
+  }
+
+  // Keyword
+  window.addKeyword = function() {
+    const input = $('kwInput');
+    const vals = input.value.split(',').map(s => s.trim()).filter(Boolean);
+    vals.forEach(v => addItem('keywords', v));
+    input.value = '';
+  };
+  $('kwInput').addEventListener('keydown', e => { if (e.key === 'Enter') window.addKeyword(); });
+
+  window.importBulkKeywords = function() {
+    const ta = $('kwBulk');
+    ta.value.split('\n').map(s => s.trim()).filter(Boolean).forEach(v => addItem('keywords', v));
+    ta.value = '';
+  };
+
+  // Placement
+  window.addPlacement = function() {
+    const input = $('plInput');
+    const vals = input.value.split(',').map(s => s.trim()).filter(Boolean);
+    vals.forEach(v => addItem('placements', v));
+    input.value = '';
+  };
+  $('plInput').addEventListener('keydown', e => { if (e.key === 'Enter') window.addPlacement(); });
+
+  window.importBulkPlacements = function() {
+    const ta = $('plBulk');
+    ta.value.split('\n').map(s => s.trim()).filter(Boolean).forEach(v => addItem('placements', v));
+    ta.value = '';
+  };
+
+  // Audience
+  window.addAudience = function() {
+    const input = $('auInput');
+    const vals = input.value.split(',').map(s => s.trim()).filter(Boolean);
+    vals.forEach(v => addItem('audiences', v));
+    input.value = '';
+  };
+  $('auInput').addEventListener('keydown', e => { if (e.key === 'Enter') window.addAudience(); });
+
+  window.importBulkAudiences = function() {
+    const ta = $('auBulk');
+    ta.value.split('\n').map(s => s.trim()).filter(Boolean).forEach(v => addItem('audiences', v));
+    ta.value = '';
+  };
+
+  // Suggestion pills
+  document.querySelectorAll('.suggest-pill').forEach(pill => {
+    pill.addEventListener('click', function() {
+      const value = this.dataset.value;
+      const panel = this.closest('.tab-panel');
+      let type = 'keywords';
+      if (panel.id === 'panel-placements') type = 'placements';
+      else if (panel.id === 'panel-audiences') type = 'audiences';
+
+      if (this.classList.contains('added')) {
+        const idx = lists[type].indexOf(value);
+        if (idx !== -1) { lists[type].splice(idx, 1); }
+        this.classList.remove('added');
+      } else {
+        if (addItem(type, value)) {
+          this.classList.add('added');
+        }
+      }
+      render();
+    });
+  });
+
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function renderList(type, listEl, countEl) {
+    const items = lists[type];
+    const info = TYPES[type];
+    countEl.textContent = items.length > 0 ? '(' + items.length + ')' : '';
+
+    if (items.length === 0) {
+      listEl.innerHTML = '<li class="empty-state">No items added yet.</li>';
+      return;
+    }
+
+    listEl.innerHTML = items.map((item, i) =>
+      '<li class="item-row">' +
+      '<span class="item-type" style="background:' + info.bg + ';color:' + info.color + '">' + info.label + '</span>' +
+      '<span class="item-text">' + escapeHtml(item) + '</span>' +
+      '<button class="item-remove" onclick="removeItem(\'' + type + '\',' + i + ')" title="Remove">x</button>' +
+      '</li>'
+    ).join('');
+  }
+
+  function render() {
+    $('kwCount').textContent = lists.keywords.length;
+    $('plCount').textContent = lists.placements.length;
+    $('auCount').textContent = lists.audiences.length;
+
+    renderList('keywords', $('kwList'), $('kwCardCount'));
+    renderList('placements', $('plList'), $('plCardCount'));
+    renderList('audiences', $('auList'), $('auCardCount'));
+
+    // Sync suggestion pills
+    document.querySelectorAll('.suggest-pill').forEach(pill => {
+      const value = pill.dataset.value;
+      const panel = pill.closest('.tab-panel');
+      let type = 'keywords';
+      if (panel.id === 'panel-placements') type = 'placements';
+      else if (panel.id === 'panel-audiences') type = 'audiences';
+      pill.classList.toggle('added', lists[type].includes(value));
+    });
+  }
+
+  window.removeItem = removeItem;
+
+  // Export: Copy all
+  window.copyAll = function() {
+    const lines = ['EXCLUSION LISTS', '---', ''];
+    if (lists.keywords.length) {
+      lines.push('NEGATIVE KEYWORDS (' + lists.keywords.length + ')');
+      lists.keywords.forEach(k => lines.push('  ' + k));
+      lines.push('');
+    }
+    if (lists.placements.length) {
+      lines.push('EXCLUDED PLACEMENTS (' + lists.placements.length + ')');
+      lists.placements.forEach(p => lines.push('  ' + p));
+      lines.push('');
+    }
+    if (lists.audiences.length) {
+      lines.push('AUDIENCE SUPPRESSIONS (' + lists.audiences.length + ')');
+      lists.audiences.forEach(a => lines.push('  ' + a));
+      lines.push('');
+    }
+    const total = lists.keywords.length + lists.placements.length + lists.audiences.length;
+    lines.push('Total: ' + total + ' exclusions');
+    lines.push('');
+    lines.push('Generated by FreeAdStore Exclusion List Builder');
+    navigator.clipboard.writeText(lines.join('\n')).then(() => showToast('Copied to clipboard'));
+  };
+
+  // Export: CSV
+  window.exportCSV = function() {
+    const rows = [['Type', 'Value']];
+    lists.keywords.forEach(k => rows.push(['Negative Keyword', k]));
+    lists.placements.forEach(p => rows.push(['Excluded Placement', p]));
+    lists.audiences.forEach(a => rows.push(['Audience Suppression', a]));
+
+    const csv = rows.map(r => r.map(c => '"' + c.replace(/"/g, '""') + '"').join(',')).join('\n');
+    const blob = new Blob([csv], { type:'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'exclusion-lists.csv'; a.click();
+    URL.revokeObjectURL(url);
+    showToast('CSV downloaded');
+  };
+
+  // Clear all
+  window.clearAll = function() {
+    lists.keywords = [];
+    lists.placements = [];
+    lists.audiences = [];
+    render();
+    showToast('All lists cleared');
+  };
+
+  function showToast(msg) {
+    const toast = $('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

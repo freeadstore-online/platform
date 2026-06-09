@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Bid Strategy Planner - FreeAdStore</title>
+<meta name="description" content="Compare bid strategies (Manual CPC, Enhanced CPC, Target CPA, Target ROAS, Maximize Conversions) with personalized recommendations based on your campaign inputs. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:#fef2f2;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#22c55e;--blue:#3b82f6;--purple:#8b5cf6;--orange:#f97316;--cyan:#06b6d4;--pink:#ec4899;--yellow:#eab308;--teal:#14b8a6}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 16px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px;font-family:'Fraunces',serif}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-width:0;background:var(--bg);padding:0}
+
+/* PANELS */
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+.panel-title svg{width:14px;height:14px;color:var(--muted)}
+label{font-size:.7rem;color:var(--muted);display:block;margin:6px 0 3px;font-weight:500}
+select,input[type=number]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;color:var(--text)}
+select:focus,input[type=number]:focus{border-color:var(--accent)}
+
+/* PILLS */
+.pill-row{display:flex;gap:4px;flex-wrap:wrap}
+.pill{padding:5px 12px;border:1px solid var(--line);border-radius:6px;font-size:.72rem;font-weight:600;cursor:pointer;background:var(--panel);font-family:inherit;transition:all .12s;color:var(--text)}
+.pill:hover{border-color:var(--accent)}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* INPUT GROUP */
+.input-group{position:relative}
+.input-group .prefix{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.78rem;color:var(--muted);font-weight:600;pointer-events:none}
+.input-group input{padding-left:24px}
+
+/* BUTTONS */
+.btn{padding:9px 18px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .12s;width:100%}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{filter:brightness(1.1)}
+
+/* MAIN CONTENT */
+.results{padding:24px;max-width:1060px;margin:0 auto;width:100%}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;color:var(--muted);text-align:center;gap:12px}
+.empty-state svg{width:64px;height:64px;color:var(--line)}
+.empty-state h2{font-size:1.1rem;font-weight:700;color:var(--text)}
+.empty-state p{font-size:.82rem;max-width:360px}
+
+/* STRATEGY CARDS */
+.strategy-grid{display:flex;flex-direction:column;gap:14px}
+.strategy-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 24px;transition:all .2s;position:relative;overflow:hidden}
+.strategy-card.recommended{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.strategy-card.recommended::before{content:'RECOMMENDED';position:absolute;top:12px;right:-32px;background:var(--accent);color:#fff;font-size:.58rem;font-weight:800;letter-spacing:.06em;padding:3px 40px;transform:rotate(45deg)}
+.strategy-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px}
+.strategy-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem}
+.strategy-name{font-size:1rem;font-weight:800;font-family:'Fraunces',serif;margin-bottom:2px}
+.strategy-tagline{font-size:.75rem;color:var(--muted);line-height:1.4}
+.strategy-body{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.strategy-section h4{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:6px}
+.strategy-section ul{list-style:none;padding:0}
+.strategy-section li{font-size:.76rem;line-height:1.6;padding-left:16px;position:relative}
+.strategy-section li::before{content:'';position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%}
+.strategy-section.pros li::before{background:var(--green)}
+.strategy-section.cons li::before{background:var(--accent)}
+.strategy-section.reqs li::before{background:var(--blue)}
+.strategy-meta{display:flex;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap}
+.meta-tag{display:flex;align-items:center;gap:5px;font-size:.7rem;font-weight:600;color:var(--muted);background:var(--bg);padding:4px 10px;border-radius:6px}
+.meta-tag svg{width:12px;height:12px}
+.meta-tag.highlight{color:var(--accent);background:var(--accent-light)}
+
+/* SUMMARY */
+.summary-bar{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 24px;margin-bottom:20px;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.summary-item{text-align:center;flex:1;min-width:100px}
+.summary-item .label{font-size:.66rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+.summary-item .value{font-size:1.4rem;font-weight:800;font-family:'Fraunces',serif}
+
+/* COMPARISON TABLE */
+.compare-table-wrap{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px;overflow-x:auto}
+.compare-table-wrap h3{font-size:.82rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.compare-table{width:100%;border-collapse:collapse;font-size:.76rem}
+.compare-table th{text-align:left;font-size:.64rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:8px 10px;border-bottom:2px solid var(--line)}
+.compare-table td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table tr.recommended-row{background:var(--accent-light)}
+.compare-table .cell-name{font-weight:700}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.64rem;font-weight:700}
+.badge-green{background:#dcfce7;color:#166534}
+.badge-yellow{background:#fef3c7;color:#92400e}
+.badge-red{background:#fee2e2;color:#991b1b}
+.badge-blue{background:#dbeafe;color:#1e40af}
+
+/* PRINT */
+@media print{
+  .sidebar,.back,a.back{display:none!important}
+  .app{display:block}
+  .main{overflow:visible}
+  .results{padding:0;max-width:100%}
+  .strategy-card,.summary-bar,.compare-table-wrap{break-inside:avoid;box-shadow:none;border:1px solid #ddd}
+  body{background:#fff}
+  @page{margin:1.5cm}
+}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .strategy-body{grid-template-columns:1fr}
+  .summary-bar{flex-direction:column;gap:12px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&#8592; FreeAdStore</a>
+      <h1>Bid Strategy Planner</h1>
+      <p>Get a personalized bid strategy recommendation based on your campaign setup.</p>
+    </div>
+    <div class="sidebar-scroll">
+      <!-- Platform -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Platform</div>
+        <div class="pill-row" id="platformRow"></div>
+      </div>
+
+      <!-- Campaign Goal -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>Campaign Goal</div>
+        <div class="pill-row" id="goalRow"></div>
+      </div>
+
+      <!-- Current Avg CPC -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Current Avg CPC</div>
+        <div class="input-group">
+          <span class="prefix">$</span>
+          <input type="number" id="cpcInput" min="0.01" step="0.01" placeholder="e.g. 2.50">
+        </div>
+      </div>
+
+      <!-- Daily Budget -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Daily Budget</div>
+        <div class="input-group">
+          <span class="prefix">$</span>
+          <input type="number" id="budgetInput" min="1" step="1" placeholder="e.g. 50">
+        </div>
+      </div>
+
+      <!-- Target CPA -->
+      <div class="panel" id="cpaPanel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Target CPA</div>
+        <div class="input-group">
+          <span class="prefix">$</span>
+          <input type="number" id="cpaInput" min="0.01" step="0.01" placeholder="e.g. 25.00">
+        </div>
+      </div>
+
+      <!-- Target ROAS -->
+      <div class="panel" id="roasPanel" style="display:none">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M6 20V4M18 20v-6"/></svg>Target ROAS</div>
+        <div class="input-group">
+          <input type="number" id="roasInput" min="0.1" step="0.1" placeholder="e.g. 4.0 (400%)">
+        </div>
+        <label style="margin-top:4px;font-size:.66rem">Enter as multiplier (e.g. 4.0 = 400% return)</label>
+      </div>
+
+      <!-- Monthly Conversions -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Monthly Conversions (historical)</div>
+        <input type="number" id="convInput" min="0" step="1" placeholder="e.g. 50">
+        <label style="margin-top:4px;font-size:.66rem">Past 30-day conversion count (0 if new campaign)</label>
+      </div>
+
+      <button class="btn btn-primary" id="btnAnalyze" style="margin-top:4px">Analyze Strategies</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="results" id="results">
+      <div class="empty-state" id="emptyState">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 7H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-3"/><path d="M9 15h3l8.5-8.5a2.121 2.121 0 0 0-3-3L9 12v3"/><line x1="16" y1="5" x2="19" y2="8"/></svg>
+        <h2>Configure your campaign</h2>
+        <p>Select a platform, set your goal, enter your metrics, then hit Analyze to compare bid strategies.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+const PLATFORMS = [
+  { id:'google', label:'Google' },
+  { id:'meta', label:'Meta' },
+  { id:'linkedin', label:'LinkedIn' }
+];
+
+const GOALS = [
+  { id:'conversions', label:'Conversions' },
+  { id:'clicks', label:'Clicks' },
+  { id:'impressions', label:'Impressions' },
+  { id:'roas', label:'ROAS Target' }
+];
+
+const STRATEGIES = [
+  {
+    id:'manual-cpc',
+    name:'Manual CPC',
+    icon:'#3b82f6',
+    emoji:'\u2699',
+    tagline:'Full control over every keyword bid. Best for hands-on advertisers with small, well-understood campaigns.',
+    whenToUse:['Small budgets under $20/day','New campaigns needing tight cost control','Niche keywords with known value','Testing new markets cautiously'],
+    pros:['Complete bid control','Predictable spend','No minimum data required','Works on all platforms'],
+    cons:['Very time-intensive','No real-time optimization','Easy to miss opportunities','Doesn\'t adapt to auction dynamics'],
+    minData:'None',
+    minBudget:'Any',
+    complexity:'High (manual)',
+    bestFor:['clicks','impressions']
+  },
+  {
+    id:'enhanced-cpc',
+    name:'Enhanced CPC',
+    icon:'#8b5cf6',
+    emoji:'\u26A1',
+    tagline:'Google adjusts your manual bids up to 30% based on conversion likelihood. A balanced middle ground.',
+    whenToUse:['Transitioning from Manual CPC','Want some automation with guardrails','Have 15+ conversions/month','Moderate daily budgets ($20-100)'],
+    pros:['Bids adjust to conversion signals','Still have base bid control','Good stepping stone to full automation','Lower risk than full auto-bidding'],
+    cons:['Limited to +/-30% adjustments on Google','Less effective without conversion data','Not available on all platforms','May overspend on some clicks'],
+    minData:'15+ conversions/month recommended',
+    minBudget:'$20+/day',
+    complexity:'Medium',
+    bestFor:['conversions','clicks']
+  },
+  {
+    id:'max-clicks',
+    name:'Maximize Clicks',
+    icon:'#06b6d4',
+    emoji:'\u{1F4C8}',
+    tagline:'Automatically get the most clicks within your budget. No conversion tracking needed.',
+    whenToUse:['Brand awareness campaigns','Driving traffic to content/blog','New campaigns without conversion data','Research/testing phase'],
+    pros:['Simple to set up','No conversion tracking needed','Maximizes traffic volume','Good for new accounts'],
+    cons:['No CPA/ROAS control','May attract low-quality clicks','Ignores conversion value','Can exhaust budget on cheap clicks'],
+    minData:'None',
+    minBudget:'$10+/day',
+    complexity:'Low',
+    bestFor:['clicks','impressions']
+  },
+  {
+    id:'max-conversions',
+    name:'Maximize Conversions',
+    icon:'#22c55e',
+    emoji:'\u{1F3AF}',
+    tagline:'Google\'s ML fully optimizes bids to get the most conversions possible within your budget.',
+    whenToUse:['Established campaigns with conversion history','30+ conversions/month for best results','Want to scale conversion volume','Budget is flexible'],
+    pros:['Fully automated optimization','Leverages Google\'s ML signals','Scales well with budget increases','Adapts to real-time auction data'],
+    cons:['Needs 30+ conversions/month data','CPA can fluctuate wildly','May spend full budget regardless','Less control over individual bids'],
+    minData:'30+ conversions/month',
+    minBudget:'$50+/day',
+    complexity:'Low',
+    bestFor:['conversions']
+  },
+  {
+    id:'target-cpa',
+    name:'Target CPA',
+    icon:'#f97316',
+    emoji:'\u{1F4B0}',
+    tagline:'Set your target cost per acquisition and let the algorithm find conversions at that price.',
+    whenToUse:['Know your acceptable CPA','Have stable conversion history','30+ conversions/month minimum','Want predictable unit economics'],
+    pros:['Predictable acquisition costs','Algorithm optimizes to your target','Balances volume and efficiency','Great for lead gen and e-commerce'],
+    cons:['Needs 30+ conversions/month','Volume may decrease if target is too low','Takes 1-2 weeks to learn','CPA target must be realistic'],
+    minData:'30+ conversions/month (50+ ideal)',
+    minBudget:'$50+/day (10x target CPA ideal)',
+    complexity:'Low',
+    bestFor:['conversions']
+  },
+  {
+    id:'target-roas',
+    name:'Target ROAS',
+    icon:'#ec4899',
+    emoji:'\u{1F4B5}',
+    tagline:'Set target return on ad spend and the algorithm maximizes revenue at that efficiency level.',
+    whenToUse:['E-commerce with revenue tracking','Know your minimum profitable ROAS','50+ conversions/month with value data','Want to optimize for revenue, not volume'],
+    pros:['Directly optimizes for revenue','Balances spend vs return','Ideal for varied product prices','Scales profitably'],
+    cons:['Needs 50+ conversions/month with values','Requires accurate conversion value tracking','May reduce volume for high ROAS targets','Complex to set up correctly'],
+    minData:'50+ conversions/month with values',
+    minBudget:'$100+/day',
+    complexity:'Medium',
+    bestFor:['roas']
+  },
+  {
+    id:'max-conv-value',
+    name:'Maximize Conversion Value',
+    icon:'#eab308',
+    emoji:'\u{1F451}',
+    tagline:'Optimizes bids to get the highest total conversion value (revenue) within your budget.',
+    whenToUse:['E-commerce with variable order values','Want maximum revenue regardless of ROAS','Have strong conversion value tracking','Budget-first approach to revenue'],
+    pros:['Maximizes total revenue','No ROAS target to constrain volume','Works well with varied product prices','Fully automated'],
+    cons:['No ROAS floor — may be unprofitable','Needs conversion value tracking','30+ valued conversions/month','May prioritize few high-value over many low-value'],
+    minData:'30+ conversions/month with values',
+    minBudget:'$75+/day',
+    complexity:'Low',
+    bestFor:['roas','conversions']
+  }
+];
+
+let S = {
+  platform: 'google',
+  goal: 'conversions',
+  cpc: 0,
+  budget: 0,
+  cpa: 0,
+  roas: 0,
+  conversions: 0,
+  analyzed: false
+};
+
+function buildControls() {
+  // Platform pills
+  const platformRow = document.getElementById('platformRow');
+  platformRow.innerHTML = PLATFORMS.map(p =>
+    '<button class="pill' + (S.platform === p.id ? ' active' : '') + '" data-pid="' + p.id + '">' + p.label + '</button>'
+  ).join('');
+  platformRow.onclick = function(e) {
+    const el = e.target.closest('[data-pid]');
+    if (!el) return;
+    S.platform = el.dataset.pid;
+    platformRow.querySelectorAll('.pill').forEach(function(p) { p.classList.toggle('active', p.dataset.pid === S.platform); });
+    updateAvailability();
+    if (S.analyzed) analyze();
+  };
+
+  // Goal pills
+  const goalRow = document.getElementById('goalRow');
+  goalRow.innerHTML = GOALS.map(g =>
+    '<button class="pill' + (S.goal === g.id ? ' active' : '') + '" data-gid="' + g.id + '">' + g.label + '</button>'
+  ).join('');
+  goalRow.onclick = function(e) {
+    const el = e.target.closest('[data-gid]');
+    if (!el) return;
+    S.goal = el.dataset.gid;
+    goalRow.querySelectorAll('.pill').forEach(function(p) { p.classList.toggle('active', p.dataset.gid === S.goal); });
+    toggleGoalFields();
+    if (S.analyzed) analyze();
+  };
+
+  // Inputs
+  document.getElementById('cpcInput').oninput = function(e) { S.cpc = parseFloat(e.target.value) || 0; if (S.analyzed) analyze(); };
+  document.getElementById('budgetInput').oninput = function(e) { S.budget = parseFloat(e.target.value) || 0; if (S.analyzed) analyze(); };
+  document.getElementById('cpaInput').oninput = function(e) { S.cpa = parseFloat(e.target.value) || 0; if (S.analyzed) analyze(); };
+  document.getElementById('roasInput').oninput = function(e) { S.roas = parseFloat(e.target.value) || 0; if (S.analyzed) analyze(); };
+  document.getElementById('convInput').oninput = function(e) { S.conversions = parseInt(e.target.value) || 0; if (S.analyzed) analyze(); };
+
+  document.getElementById('btnAnalyze').onclick = function() { S.analyzed = true; analyze(); };
+
+  toggleGoalFields();
+}
+
+function toggleGoalFields() {
+  document.getElementById('cpaPanel').style.display = (S.goal === 'roas') ? 'none' : '';
+  document.getElementById('roasPanel').style.display = (S.goal === 'roas') ? '' : 'none';
+}
+
+function updateAvailability() {
+  // Enhanced CPC note for non-Google
+  // No UI changes needed — we handle in scoring
+}
+
+function scoreStrategy(strategy) {
+  let score = 0;
+  let reasons = [];
+
+  const isGoalMatch = strategy.bestFor.indexOf(S.goal) !== -1;
+  if (isGoalMatch) { score += 30; reasons.push('Aligned with your ' + S.goal + ' goal'); }
+
+  // Budget assessment
+  if (S.budget > 0) {
+    if (strategy.id === 'manual-cpc' && S.budget <= 20) { score += 15; reasons.push('Good for small budgets'); }
+    if (strategy.id === 'enhanced-cpc' && S.budget >= 20 && S.budget <= 100) { score += 15; reasons.push('Budget fits the sweet spot'); }
+    if (strategy.id === 'max-clicks' && S.budget < 30) { score += 10; reasons.push('Simple strategy for modest budget'); }
+    if (strategy.id === 'max-conversions' && S.budget >= 50) { score += 15; reasons.push('Budget supports ML optimization'); }
+    if (strategy.id === 'target-cpa' && S.budget >= 50) { score += 15; reasons.push('Budget allows CPA targeting'); }
+    if (strategy.id === 'target-roas' && S.budget >= 100) { score += 15; reasons.push('Budget supports ROAS optimization'); }
+    if (strategy.id === 'max-conv-value' && S.budget >= 75) { score += 12; reasons.push('Budget supports value optimization'); }
+
+    // Penalize if budget too low
+    if (strategy.id === 'target-roas' && S.budget < 50) { score -= 20; reasons.push('Budget too low for ROAS targeting'); }
+    if (strategy.id === 'max-conversions' && S.budget < 30) { score -= 15; reasons.push('Budget may be too low for ML'); }
+    if (strategy.id === 'target-cpa' && S.budget < 30) { score -= 15; reasons.push('Budget may limit CPA delivery'); }
+  }
+
+  // Conversion history
+  if (S.conversions >= 50) {
+    if (strategy.id === 'target-cpa') { score += 20; reasons.push('Strong conversion history'); }
+    if (strategy.id === 'target-roas') { score += 20; reasons.push('Enough data for ROAS targeting'); }
+    if (strategy.id === 'max-conversions') { score += 15; reasons.push('ML has enough signal'); }
+    if (strategy.id === 'max-conv-value') { score += 15; reasons.push('Value data available'); }
+  } else if (S.conversions >= 30) {
+    if (strategy.id === 'max-conversions') { score += 15; reasons.push('Meets minimum data threshold'); }
+    if (strategy.id === 'target-cpa') { score += 12; reasons.push('Meets minimum data threshold'); }
+    if (strategy.id === 'target-roas') { score -= 5; reasons.push('Below ideal data for ROAS'); }
+  } else if (S.conversions >= 15) {
+    if (strategy.id === 'enhanced-cpc') { score += 15; reasons.push('Good fit for your data level'); }
+    if (strategy.id === 'max-conversions') { score -= 10; reasons.push('Below recommended data minimum'); }
+    if (strategy.id === 'target-cpa') { score -= 15; reasons.push('Insufficient conversion data'); }
+    if (strategy.id === 'target-roas') { score -= 20; reasons.push('Insufficient conversion data'); }
+  } else {
+    if (strategy.id === 'manual-cpc') { score += 15; reasons.push('Best choice without conversion data'); }
+    if (strategy.id === 'max-clicks') { score += 15; reasons.push('No conversion data needed'); }
+    if (strategy.id === 'max-conversions') { score -= 20; reasons.push('No conversion history'); }
+    if (strategy.id === 'target-cpa') { score -= 25; reasons.push('No conversion history'); }
+    if (strategy.id === 'target-roas') { score -= 25; reasons.push('No conversion history'); }
+    if (strategy.id === 'max-conv-value') { score -= 20; reasons.push('No conversion value data'); }
+  }
+
+  // Goal-specific boosts
+  if (S.goal === 'clicks' && strategy.id === 'max-clicks') { score += 15; }
+  if (S.goal === 'roas' && (strategy.id === 'target-roas' || strategy.id === 'max-conv-value')) { score += 15; }
+  if (S.goal === 'impressions' && (strategy.id === 'manual-cpc' || strategy.id === 'max-clicks')) { score += 10; }
+
+  // CPA realism check
+  if (S.goal === 'conversions' && S.cpa > 0 && S.cpc > 0 && strategy.id === 'target-cpa') {
+    const impliedConvRate = S.cpc / S.cpa;
+    if (impliedConvRate >= 0.01 && impliedConvRate <= 0.15) {
+      score += 10;
+      reasons.push('CPA target appears realistic');
+    } else if (impliedConvRate > 0.15) {
+      score -= 5;
+      reasons.push('CPA target may be too aggressive');
+    }
+  }
+
+  // Platform-specific
+  if (S.platform === 'linkedin') {
+    if (strategy.id === 'enhanced-cpc') { score -= 10; reasons.push('Enhanced CPC limited on LinkedIn'); }
+    if (strategy.id === 'target-roas') { score -= 10; reasons.push('ROAS bidding limited on LinkedIn'); }
+  }
+  if (S.platform === 'meta') {
+    if (strategy.id === 'manual-cpc') { score -= 5; reasons.push('Meta favors automated bidding'); }
+    if (strategy.id === 'enhanced-cpc') { score -= 5; reasons.push('Meta uses its own bid automation'); }
+  }
+
+  return { score: score, reasons: reasons.filter(function(r,i,a) { return a.indexOf(r) === i; }) };
+}
+
+function analyze() {
+  var results = document.getElementById('results');
+
+  var scored = STRATEGIES.map(function(s) {
+    var result = scoreStrategy(s);
+    return Object.assign({}, s, { score: result.score, reasons: result.reasons });
+  });
+
+  scored.sort(function(a, b) { return b.score - a.score; });
+  var topId = scored[0].id;
+
+  var fmt = function(n) { return '$' + n.toFixed(2); };
+
+  var dailyClicks = S.cpc > 0 && S.budget > 0 ? Math.floor(S.budget / S.cpc) : 0;
+
+  // Summary bar
+  var summaryHtml = '<div class="summary-bar">' +
+    '<div class="summary-item"><div class="label">Platform</div><div class="value">' + (PLATFORMS.find(function(p){return p.id===S.platform}).label) + '</div></div>' +
+    '<div class="summary-item"><div class="label">Goal</div><div class="value">' + (GOALS.find(function(g){return g.id===S.goal}).label) + '</div></div>' +
+    '<div class="summary-item"><div class="label">Daily Budget</div><div class="value">' + (S.budget > 0 ? fmt(S.budget) : '--') + '</div></div>' +
+    '<div class="summary-item"><div class="label">Est. Daily Clicks</div><div class="value">' + (dailyClicks > 0 ? dailyClicks.toLocaleString() : '--') + '</div></div>' +
+    '<div class="summary-item"><div class="label">Conversions/mo</div><div class="value">' + (S.conversions > 0 ? S.conversions : '0') + '</div></div>' +
+    '</div>';
+
+  // Quick comparison table
+  var tableHtml = '<div class="compare-table-wrap">' +
+    '<h3><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M6 20V4M18 20v-6"/></svg> Quick Comparison</h3>' +
+    '<table class="compare-table"><thead><tr><th>Strategy</th><th>Control</th><th>Automation</th><th>Min Data</th><th>Min Budget</th><th>Best For</th><th>Fit</th></tr></thead><tbody>';
+
+  scored.forEach(function(s) {
+    var control = (s.id === 'manual-cpc') ? 'Full' : (s.id === 'enhanced-cpc') ? 'High' : 'Low';
+    var automation = (s.id === 'manual-cpc') ? 'None' : (s.id === 'enhanced-cpc') ? 'Partial' : 'Full';
+    var fitClass = s.score >= 40 ? 'badge-green' : s.score >= 15 ? 'badge-yellow' : 'badge-red';
+    var fitLabel = s.score >= 40 ? 'Great fit' : s.score >= 15 ? 'Possible' : 'Poor fit';
+    var isRec = s.id === topId;
+
+    tableHtml += '<tr' + (isRec ? ' class="recommended-row"' : '') + '>' +
+      '<td class="cell-name">' + s.name + (isRec ? ' *' : '') + '</td>' +
+      '<td>' + control + '</td>' +
+      '<td>' + automation + '</td>' +
+      '<td>' + s.minData + '</td>' +
+      '<td>' + s.minBudget + '</td>' +
+      '<td>' + s.bestFor.join(', ') + '</td>' +
+      '<td><span class="badge ' + fitClass + '">' + fitLabel + '</span></td>' +
+      '</tr>';
+  });
+
+  tableHtml += '</tbody></table></div>';
+
+  // Strategy cards
+  var cardsHtml = '<div class="strategy-grid">';
+  scored.forEach(function(s) {
+    var isRec = s.id === topId;
+    var fitClass = s.score >= 40 ? 'badge-green' : s.score >= 15 ? 'badge-yellow' : 'badge-red';
+    var fitLabel = s.score >= 40 ? 'Great fit' : s.score >= 15 ? 'Possible' : 'Poor fit';
+
+    cardsHtml += '<div class="strategy-card' + (isRec ? ' recommended' : '') + '">' +
+      '<div class="strategy-header">' +
+        '<div class="strategy-icon" style="background:' + s.icon + '20;color:' + s.icon + '">' + s.emoji + '</div>' +
+        '<div><div class="strategy-name">' + s.name + '</div><div class="strategy-tagline">' + s.tagline + '</div></div>' +
+      '</div>' +
+      '<div class="strategy-body">' +
+        '<div class="strategy-section pros"><h4>Pros</h4><ul>' + s.pros.map(function(p){return '<li>'+p+'</li>'}).join('') + '</ul></div>' +
+        '<div class="strategy-section cons"><h4>Cons</h4><ul>' + s.cons.map(function(c){return '<li>'+c+'</li>'}).join('') + '</ul></div>' +
+        '<div class="strategy-section reqs"><h4>When to Use</h4><ul>' + s.whenToUse.map(function(w){return '<li>'+w+'</li>'}).join('') + '</ul></div>' +
+      '</div>' +
+      '<div class="strategy-meta">' +
+        '<div class="meta-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M6 20V4M18 20v-6"/></svg> ' + s.minData + '</div>' +
+        '<div class="meta-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> ' + s.minBudget + '</div>' +
+        '<div class="meta-tag' + (isRec ? ' highlight' : '') + '"><span class="badge ' + fitClass + '">' + fitLabel + '</span></div>' +
+      '</div>';
+
+    if (isRec && s.reasons.length > 0) {
+      cardsHtml += '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">' +
+        '<div style="font-size:.7rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Why this is recommended</div>' +
+        '<ul style="list-style:none;padding:0">' + s.reasons.map(function(r){return '<li style="font-size:.76rem;line-height:1.6;padding-left:16px;position:relative"><span style="position:absolute;left:0;top:6px;width:6px;height:6px;border-radius:50%;background:var(--accent);display:block"></span>'+r+'</li>'}).join('') + '</ul>' +
+        '</div>';
+    }
+
+    cardsHtml += '</div>';
+  });
+  cardsHtml += '</div>';
+
+  results.innerHTML = summaryHtml + tableHtml + cardsHtml;
+}
+
+buildControls();
+})();
+</script>
+</body>
+</html>

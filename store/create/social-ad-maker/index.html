@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Ad Maker - FreeAdStore</title>
+<meta name="description" content="Create social media ads and memes in seconds. Instagram, Facebook, Stories, X/Twitter, LinkedIn, YouTube. Canvas-based, export PNG/JPG. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Bebas+Neue&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:rgba(239,68,68,.08);--accent-hover:#dc2626;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#22c55e;--yellow:#eab308;--red:#ef4444}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:600;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+a.back span{font-weight:400;color:var(--muted)}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 20px 20px}
+.sidebar-head{padding:16px 20px 0;flex-shrink:0}
+.sidebar-head h1{font-family:'Fraunces',serif;font-size:1.35rem;font-weight:700;margin-bottom:2px;color:var(--text)}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:14px;line-height:1.4}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--bg)}
+.main-header{padding:16px 24px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.main-header h2{font-size:.85rem;font-weight:700;color:var(--text)}
+.main-scroll{flex:1;overflow-y:auto;padding:16px 24px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+/* PANELS */
+.panel{margin-bottom:16px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 4px;font-weight:500}
+input[type=text],textarea,select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;transition:border-color .15s}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+
+/* PILLS */
+.pill-row{display:flex;gap:5px;flex-wrap:wrap}
+.pill{padding:5px 12px;border:1px solid var(--line);border-radius:8px;font-size:.72rem;font-weight:600;cursor:pointer;background:var(--panel);font-family:inherit;transition:all .12s;color:var(--text)}
+.pill:hover{border-color:var(--accent);color:var(--accent)}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* BUTTONS */
+.btn{padding:10px 20px;border-radius:var(--radius);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(239,68,68,.3)}
+.btn-primary:active{transform:translateY(0)}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line);padding:8px 16px;font-size:.78rem;font-weight:600}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:6px 12px;font-size:.72rem}
+
+/* COLOR INPUTS */
+.color-row{display:flex;align-items:center;gap:8px}
+.color-input{width:40px;height:32px;border:1px solid var(--line);border-radius:6px;padding:2px;cursor:pointer;background:var(--panel)}
+.color-input::-webkit-color-swatch-wrapper{padding:0}
+.color-input::-webkit-color-swatch{border:none;border-radius:4px}
+.color-hex{flex:1;font-size:.78rem;color:var(--muted);font-family:'Manrope',monospace}
+
+/* RANGE SLIDER */
+input[type=range]{width:100%;height:4px;-webkit-appearance:none;appearance:none;background:var(--line);border-radius:2px;outline:none;margin:6px 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.range-row{display:flex;align-items:center;gap:10px}
+.range-row input[type=range]{flex:1}
+.range-val{font-size:.72rem;font-weight:600;color:var(--muted);min-width:36px;text-align:right}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;gap:10px;margin:6px 0}
+.toggle{position:relative;width:36px;height:20px;background:var(--line);border-radius:10px;cursor:pointer;transition:background .15s;flex-shrink:0}
+.toggle.active{background:var(--accent)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.toggle.active::after{transform:translateX(16px)}
+.toggle-label{font-size:.72rem;font-weight:600;color:var(--text)}
+
+/* DROP ZONE */
+.drop-zone{border:2px dashed var(--line);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg);position:relative}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:var(--accent-light)}
+.drop-zone-text{font-size:.72rem;color:var(--muted);line-height:1.5}
+.drop-zone-text strong{color:var(--text);display:block;margin-bottom:2px;font-size:.78rem}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.img-preview{display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);margin-top:6px}
+.img-preview img{width:36px;height:36px;object-fit:cover;border-radius:4px}
+.img-preview .img-name{flex:1;font-size:.72rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.img-preview button{background:none;border:none;cursor:pointer;color:var(--muted);font-size:.85rem;padding:4px}
+.img-preview button:hover{color:var(--red)}
+
+/* BG TYPE TABS */
+.bg-tabs{display:flex;gap:0;margin-bottom:8px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.bg-tab{flex:1;padding:6px 0;text-align:center;font-size:.7rem;font-weight:600;cursor:pointer;background:var(--bg);border:none;font-family:inherit;color:var(--muted);transition:all .12s}
+.bg-tab:not(:last-child){border-right:1px solid var(--line)}
+.bg-tab.active{background:var(--accent);color:#fff}
+.bg-tab:hover:not(.active){color:var(--accent)}
+.bg-section{display:none}
+.bg-section.active{display:block}
+
+/* COLOR PRESETS */
+.color-presets{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.color-preset{width:28px;height:28px;border-radius:6px;border:2px solid transparent;cursor:pointer;transition:all .12s}
+.color-preset:hover{transform:scale(1.15)}
+.color-preset.active{border-color:var(--text);box-shadow:0 0 0 2px var(--panel)}
+
+/* GRADIENT PRESETS */
+.gradient-presets{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.gradient-preset{width:48px;height:28px;border-radius:6px;border:2px solid transparent;cursor:pointer;transition:all .12s}
+.gradient-preset:hover{transform:scale(1.08)}
+.gradient-preset.active{border-color:var(--text);box-shadow:0 0 0 2px var(--panel)}
+.gradient-custom{margin-top:8px;display:flex;gap:8px;align-items:center}
+.gradient-custom label{margin:0;font-size:.68rem}
+
+/* TEMPLATE GRID */
+.template-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+.template-card{padding:8px 6px;border:1px solid var(--line);border-radius:8px;font-size:.65rem;font-weight:600;text-align:center;cursor:pointer;background:var(--bg);transition:all .12s;color:var(--muted);line-height:1.3}
+.template-card:hover{border-color:var(--accent);color:var(--accent)}
+.template-card.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* SEPARATOR */
+.sep{height:1px;background:var(--line);margin:16px 0}
+
+/* CANVAS AREA */
+.canvas-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+.canvas-container{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.canvas-container canvas{display:block}
+.canvas-label{font-size:.72rem;font-weight:600;color:var(--muted);text-align:center}
+.canvas-label strong{color:var(--text)}
+.canvas-actions{display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;justify-content:center}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;padding:10px 20px;border-radius:10px;font-size:.78rem;font-weight:600;opacity:0;transition:all .3s ease;z-index:1000;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:none}
+  .main{min-height:60vh}
+  .main-scroll{padding:16px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Controls -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/"><span>&larr;</span> FreeAdStore</a>
+      <h1>Social Ad Maker</h1>
+      <p>Create scroll-stopping social ads in under 30 seconds. Pick a size, style it, export.</p>
+    </div>
+    <div class="sidebar-scroll">
+
+      <!-- SIZE PRESETS -->
+      <div class="panel">
+        <div class="panel-title">Size</div>
+        <div class="pill-row" id="sizePills">
+          <button class="pill active" data-w="1080" data-h="1080">Instagram</button>
+          <button class="pill" data-w="1200" data-h="628">Facebook</button>
+          <button class="pill" data-w="1080" data-h="1920">Story</button>
+          <button class="pill" data-w="1200" data-h="675">X / Twitter</button>
+          <button class="pill" data-w="1200" data-h="627">LinkedIn</button>
+          <button class="pill" data-w="1280" data-h="720">YT Thumb</button>
+          <button class="pill" data-w="0" data-h="0">Custom</button>
+        </div>
+        <div id="customDims" style="display:none;margin-top:8px">
+          <div style="display:flex;gap:8px">
+            <div style="flex:1"><label>Width</label><input type="text" id="customW" value="1080" placeholder="1080"></div>
+            <div style="flex:1"><label>Height</label><input type="text" id="customH" value="1080" placeholder="1080"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <!-- BACKGROUND -->
+      <div class="panel">
+        <div class="panel-title">Background</div>
+        <div class="bg-tabs">
+          <button class="bg-tab" data-bg="color">Color</button>
+          <button class="bg-tab active" data-bg="gradient">Gradient</button>
+          <button class="bg-tab" data-bg="image">Image</button>
+          <button class="bg-tab" data-bg="template">Template</button>
+        </div>
+
+        <!-- Solid Color -->
+        <div class="bg-section" id="bgColor">
+          <div class="color-row">
+            <input type="color" class="color-input" id="bgSolidColor" value="#ff006e">
+            <span class="color-hex" id="bgSolidHex">#ff006e</span>
+          </div>
+          <div class="color-presets" id="bgColorPresets"></div>
+        </div>
+
+        <!-- Gradient -->
+        <div class="bg-section active" id="bgGradient">
+          <div class="gradient-presets" id="gradientPresets"></div>
+          <div class="gradient-custom">
+            <label>From</label>
+            <input type="color" class="color-input" id="gradFrom" value="#ff6b35">
+            <label>To</label>
+            <input type="color" class="color-input" id="gradTo" value="#f7c948">
+          </div>
+        </div>
+
+        <!-- Image -->
+        <div class="bg-section" id="bgImage">
+          <div class="drop-zone" id="bgDropZone">
+            <input type="file" id="bgImageInput" accept="image/*">
+            <div class="drop-zone-text">
+              <strong>Drop background image</strong>
+              or click to browse
+            </div>
+          </div>
+          <div class="img-preview" id="bgImagePreview" style="display:none">
+            <img id="bgImageThumb" src="" alt="bg">
+            <span class="img-name" id="bgImageName"></span>
+            <button id="bgImageRemove" title="Remove">&times;</button>
+          </div>
+        </div>
+
+        <!-- Template -->
+        <div class="bg-section" id="bgTemplate">
+          <div class="template-grid" id="templateGrid">
+            <div class="template-card" data-tpl="meme">Meme Classic</div>
+            <div class="template-card" data-tpl="quote">Quote Card</div>
+            <div class="template-card" data-tpl="announce">Bold Announce</div>
+            <div class="template-card" data-tpl="promo">Promo + Price</div>
+            <div class="template-card" data-tpl="split">Before / After</div>
+            <div class="template-card" data-tpl="minimal">Minimalist</div>
+            <div class="template-card" data-tpl="gradtext">Gradient Float</div>
+            <div class="template-card" data-tpl="overlay">Photo Overlay</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <!-- TOP TEXT -->
+      <div class="panel">
+        <div class="panel-title">Top Text</div>
+        <input type="text" id="topText" value="YOUR HEADLINE HERE" placeholder="Top text" maxlength="120">
+        <label>Font Size</label>
+        <div class="range-row">
+          <input type="range" id="topSize" min="24" max="120" value="64">
+          <span class="range-val" id="topSizeVal">64px</span>
+        </div>
+        <label>Color</label>
+        <div class="color-row">
+          <input type="color" class="color-input" id="topColor" value="#ffffff">
+          <span class="color-hex" id="topColorHex">#ffffff</span>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <!-- BOTTOM TEXT -->
+      <div class="panel">
+        <div class="panel-title">Bottom Text</div>
+        <input type="text" id="bottomText" value="Compelling tagline goes here" placeholder="Bottom text" maxlength="120">
+        <label>Font Size</label>
+        <div class="range-row">
+          <input type="range" id="bottomSize" min="24" max="120" value="36">
+          <span class="range-val" id="bottomSizeVal">36px</span>
+        </div>
+        <label>Color</label>
+        <div class="color-row">
+          <input type="color" class="color-input" id="bottomColor" value="#ffffff">
+          <span class="color-hex" id="bottomColorHex">#ffffff</span>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <!-- TEXT STYLE -->
+      <div class="panel">
+        <div class="panel-title">Text Style</div>
+        <div class="pill-row" id="stylePills">
+          <button class="pill active" data-style="meme">Meme</button>
+          <button class="pill" data-style="clean">Clean</button>
+          <button class="pill" data-style="bold">Bold</button>
+          <button class="pill" data-style="elegant">Elegant</button>
+          <button class="pill" data-style="neon">Neon</button>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <!-- TEXT OUTLINE -->
+      <div class="panel">
+        <div class="panel-title">Text Outline</div>
+        <div class="toggle-row">
+          <div class="toggle active" id="outlineToggle"></div>
+          <span class="toggle-label">Outline</span>
+        </div>
+        <div id="outlineControls">
+          <div class="color-row" style="margin-top:4px">
+            <input type="color" class="color-input" id="outlineColor" value="#000000">
+            <span class="color-hex" id="outlineColorHex">#000000</span>
+          </div>
+          <label>Thickness</label>
+          <div class="range-row">
+            <input type="range" id="outlineWidth" min="1" max="10" value="4">
+            <span class="range-val" id="outlineWidthVal">4px</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <!-- TEXT SHADOW -->
+      <div class="panel">
+        <div class="panel-title">Text Shadow</div>
+        <div class="toggle-row">
+          <div class="toggle" id="shadowToggle"></div>
+          <span class="toggle-label">Drop shadow for readability</span>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <!-- ADDITIONAL ELEMENTS -->
+      <div class="panel">
+        <div class="panel-title">Brand Name</div>
+        <div class="toggle-row">
+          <div class="toggle" id="brandToggle"></div>
+          <span class="toggle-label">Show brand name</span>
+        </div>
+        <div id="brandControls" style="display:none">
+          <input type="text" id="brandText" value="@yourbrand" placeholder="Brand name" maxlength="40">
+          <label>Position</label>
+          <div class="pill-row" id="brandPosPills">
+            <button class="pill" data-bpos="top-left">Top-Left</button>
+            <button class="pill active" data-bpos="bottom-right">Bottom-Right</button>
+          </div>
+          <label>Color</label>
+          <div class="color-row">
+            <input type="color" class="color-input" id="brandColor" value="#ffffff">
+          </div>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="panel">
+        <div class="panel-title">CTA Badge</div>
+        <div class="toggle-row">
+          <div class="toggle" id="ctaToggle"></div>
+          <span class="toggle-label">Show CTA badge</span>
+        </div>
+        <div id="ctaControls" style="display:none">
+          <div class="pill-row" id="ctaTextPills">
+            <button class="pill active" data-cta="Shop Now">Shop Now</button>
+            <button class="pill" data-cta="Learn More">Learn More</button>
+            <button class="pill" data-cta="Link in Bio">Link in Bio</button>
+            <button class="pill" data-cta="Swipe Up">Swipe Up</button>
+            <button class="pill" data-cta="50% OFF">50% OFF</button>
+            <button class="pill" data-cta="NEW">NEW</button>
+            <button class="pill" data-cta="Limited Time">Limited Time</button>
+            <button class="pill" data-cta="custom">Custom</button>
+          </div>
+          <input type="text" id="ctaCustom" value="" placeholder="Custom CTA text" maxlength="30" style="display:none;margin-top:6px">
+          <label>Badge Color</label>
+          <div class="color-row">
+            <input type="color" class="color-input" id="ctaBadgeColor" value="#ef4444">
+          </div>
+          <label>Position</label>
+          <div class="pill-row" id="ctaPosPills">
+            <button class="pill active" data-cpos="bottom-center">Bottom</button>
+            <button class="pill" data-cpos="bottom-right">Bottom-Right</button>
+            <button class="pill" data-cpos="top-right">Top-Right</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="panel">
+        <div class="panel-title">Price Badge</div>
+        <div class="toggle-row">
+          <div class="toggle" id="priceToggle"></div>
+          <span class="toggle-label">Show price badge</span>
+        </div>
+        <div id="priceControls" style="display:none">
+          <div class="pill-row" id="pricePresets">
+            <button class="pill active" data-price="$9.99">$9.99</button>
+            <button class="pill" data-price="FREE">FREE</button>
+            <button class="pill" data-price="custom">Custom</button>
+          </div>
+          <input type="text" id="priceCustom" value="" placeholder="e.g. $29 &rarr; $19" maxlength="20" style="display:none;margin-top:6px">
+          <label>Badge Color</label>
+          <div class="color-row">
+            <input type="color" class="color-input" id="priceBadgeColor" value="#facc15">
+          </div>
+          <label>Text Color</label>
+          <div class="color-row">
+            <input type="color" class="color-input" id="priceTextColor" value="#000000">
+          </div>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <!-- QUICK EFFECTS -->
+      <div class="panel">
+        <div class="panel-title">Quick Effects</div>
+
+        <div class="toggle-row">
+          <div class="toggle" id="darkenToggle"></div>
+          <span class="toggle-label">Darken overlay</span>
+        </div>
+        <div id="darkenControls" style="display:none">
+          <div class="range-row">
+            <input type="range" id="darkenAmount" min="0" max="70" value="40">
+            <span class="range-val" id="darkenVal">40%</span>
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle" id="blurToggle"></div>
+          <span class="toggle-label">Blur background</span>
+        </div>
+        <div id="blurControls" style="display:none">
+          <div class="range-row">
+            <input type="range" id="blurAmount" min="0" max="20" value="6">
+            <span class="range-val" id="blurVal">6px</span>
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle" id="vignetteToggle"></div>
+          <span class="toggle-label">Vignette</span>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle" id="borderToggle"></div>
+          <span class="toggle-label">Border</span>
+        </div>
+        <div id="borderControls" style="display:none">
+          <div class="color-row" style="margin-top:4px">
+            <input type="color" class="color-input" id="borderColor" value="#ffffff">
+          </div>
+          <label>Thickness</label>
+          <div class="range-row">
+            <input type="range" id="borderWidth" min="2" max="20" value="6">
+            <span class="range-val" id="borderWidthVal">6px</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: Canvas Preview -->
+  <div class="main">
+    <div class="main-header">
+      <h2>Preview</h2>
+    </div>
+    <div class="main-scroll">
+      <div class="canvas-wrap">
+        <div class="canvas-container">
+          <canvas id="canvas" width="1080" height="1080"></canvas>
+        </div>
+        <div class="canvas-label" id="canvasLabel"><strong>Instagram Post</strong> &mdash; 1080 &times; 1080</div>
+        <div class="canvas-actions">
+          <button class="btn btn-primary" id="downloadPng">Download PNG</button>
+          <button class="btn btn-outline" id="downloadJpg">Download JPG</button>
+          <button class="btn btn-outline" id="copyClip">Copy to Clipboard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+'use strict';
+
+// ── STATE ──
+const S = {
+  w: 1080, h: 1080, sizeName: 'Instagram Post',
+  bgType: 'gradient',
+  bgSolid: '#ff006e',
+  gradFrom: '#ff6b35', gradTo: '#f7c948',
+  bgImage: null, bgImageEl: null,
+  template: null,
+  topText: 'YOUR HEADLINE HERE', topSize: 64, topColor: '#ffffff',
+  bottomText: 'Compelling tagline goes here', bottomSize: 36, bottomColor: '#ffffff',
+  textStyle: 'meme',
+  outlineOn: true, outlineColor: '#000000', outlineWidth: 4,
+  shadowOn: false,
+  brandOn: false, brandText: '@yourbrand', brandPos: 'bottom-right', brandColor: '#ffffff',
+  ctaOn: false, ctaText: 'Shop Now', ctaBadgeColor: '#ef4444', ctaPos: 'bottom-center',
+  priceOn: false, priceText: '$9.99', priceBadgeColor: '#facc15', priceTextColor: '#000000',
+  darkenOn: false, darkenAmount: 40,
+  blurOn: false, blurAmount: 6,
+  vignetteOn: false,
+  borderOn: false, borderColor: '#ffffff', borderWidth: 6
+};
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+// ── COLOR PRESETS ──
+const colorPresets = [
+  '#ff006e','#3a86ff','#06d6a0','#ff6b35','#7209b7','#000000',
+  '#ffffff','#ff7f50','#14b8a6','#fbbf24','#1e3a5f','#166534'
+];
+
+const gradientPresets = [
+  { from:'#ff6b35', to:'#f7c948', name:'Sunset' },
+  { from:'#0077b6', to:'#00b4d8', name:'Ocean' },
+  { from:'#7209b7', to:'#f72585', name:'Neon' },
+  { from:'#ff6b35', to:'#ef4444', name:'Warm' },
+  { from:'#06d6a0', to:'#3a86ff', name:'Cool' },
+  { from:'#f72585', to:'#fbbf24', name:'Candy' },
+  { from:'#0f172a', to:'#334155', name:'Midnight' },
+  { from:'#ef4444', to:'#f97316', name:'Fire' }
+];
+
+// ── INIT PRESETS UI ──
+const cpContainer = document.getElementById('bgColorPresets');
+colorPresets.forEach(c => {
+  const d = document.createElement('div');
+  d.className = 'color-preset' + (c === S.bgSolid ? ' active' : '');
+  d.style.background = c;
+  d.dataset.color = c;
+  d.addEventListener('click', () => {
+    S.bgSolid = c;
+    document.getElementById('bgSolidColor').value = c;
+    document.getElementById('bgSolidHex').textContent = c;
+    cpContainer.querySelectorAll('.color-preset').forEach(p => p.classList.remove('active'));
+    d.classList.add('active');
+    render();
+  });
+  cpContainer.appendChild(d);
+});
+
+const gpContainer = document.getElementById('gradientPresets');
+gradientPresets.forEach((g, i) => {
+  const d = document.createElement('div');
+  d.className = 'gradient-preset' + (i === 0 ? ' active' : '');
+  d.style.background = `linear-gradient(135deg, ${g.from}, ${g.to})`;
+  d.title = g.name;
+  d.addEventListener('click', () => {
+    S.gradFrom = g.from; S.gradTo = g.to;
+    document.getElementById('gradFrom').value = g.from;
+    document.getElementById('gradTo').value = g.to;
+    gpContainer.querySelectorAll('.gradient-preset').forEach(p => p.classList.remove('active'));
+    d.classList.add('active');
+    render();
+  });
+  gpContainer.appendChild(d);
+});
+
+// ── HELPERS ──
+function $(id) { return document.getElementById(id); }
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function pillGroup(containerId, cb) {
+  const el = $(containerId);
+  if (!el) return;
+  el.addEventListener('click', e => {
+    const pill = e.target.closest('.pill');
+    if (!pill) return;
+    el.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    cb(pill);
+  });
+}
+
+function toggleEl(toggleId, controlsId) {
+  const tog = $(toggleId);
+  const ctrl = controlsId ? $(controlsId) : null;
+  tog.addEventListener('click', () => {
+    tog.classList.toggle('active');
+    const on = tog.classList.contains('active');
+    if (ctrl) ctrl.style.display = on ? 'block' : 'none';
+    return on;
+  });
+  return tog;
+}
+
+function syncRange(sliderId, valId, suffix, stateKey) {
+  const slider = $(sliderId);
+  const val = $(valId);
+  slider.addEventListener('input', () => {
+    const v = parseInt(slider.value);
+    val.textContent = v + suffix;
+    S[stateKey] = v;
+    render();
+  });
+}
+
+function syncColor(inputId, hexId, stateKey) {
+  const inp = $(inputId);
+  const hex = hexId ? $(hexId) : null;
+  inp.addEventListener('input', () => {
+    S[stateKey] = inp.value;
+    if (hex) hex.textContent = inp.value;
+    render();
+  });
+}
+
+// ── SIZE PILLS ──
+pillGroup('sizePills', pill => {
+  const w = parseInt(pill.dataset.w), h = parseInt(pill.dataset.h);
+  if (w === 0) {
+    $('customDims').style.display = 'block';
+    return;
+  }
+  $('customDims').style.display = 'none';
+  S.w = w; S.h = h; S.sizeName = pill.textContent.trim();
+  resizeCanvas();
+});
+
+$('customW').addEventListener('change', () => { S.w = Math.max(100, Math.min(4096, parseInt($('customW').value) || 1080)); S.sizeName = 'Custom'; resizeCanvas(); });
+$('customH').addEventListener('change', () => { S.h = Math.max(100, Math.min(4096, parseInt($('customH').value) || 1080)); S.sizeName = 'Custom'; resizeCanvas(); });
+
+function resizeCanvas() {
+  canvas.width = S.w; canvas.height = S.h;
+  fitCanvas();
+  render();
+  updateLabel();
+}
+
+function updateLabel() {
+  $('canvasLabel').innerHTML = `<strong>${S.sizeName}</strong> &mdash; ${S.w} &times; ${S.h}`;
+}
+
+function fitCanvas() {
+  const container = canvas.parentElement;
+  const maxW = container.parentElement.clientWidth - 80;
+  const maxH = window.innerHeight - 200;
+  const scale = Math.min(1, maxW / S.w, maxH / S.h);
+  canvas.style.width = (S.w * scale) + 'px';
+  canvas.style.height = (S.h * scale) + 'px';
+}
+
+// ── BG TABS ──
+document.querySelectorAll('.bg-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.bg-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.bg-section').forEach(s => s.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.dataset.bg;
+    $('bg' + target.charAt(0).toUpperCase() + target.slice(1)).classList.add('active');
+    S.bgType = target;
+    S.template = null;
+    document.querySelectorAll('.template-card').forEach(c => c.classList.remove('active'));
+    render();
+  });
+});
+
+// BG color
+syncColor('bgSolidColor', 'bgSolidHex', 'bgSolid');
+$('bgSolidColor').addEventListener('input', () => {
+  cpContainer.querySelectorAll('.color-preset').forEach(p => p.classList.remove('active'));
+});
+
+// Gradient custom
+syncColor('gradFrom', null, 'gradFrom');
+syncColor('gradTo', null, 'gradTo');
+$('gradFrom').addEventListener('input', () => {
+  gpContainer.querySelectorAll('.gradient-preset').forEach(p => p.classList.remove('active'));
+});
+$('gradTo').addEventListener('input', () => {
+  gpContainer.querySelectorAll('.gradient-preset').forEach(p => p.classList.remove('active'));
+});
+
+// BG image
+const bgInput = $('bgImageInput');
+const bgDrop = $('bgDropZone');
+function loadBgImage(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      S.bgImageEl = img;
+      S.bgImage = e.target.result;
+      $('bgImageThumb').src = e.target.result;
+      $('bgImageName').textContent = file.name;
+      $('bgImagePreview').style.display = 'flex';
+      bgDrop.style.display = 'none';
+      render();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+bgInput.addEventListener('change', e => { if (e.target.files[0]) loadBgImage(e.target.files[0]); });
+bgDrop.addEventListener('dragover', e => { e.preventDefault(); bgDrop.classList.add('drag-over'); });
+bgDrop.addEventListener('dragleave', () => bgDrop.classList.remove('drag-over'));
+bgDrop.addEventListener('drop', e => { e.preventDefault(); bgDrop.classList.remove('drag-over'); if (e.dataTransfer.files[0]) loadBgImage(e.dataTransfer.files[0]); });
+$('bgImageRemove').addEventListener('click', () => {
+  S.bgImage = null; S.bgImageEl = null;
+  $('bgImagePreview').style.display = 'none';
+  bgDrop.style.display = 'block';
+  bgInput.value = '';
+  render();
+});
+
+// Templates
+document.querySelectorAll('.template-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.template-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    S.template = card.dataset.tpl;
+    applyTemplate(S.template);
+    render();
+  });
+});
+
+function applyTemplate(tpl) {
+  switch(tpl) {
+    case 'meme':
+      S.textStyle = 'meme'; S.outlineOn = true; S.outlineColor = '#000000'; S.outlineWidth = 4;
+      S.bgType = 'gradient'; S.gradFrom = '#0f172a'; S.gradTo = '#334155';
+      break;
+    case 'quote':
+      S.textStyle = 'elegant'; S.outlineOn = false; S.topSize = 48;
+      S.bgType = 'gradient'; S.gradFrom = '#7209b7'; S.gradTo = '#f72585';
+      break;
+    case 'announce':
+      S.textStyle = 'bold'; S.outlineOn = false; S.topSize = 80;
+      S.bgType = 'color'; S.bgSolid = '#000000'; S.borderOn = true; S.borderColor = '#ef4444'; S.borderWidth = 12;
+      break;
+    case 'promo':
+      S.textStyle = 'bold'; S.topSize = 56;
+      S.bgType = 'gradient'; S.gradFrom = '#ef4444'; S.gradTo = '#f97316';
+      S.priceOn = true; S.priceText = '$9.99';
+      break;
+    case 'split':
+      S.textStyle = 'clean'; S.topText = 'BEFORE'; S.bottomText = 'AFTER'; S.topSize = 64;
+      S.bgType = 'color'; S.bgSolid = '#1e3a5f';
+      break;
+    case 'minimal':
+      S.textStyle = 'clean'; S.outlineOn = false; S.topSize = 48; S.topColor = '#1a1a1a';
+      S.bottomColor = '#6b7280'; S.bgType = 'color'; S.bgSolid = '#ffffff';
+      break;
+    case 'gradtext':
+      S.textStyle = 'neon'; S.outlineOn = false; S.topSize = 56;
+      S.bgType = 'gradient'; S.gradFrom = '#0f172a'; S.gradTo = '#1e293b';
+      break;
+    case 'overlay':
+      S.textStyle = 'meme'; S.darkenOn = true; S.darkenAmount = 45;
+      break;
+  }
+  syncUIFromState();
+}
+
+function syncUIFromState() {
+  $('topText').value = S.topText;
+  $('bottomText').value = S.bottomText;
+  $('topSize').value = S.topSize; $('topSizeVal').textContent = S.topSize + 'px';
+  $('bottomSize').value = S.bottomSize; $('bottomSizeVal').textContent = S.bottomSize + 'px';
+  $('topColor').value = S.topColor; $('topColorHex').textContent = S.topColor;
+  $('bottomColor').value = S.bottomColor; $('bottomColorHex').textContent = S.bottomColor;
+  $('bgSolidColor').value = S.bgSolid; $('bgSolidHex').textContent = S.bgSolid;
+  $('gradFrom').value = S.gradFrom; $('gradTo').value = S.gradTo;
+  $('outlineColor').value = S.outlineColor; $('outlineColorHex').textContent = S.outlineColor;
+  $('outlineWidth').value = S.outlineWidth; $('outlineWidthVal').textContent = S.outlineWidth + 'px';
+  // toggles
+  const outTog = $('outlineToggle');
+  if (S.outlineOn) outTog.classList.add('active'); else outTog.classList.remove('active');
+  $('outlineControls').style.display = S.outlineOn ? 'block' : 'none';
+  const shTog = $('shadowToggle');
+  if (S.shadowOn) shTog.classList.add('active'); else shTog.classList.remove('active');
+  const dkTog = $('darkenToggle');
+  if (S.darkenOn) dkTog.classList.add('active'); else dkTog.classList.remove('active');
+  $('darkenControls').style.display = S.darkenOn ? 'block' : 'none';
+  $('darkenAmount').value = S.darkenAmount; $('darkenVal').textContent = S.darkenAmount + '%';
+  const brTog = $('borderToggle');
+  if (S.borderOn) brTog.classList.add('active'); else brTog.classList.remove('active');
+  $('borderControls').style.display = S.borderOn ? 'block' : 'none';
+  $('borderColor').value = S.borderColor;
+  $('borderWidth').value = S.borderWidth; $('borderWidthVal').textContent = S.borderWidth + 'px';
+  const prTog = $('priceToggle');
+  if (S.priceOn) prTog.classList.add('active'); else prTog.classList.remove('active');
+  $('priceControls').style.display = S.priceOn ? 'block' : 'none';
+  // text style pills
+  $('stylePills').querySelectorAll('.pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.style === S.textStyle);
+  });
+}
+
+// ── TEXT INPUTS ──
+$('topText').addEventListener('input', e => { S.topText = e.target.value; render(); });
+$('bottomText').addEventListener('input', e => { S.bottomText = e.target.value; render(); });
+syncRange('topSize', 'topSizeVal', 'px', 'topSize');
+syncRange('bottomSize', 'bottomSizeVal', 'px', 'bottomSize');
+syncColor('topColor', 'topColorHex', 'topColor');
+syncColor('bottomColor', 'bottomColorHex', 'bottomColor');
+
+// ── TEXT STYLE ──
+pillGroup('stylePills', pill => {
+  S.textStyle = pill.dataset.style;
+  // auto-configure outline for meme style
+  if (S.textStyle === 'meme') {
+    S.outlineOn = true; S.outlineColor = '#000000'; S.outlineWidth = 4;
+  } else if (S.textStyle === 'neon') {
+    S.outlineOn = false;
+  }
+  syncUIFromState();
+  render();
+});
+
+// ── OUTLINE ──
+$('outlineToggle').addEventListener('click', () => {
+  S.outlineOn = $('outlineToggle').classList.toggle('active');
+  $('outlineControls').style.display = S.outlineOn ? 'block' : 'none';
+  render();
+});
+syncColor('outlineColor', 'outlineColorHex', 'outlineColor');
+syncRange('outlineWidth', 'outlineWidthVal', 'px', 'outlineWidth');
+
+// ── SHADOW ──
+$('shadowToggle').addEventListener('click', () => {
+  S.shadowOn = $('shadowToggle').classList.toggle('active');
+  render();
+});
+
+// ── BRAND ──
+$('brandToggle').addEventListener('click', () => {
+  S.brandOn = $('brandToggle').classList.toggle('active');
+  $('brandControls').style.display = S.brandOn ? 'block' : 'none';
+  render();
+});
+$('brandText').addEventListener('input', e => { S.brandText = e.target.value; render(); });
+pillGroup('brandPosPills', pill => { S.brandPos = pill.dataset.bpos; render(); });
+syncColor('brandColor', null, 'brandColor');
+
+// ── CTA ──
+$('ctaToggle').addEventListener('click', () => {
+  S.ctaOn = $('ctaToggle').classList.toggle('active');
+  $('ctaControls').style.display = S.ctaOn ? 'block' : 'none';
+  render();
+});
+pillGroup('ctaTextPills', pill => {
+  const v = pill.dataset.cta;
+  if (v === 'custom') {
+    $('ctaCustom').style.display = 'block';
+    S.ctaText = $('ctaCustom').value || 'Click Here';
+  } else {
+    $('ctaCustom').style.display = 'none';
+    S.ctaText = v;
+  }
+  render();
+});
+$('ctaCustom').addEventListener('input', e => { S.ctaText = e.target.value; render(); });
+syncColor('ctaBadgeColor', null, 'ctaBadgeColor');
+pillGroup('ctaPosPills', pill => { S.ctaPos = pill.dataset.cpos; render(); });
+
+// ── PRICE ──
+$('priceToggle').addEventListener('click', () => {
+  S.priceOn = $('priceToggle').classList.toggle('active');
+  $('priceControls').style.display = S.priceOn ? 'block' : 'none';
+  render();
+});
+pillGroup('pricePresets', pill => {
+  const v = pill.dataset.price;
+  if (v === 'custom') {
+    $('priceCustom').style.display = 'block';
+    S.priceText = $('priceCustom').value || '$0';
+  } else {
+    $('priceCustom').style.display = 'none';
+    S.priceText = v;
+  }
+  render();
+});
+$('priceCustom').addEventListener('input', e => { S.priceText = e.target.value; render(); });
+syncColor('priceBadgeColor', null, 'priceBadgeColor');
+syncColor('priceTextColor', null, 'priceTextColor');
+
+// ── EFFECTS ──
+$('darkenToggle').addEventListener('click', () => {
+  S.darkenOn = $('darkenToggle').classList.toggle('active');
+  $('darkenControls').style.display = S.darkenOn ? 'block' : 'none';
+  render();
+});
+syncRange('darkenAmount', 'darkenVal', '%', 'darkenAmount');
+
+$('blurToggle').addEventListener('click', () => {
+  S.blurOn = $('blurToggle').classList.toggle('active');
+  $('blurControls').style.display = S.blurOn ? 'block' : 'none';
+  render();
+});
+syncRange('blurAmount', 'blurVal', 'px', 'blurAmount');
+
+$('vignetteToggle').addEventListener('click', () => {
+  S.vignetteOn = $('vignetteToggle').classList.toggle('active');
+  render();
+});
+
+$('borderToggle').addEventListener('click', () => {
+  S.borderOn = $('borderToggle').classList.toggle('active');
+  $('borderControls').style.display = S.borderOn ? 'block' : 'none';
+  render();
+});
+syncColor('borderColor', null, 'borderColor');
+syncRange('borderWidth', 'borderWidthVal', 'px', 'borderWidth');
+
+// ── RENDER ──
+function render() {
+  const w = S.w, h = S.h;
+  ctx.clearRect(0, 0, w, h);
+
+  // 1) Background
+  if (S.blurOn && S.bgType === 'image' && S.bgImageEl) {
+    // draw blurred image via offscreen
+    ctx.save();
+    ctx.filter = `blur(${S.blurAmount}px)`;
+    drawImageCover(ctx, S.bgImageEl, -S.blurAmount, -S.blurAmount, w + S.blurAmount * 2, h + S.blurAmount * 2);
+    ctx.restore();
+  } else {
+    drawBackground();
+  }
+
+  // 2) Darken overlay
+  if (S.darkenOn) {
+    ctx.fillStyle = `rgba(0,0,0,${S.darkenAmount / 100})`;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  // 3) Vignette
+  if (S.vignetteOn) {
+    const cx = w / 2, cy = h / 2;
+    const r = Math.max(w, h) * 0.7;
+    const grad = ctx.createRadialGradient(cx, cy, r * 0.3, cx, cy, r);
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(1, 'rgba(0,0,0,0.6)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  // 4) Border
+  if (S.borderOn) {
+    ctx.strokeStyle = S.borderColor;
+    ctx.lineWidth = S.borderWidth * 2;
+    ctx.strokeRect(0, 0, w, h);
+  }
+
+  // 5) Top text
+  if (S.topText) {
+    drawText(S.topText, S.topSize, S.topColor, 'top');
+  }
+
+  // 6) Bottom text
+  if (S.bottomText) {
+    drawText(S.bottomText, S.bottomSize, S.bottomColor, 'bottom');
+  }
+
+  // 7) Brand name
+  if (S.brandOn && S.brandText) {
+    drawBrand();
+  }
+
+  // 8) CTA badge
+  if (S.ctaOn && S.ctaText) {
+    drawCTA();
+  }
+
+  // 9) Price badge
+  if (S.priceOn && S.priceText) {
+    drawPrice();
+  }
+}
+
+function drawBackground() {
+  const w = S.w, h = S.h;
+  if (S.bgType === 'color' || S.bgType === 'template') {
+    ctx.fillStyle = S.bgSolid;
+    ctx.fillRect(0, 0, w, h);
+  } else if (S.bgType === 'gradient') {
+    const grad = ctx.createLinearGradient(0, 0, w * 0.5, h);
+    grad.addColorStop(0, S.gradFrom);
+    grad.addColorStop(1, S.gradTo);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+  } else if (S.bgType === 'image' && S.bgImageEl) {
+    drawImageCover(ctx, S.bgImageEl, 0, 0, w, h);
+  } else {
+    // fallback
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0, 0, w, h);
+  }
+}
+
+function drawImageCover(context, img, x, y, w, h) {
+  const iw = img.naturalWidth, ih = img.naturalHeight;
+  const scale = Math.max(w / iw, h / ih);
+  const sw = w / scale, sh = h / scale;
+  const sx = (iw - sw) / 2, sy = (ih - sh) / 2;
+  context.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+}
+
+function getFont(size) {
+  switch (S.textStyle) {
+    case 'meme': return `${size}px Impact, 'Arial Black', sans-serif`;
+    case 'clean': return `${size}px 'Manrope', sans-serif`;
+    case 'bold': return `bold ${size}px 'Bebas Neue', sans-serif`;
+    case 'elegant': return `italic ${size}px 'Playfair Display', serif`;
+    case 'neon': return `bold ${size}px 'Manrope', sans-serif`;
+    default: return `${size}px Impact, sans-serif`;
+  }
+}
+
+function wrapText(text, maxWidth, fontSize) {
+  ctx.font = getFont(fontSize);
+  const words = text.split(' ');
+  const lines = [];
+  let line = '';
+  for (const word of words) {
+    const test = line ? line + ' ' + word : word;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function drawText(text, size, color, position) {
+  const w = S.w, h = S.h;
+  const pad = Math.max(40, w * 0.04);
+  const maxW = w - pad * 2;
+  const processedText = S.textStyle === 'bold' ? text.toUpperCase() : text;
+  const lines = wrapText(processedText, maxW, size);
+  const lineHeight = size * 1.15;
+  const totalH = lines.length * lineHeight;
+
+  let startY;
+  if (position === 'top') {
+    startY = h * 0.15;
+  } else {
+    startY = h - h * 0.15 - totalH + lineHeight;
+  }
+
+  ctx.font = getFont(size);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  lines.forEach((line, i) => {
+    const x = w / 2;
+    const y = startY + i * lineHeight;
+
+    // Shadow
+    if (S.shadowOn) {
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.6)';
+      ctx.shadowBlur = size * 0.15;
+      ctx.shadowOffsetX = size * 0.04;
+      ctx.shadowOffsetY = size * 0.04;
+    }
+
+    // Neon glow
+    if (S.textStyle === 'neon') {
+      ctx.save();
+      ctx.shadowColor = color;
+      ctx.shadowBlur = size * 0.4;
+      ctx.fillStyle = color;
+      ctx.fillText(line, x, y);
+      ctx.shadowBlur = size * 0.2;
+      ctx.fillText(line, x, y);
+      ctx.restore();
+      // draw the bright text on top
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(line, x, y);
+      if (S.shadowOn) ctx.restore();
+      return;
+    }
+
+    // Outline
+    if (S.outlineOn) {
+      ctx.strokeStyle = S.outlineColor;
+      ctx.lineWidth = S.outlineWidth * 2;
+      ctx.lineJoin = 'round';
+      ctx.miterLimit = 2;
+      ctx.strokeText(line, x, y);
+    }
+
+    // Fill
+    ctx.fillStyle = color;
+    ctx.fillText(line, x, y);
+
+    if (S.shadowOn) ctx.restore();
+  });
+}
+
+function drawBrand() {
+  const w = S.w, h = S.h;
+  const size = Math.max(14, Math.round(w * 0.025));
+  ctx.font = `600 ${size}px 'Manrope', sans-serif`;
+  ctx.fillStyle = S.brandColor;
+  const pad = Math.max(20, w * 0.03);
+  if (S.brandPos === 'top-left') {
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(S.brandText, pad, pad);
+  } else {
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(S.brandText, w - pad, h - pad);
+  }
+}
+
+function drawCTA() {
+  const w = S.w, h = S.h;
+  const fontSize = Math.max(16, Math.round(w * 0.032));
+  ctx.font = `700 ${fontSize}px 'Manrope', sans-serif`;
+  const textW = ctx.measureText(S.ctaText).width;
+  const padX = fontSize * 1.2, padY = fontSize * 0.6;
+  const bw = textW + padX * 2, bh = fontSize + padY * 2;
+  const radius = bh / 2;
+
+  let bx, by;
+  if (S.ctaPos === 'bottom-center') {
+    bx = (w - bw) / 2; by = h - bh - h * 0.08;
+  } else if (S.ctaPos === 'bottom-right') {
+    bx = w - bw - w * 0.06; by = h - bh - h * 0.08;
+  } else {
+    bx = w - bw - w * 0.06; by = h * 0.06;
+  }
+
+  // pill shape
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw, bh, radius);
+  ctx.fillStyle = S.ctaBadgeColor;
+  ctx.fill();
+
+  // text
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(S.ctaText, bx + bw / 2, by + bh / 2);
+}
+
+function drawPrice() {
+  const w = S.w, h = S.h;
+  const r = Math.max(36, Math.round(w * 0.08));
+  const cx = w - r - w * 0.05;
+  const cy = r + h * 0.05;
+
+  // circle
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = S.priceBadgeColor;
+  ctx.fill();
+
+  // text
+  const fontSize = Math.max(14, Math.round(r * 0.55));
+  ctx.font = `800 ${fontSize}px 'Manrope', sans-serif`;
+  ctx.fillStyle = S.priceTextColor;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(S.priceText, cx, cy);
+}
+
+// ── EXPORT ──
+$('downloadPng').addEventListener('click', () => {
+  const link = document.createElement('a');
+  link.download = `social-ad-${S.w}x${S.h}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  toast('PNG downloaded');
+});
+
+$('downloadJpg').addEventListener('click', () => {
+  const link = document.createElement('a');
+  link.download = `social-ad-${S.w}x${S.h}.jpg`;
+  link.href = canvas.toDataURL('image/jpeg', 0.92);
+  link.click();
+  toast('JPG downloaded');
+});
+
+$('copyClip').addEventListener('click', async () => {
+  try {
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    toast('Copied to clipboard');
+  } catch (e) {
+    toast('Copy failed — try downloading instead');
+  }
+});
+
+// ── INIT ──
+window.addEventListener('resize', fitCanvas);
+fitCanvas();
+render();
+
+})();
+</script>
+</body>
+</html>

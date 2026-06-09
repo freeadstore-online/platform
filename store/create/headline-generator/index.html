@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ad Headline Generator - FreeAdStore</title>
+<meta name="description" content="Generate 10 high-converting ad headlines instantly. Google, Meta, LinkedIn, TikTok, YouTube. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--panel:#ffffff;--line:#e5e7eb;--radius:10px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 16px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.main-scroll{flex:1;overflow-y:auto;padding:24px 32px}
+
+/* PANELS */
+.panel{margin-bottom:14px}
+.panel-title{font-size:.75rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.03em}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 3px;font-weight:500}
+input[type=text],textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;resize:none}
+input[type=text]:focus,textarea:focus{border-color:var(--accent)}
+.pill-row{display:flex;gap:5px;flex-wrap:wrap}
+.pill{padding:5px 11px;border:1px solid var(--line);border-radius:6px;font-size:.7rem;font-weight:600;cursor:pointer;background:var(--panel);font-family:inherit;transition:all .12s}
+.pill:hover{border-color:var(--accent)}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pill .pill-limit{font-size:.6rem;font-weight:400;opacity:.7;margin-left:2px}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:8px;margin-top:16px}
+.btn{padding:10px 18px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .12s;width:100%}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{filter:brightness(1.1)}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+
+/* HEADLINE CARDS */
+.headline-list{display:flex;flex-direction:column;gap:12px}
+.headline-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 20px;transition:border-color .15s,box-shadow .15s}
+.headline-card:hover{border-color:#d1d5db;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.headline-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+.headline-text{font-family:'Fraunces',serif;font-size:1.25rem;font-weight:700;line-height:1.35;color:var(--text);flex:1}
+.headline-actions{display:flex;gap:6px;flex-shrink:0;align-items:center}
+.btn-icon{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--panel);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;font-size:.9rem;color:var(--muted)}
+.btn-icon:hover{border-color:var(--accent);color:var(--accent)}
+.btn-icon.favorited{color:#eab308;border-color:#eab308;background:#fefce8}
+.btn-icon.copied{color:#22c55e;border-color:#22c55e}
+.headline-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.char-count{font-size:.7rem;font-weight:600;padding:3px 8px;border-radius:4px}
+.char-ok{background:#f0fdf4;color:#16a34a}
+.char-warn{background:#fffbeb;color:#d97706}
+.char-over{background:#fef2f2;color:#dc2626}
+.style-badge{font-size:.65rem;font-weight:600;padding:3px 8px;border-radius:4px;background:#f3f4f6;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.strength-meter{display:flex;align-items:center;gap:2px}
+.strength-star{font-size:.75rem;color:#d1d5db}
+.strength-star.filled{color:#eab308}
+.strength-label{font-size:.62rem;color:var(--muted);margin-left:4px;font-weight:500}
+
+/* SAVED HEADLINES */
+.saved-section{margin-top:24px;border-top:1px solid var(--line);padding-top:16px}
+.saved-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:8px 0;user-select:none}
+.saved-header h3{font-size:.8rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px}
+.saved-header .count{font-size:.65rem;background:#fefce8;color:#d97706;padding:2px 7px;border-radius:4px;font-weight:600}
+.saved-header .chevron{font-size:.8rem;color:var(--muted);transition:transform .2s}
+.saved-header .chevron.open{transform:rotate(180deg)}
+.saved-body{display:none}
+.saved-body.open{display:block}
+.saved-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg);border-radius:8px;margin-bottom:6px;font-size:.82rem}
+.saved-item .saved-text{flex:1;font-weight:500}
+.saved-item .saved-platform{font-size:.62rem;color:var(--muted);font-weight:600;text-transform:uppercase}
+.saved-item .btn-icon{width:28px;height:28px;font-size:.75rem}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:80px 40px;color:var(--muted)}
+.empty-state svg{width:64px;height:64px;margin-bottom:16px;opacity:.3}
+.empty-state h3{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:4px}
+.empty-state p{font-size:.8rem}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .main-scroll{padding:16px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Controls -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&#8592; FreeAdStore</a>
+      <h1>Ad Headline Generator</h1>
+      <p>Generate 10 high-converting ad headlines in one click. No API, no signup.</p>
+    </div>
+    <div class="sidebar-scroll" id="controls">
+      <div class="panel">
+        <div class="panel-title">Brand</div>
+        <label>Brand Name</label>
+        <input type="text" id="inpBrand" placeholder="e.g. Acme" value="Acme">
+        <label>Product / Service</label>
+        <input type="text" id="inpProduct" placeholder="e.g. Project Management Software">
+        <label>Key Benefit</label>
+        <input type="text" id="inpBenefit" placeholder="e.g. Ships 2x faster">
+        <label>Target Audience</label>
+        <input type="text" id="inpAudience" placeholder="e.g. Startup founders">
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Platform</div>
+        <div class="pill-row" id="platformRow">
+          <button class="pill active" data-platform="google">Google <span class="pill-limit">30</span></button>
+          <button class="pill" data-platform="meta">Meta <span class="pill-limit">40</span></button>
+          <button class="pill" data-platform="linkedin">LinkedIn <span class="pill-limit">70</span></button>
+          <button class="pill" data-platform="tiktok">TikTok <span class="pill-limit">100</span></button>
+          <button class="pill" data-platform="youtube">YouTube <span class="pill-limit">100</span></button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Style</div>
+        <div class="pill-row" id="styleRow">
+          <button class="pill active" data-style="benefit">Benefit-Led</button>
+          <button class="pill" data-style="problem">Problem-Solution</button>
+          <button class="pill" data-style="social">Social Proof</button>
+          <button class="pill" data-style="urgency">Urgency</button>
+          <button class="pill" data-style="question">Question</button>
+          <button class="pill" data-style="howto">How-To</button>
+          <button class="pill" data-style="comparison">Comparison</button>
+          <button class="pill" data-style="numbers">Numbers</button>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnGenerate">Generate 10 Headlines</button>
+        <button class="btn btn-outline" id="btnShuffle" style="width:auto;min-width:90px">Shuffle</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Headlines -->
+  <div class="main">
+    <div class="main-scroll" id="mainScroll">
+      <div id="headlineList" class="headline-list"></div>
+      <div id="savedSection"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const PLATFORMS = {
+  google:   { name: 'Google',   limit: 30 },
+  meta:     { name: 'Meta',     limit: 40 },
+  linkedin: { name: 'LinkedIn', limit: 70 },
+  tiktok:   { name: 'TikTok',   limit: 100 },
+  youtube:  { name: 'YouTube',  limit: 100 },
+};
+
+const POWER_WORDS = ['free','new','proven','guaranteed','exclusive','instant','save','discover','secret','limited','powerful','easy','fast','best','top','ultimate'];
+
+// ============================================================
+// TEMPLATES
+// ============================================================
+const TEMPLATES = {
+  benefit: [
+    '{Product} That Actually {Benefit}',
+    'Get {Benefit} with {Brand}',
+    '{Benefit} \u2014 Without the Hassle',
+    'The {Product} Built for {Audience}',
+    '{Number}x Better Results with {Product}',
+    'Unlock {Benefit} Today',
+    '{Brand}: {Benefit} Made Simple',
+    'Finally, {Product} That {Benefit}',
+    '{Audience} Deserve {Benefit}',
+    'Experience {Benefit} with {Brand}',
+    '{Product} Designed for {Benefit}',
+    '{Brand} Delivers {Benefit} Fast',
+    'Real {Benefit} for Real {Audience}',
+    'Why {Audience} Love {Brand}',
+    'Achieve {Benefit} Effortlessly',
+  ],
+  problem: [
+    'Stop Struggling. Start {Benefit}.',
+    'Tired of Failing? Try {Product}.',
+    'Problems? {Brand} Has the Fix.',
+    'No More Headaches. Just {Benefit}.',
+    'Done with Wasted Time? Meet {Brand}.',
+    '{Audience}: There\'s a Better Way.',
+    'Frustrated? {Product} Solves It.',
+    'End the Chaos with {Brand}',
+    'The {Product} That Ends Your Pain',
+    'Fix It Once with {Brand}',
+    'Forget the Old Way. Try {Product}.',
+    'Why Settle? Get {Benefit} Now.',
+  ],
+  social: [
+    'Join {Number}+ {Audience} Using {Product}',
+    'Why {Number} {Audience} Switched to {Brand}',
+    '#1 {Product} for {Audience}',
+    'Trusted by {Audience} Worldwide',
+    '{Number}+ {Audience} Can\'t Be Wrong',
+    '{Audience} Recommend {Brand}',
+    'Rated #1 by {Audience}',
+    'The {Product} {Audience} Trust Most',
+    'See Why {Number}+ Chose {Brand}',
+    '{Brand}: Loved by {Audience}',
+    'Top-Rated {Product} for {Audience}',
+    '{Number} Five-Star Reviews',
+  ],
+  urgency: [
+    'Limited Time: Save on {Product}',
+    'Don\'t Miss {Product} \u2014 Act Now',
+    'Last Chance: {Benefit} Starts Now',
+    'Only {Number} Spots Left for {Audience}',
+    'Offer Ends Soon: {Benefit}',
+    'Hurry \u2014 {Product} Is Selling Fast',
+    'Today Only: Try {Brand} Free',
+    '{Audience}: Act Before It\'s Gone',
+    '{Number} Hours Left to Get {Product}',
+    'Final Call: {Benefit} Awaits',
+    'Don\'t Wait \u2014 {Brand} Won\'t Last',
+    'Grab {Product} Before It\'s Gone',
+  ],
+  question: [
+    'Ready for {Benefit}?',
+    'What If {Product} Could Change Everything?',
+    'Still Struggling? There\'s a Better Way.',
+    'Why Are {Audience} Choosing {Brand}?',
+    'Want {Benefit} Without the Work?',
+    'Can {Product} Really {Benefit}?',
+    'What\'s Stopping You from {Benefit}?',
+    'Looking for the Best {Product}?',
+    'Is {Brand} Right for You?',
+    'Need {Benefit}? We\'ve Got You.',
+    'Curious About {Brand}?',
+    'What Makes {Product} Different?',
+  ],
+  howto: [
+    'How to {Benefit} in Minutes',
+    'How {Brand} Helps {Audience} Win',
+    '{Number} Ways {Product} Improves Results',
+    'How to Get {Benefit} with {Brand}',
+    'The Easiest Way to {Benefit}',
+    'How {Audience} Achieve {Benefit}',
+    'Learn How {Product} Works',
+    'How to Start {Benefit} Today',
+    '{Number} Steps to {Benefit}',
+    'How {Brand} Makes {Benefit} Easy',
+    'A Simple Guide to {Benefit}',
+    'How Smart {Audience} Use {Product}',
+  ],
+  comparison: [
+    '{Brand} vs. the Rest: {Benefit}',
+    'Why {Product} Beats the Competition',
+    'Like the Old Way, But Better',
+    '{Brand}: The Smarter Alternative',
+    'Ditch the Rest. Choose {Brand}.',
+    '{Product} Outperforms Everything Else',
+    'Compare {Brand} \u2014 You\'ll See',
+    'Better Than Average {Product}',
+    'The {Product} Others Wish They Had',
+    'Why {Audience} Prefer {Brand}',
+    '{Brand} vs. Doing Nothing',
+    'Upgrade from Ordinary to {Brand}',
+  ],
+  numbers: [
+    '{Number}% Better with {Product}',
+    'Save ${Amount} on {Product}',
+    '{Number} {Audience} Can\'t Be Wrong',
+    'Get {Product} in {Number} Minutes',
+    '{Number}x Faster with {Brand}',
+    '{Number}+ Features in {Product}',
+    'Only ${Amount}/mo for {Product}',
+    '{Number} Reasons to Try {Brand}',
+    'Up to {Number}% More {Benefit}',
+    '{Number}-Day Free Trial of {Product}',
+    'Over {Number} Happy {Audience}',
+    '{Number} Stars from {Audience}',
+  ],
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  brand: 'Acme',
+  product: '',
+  benefit: '',
+  audience: '',
+  platform: 'google',
+  style: 'benefit',
+};
+
+let headlines = [];
+let favorites = loadFavorites();
+
+// ============================================================
+// HELPERS
+// ============================================================
+function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function randNum(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function shuffle(arr) { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function loadFavorites() {
+  try { return JSON.parse(localStorage.getItem('fads-headline-favs')) || []; }
+  catch(e) { return []; }
+}
+function saveFavorites() {
+  try { localStorage.setItem('fads-headline-favs', JSON.stringify(favorites)); }
+  catch(e) {}
+}
+
+function isFavorited(text) {
+  return favorites.some(f => f.text === text);
+}
+
+// ============================================================
+// TEMPLATE FILLING
+// ============================================================
+function fillTemplate(template, ctx) {
+  const numbers = [3, 5, 7, 10, 14, 15, 20, 25, 30, 50, 100, 500, 1000, 5000, 10000, 50000];
+  const amounts = [5, 9, 10, 15, 19, 20, 29, 49, 99];
+
+  let result = template
+    .replace(/\{Brand\}/g, ctx.brand || 'Your Brand')
+    .replace(/\{Product\}/g, ctx.product || 'Our Product')
+    .replace(/\{Benefit\}/g, ctx.benefit || 'Better Results')
+    .replace(/\{Audience\}/g, ctx.audience || 'Professionals')
+    .replace(/\{Number\}/g, String(rand(numbers)))
+    .replace(/\{Amount\}/g, String(rand(amounts)));
+
+  return result;
+}
+
+// ============================================================
+// STRENGTH SCORING
+// ============================================================
+function scoreStrength(text, limit) {
+  let score = 0;
+  const lower = text.toLowerCase();
+
+  // Shorter relative to limit = better (max 1 point)
+  if (text.length <= limit * 0.85) score++;
+
+  // Has numbers
+  if (/\d/.test(text)) score++;
+
+  // Has power words
+  if (POWER_WORDS.some(w => lower.includes(w))) score++;
+
+  // Question format
+  if (text.includes('?')) score++;
+
+  // Includes the actual benefit text if provided
+  if (state.benefit && lower.includes(state.benefit.toLowerCase().split(' ')[0])) score++;
+
+  return Math.min(5, Math.max(1, score));
+}
+
+// ============================================================
+// GENERATE HEADLINES
+// ============================================================
+function generateHeadlines() {
+  const limit = PLATFORMS[state.platform].limit;
+  const templates = TEMPLATES[state.style];
+  const ctx = {
+    brand: state.brand || 'Acme',
+    product: state.product || 'Our Product',
+    benefit: state.benefit || 'Better Results',
+    audience: state.audience || 'Professionals',
+  };
+
+  const shuffled = shuffle(templates);
+  const results = [];
+  const seen = new Set();
+
+  // Try to generate 10 unique headlines
+  let attempts = 0;
+  while (results.length < 10 && attempts < 60) {
+    const tpl = shuffled[attempts % shuffled.length];
+    const filled = fillTemplate(tpl, ctx);
+    attempts++;
+
+    // Truncate to limit if needed
+    let text = filled;
+    if (text.length > limit) {
+      text = text.substring(0, limit - 1).replace(/\s+\S*$/, '') + '\u2026';
+      if (text.length > limit) text = filled.substring(0, limit);
+    }
+
+    if (!seen.has(text)) {
+      seen.add(text);
+      results.push({
+        text: text,
+        fullText: filled,
+        style: state.style,
+        platform: state.platform,
+        limit: limit,
+        score: scoreStrength(text, limit),
+      });
+    }
+  }
+
+  // If we still need more, use other styles as fallback
+  if (results.length < 10) {
+    const allStyles = Object.keys(TEMPLATES).filter(s => s !== state.style);
+    for (const fallbackStyle of allStyles) {
+      if (results.length >= 10) break;
+      const fallbackTemplates = shuffle(TEMPLATES[fallbackStyle]);
+      for (const tpl of fallbackTemplates) {
+        if (results.length >= 10) break;
+        const filled = fillTemplate(tpl, ctx);
+        let text = filled;
+        if (text.length > limit) {
+          text = text.substring(0, limit - 1).replace(/\s+\S*$/, '') + '\u2026';
+          if (text.length > limit) text = filled.substring(0, limit);
+        }
+        if (!seen.has(text)) {
+          seen.add(text);
+          results.push({
+            text: text,
+            fullText: filled,
+            style: fallbackStyle,
+            platform: state.platform,
+            limit: limit,
+            score: scoreStrength(text, limit),
+          });
+        }
+      }
+    }
+  }
+
+  headlines = results.slice(0, 10);
+  renderHeadlines();
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+const STYLE_LABELS = {
+  benefit: 'Benefit-Led',
+  problem: 'Problem-Solution',
+  social: 'Social Proof',
+  urgency: 'Urgency',
+  question: 'Question',
+  howto: 'How-To',
+  comparison: 'Comparison',
+  numbers: 'Numbers',
+};
+
+function renderHeadlines() {
+  const list = document.getElementById('headlineList');
+
+  if (!headlines.length) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+        </svg>
+        <h3>Ready to generate headlines</h3>
+        <p>Fill in your brand details and click "Generate 10 Headlines"</p>
+      </div>`;
+    renderSaved();
+    return;
+  }
+
+  list.innerHTML = headlines.map((h, i) => {
+    const charLen = h.fullText.length;
+    const limit = h.limit;
+    const charClass = charLen <= limit ? 'char-ok' : charLen <= limit * 1.15 ? 'char-warn' : 'char-over';
+    const faved = isFavorited(h.text);
+    const stars = Array.from({length: 5}, (_, si) =>
+      `<span class="strength-star${si < h.score ? ' filled' : ''}">\u2605</span>`
+    ).join('');
+    const strengthWord = h.score <= 1 ? 'Weak' : h.score <= 2 ? 'Fair' : h.score <= 3 ? 'Good' : h.score <= 4 ? 'Strong' : 'Excellent';
+
+    return `
+      <div class="headline-card" data-index="${i}">
+        <div class="headline-top">
+          <div class="headline-text">${escHtml(h.text)}</div>
+          <div class="headline-actions">
+            <button class="btn-icon${faved ? ' favorited' : ''}" data-fav="${i}" title="${faved ? 'Unfavorite' : 'Favorite'}">
+              ${faved ? '\u2605' : '\u2606'}
+            </button>
+            <button class="btn-icon" data-copy="${i}" title="Copy to clipboard">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="headline-meta">
+          <span class="char-count ${charClass}">${charLen} / ${limit}</span>
+          <span class="style-badge">${STYLE_LABELS[h.style] || h.style}</span>
+          <span class="strength-meter">${stars}<span class="strength-label">${strengthWord}</span></span>
+        </div>
+      </div>`;
+  }).join('');
+
+  renderSaved();
+}
+
+function renderSaved() {
+  const section = document.getElementById('savedSection');
+  if (!favorites.length) {
+    section.innerHTML = '';
+    return;
+  }
+
+  const isOpen = section.querySelector('.saved-body.open') !== null;
+
+  section.innerHTML = `
+    <div class="saved-section">
+      <div class="saved-header" id="savedToggle">
+        <h3>
+          <span>\u2605</span> Saved Headlines
+          <span class="count">${favorites.length}</span>
+        </h3>
+        <span class="chevron${isOpen ? ' open' : ''}">\u25BC</span>
+      </div>
+      <div class="saved-body${isOpen ? ' open' : ''}">
+        ${favorites.map((f, i) => `
+          <div class="saved-item">
+            <span class="saved-text">${escHtml(f.text)}</span>
+            <span class="saved-platform">${f.platform || ''}</span>
+            <button class="btn-icon" data-copy-saved="${i}" title="Copy">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+            <button class="btn-icon" data-rm-saved="${i}" title="Remove" style="color:#ef4444">\u2715</button>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+
+  document.getElementById('savedToggle').onclick = () => {
+    const body = section.querySelector('.saved-body');
+    const chevron = section.querySelector('.chevron');
+    body.classList.toggle('open');
+    chevron.classList.toggle('open');
+  };
+}
+
+function escHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ============================================================
+// EVENT BINDING
+// ============================================================
+function bindEvents() {
+  // Input fields
+  document.getElementById('inpBrand').oninput = e => { state.brand = e.target.value; };
+  document.getElementById('inpProduct').oninput = e => { state.product = e.target.value; };
+  document.getElementById('inpBenefit').oninput = e => { state.benefit = e.target.value; };
+  document.getElementById('inpAudience').oninput = e => { state.audience = e.target.value; };
+
+  // Platform pills
+  document.getElementById('platformRow').onclick = e => {
+    const pill = e.target.closest('[data-platform]');
+    if (!pill) return;
+    state.platform = pill.dataset.platform;
+    document.querySelectorAll('#platformRow .pill').forEach(p =>
+      p.classList.toggle('active', p.dataset.platform === state.platform)
+    );
+  };
+
+  // Style pills
+  document.getElementById('styleRow').onclick = e => {
+    const pill = e.target.closest('[data-style]');
+    if (!pill) return;
+    state.style = pill.dataset.style;
+    document.querySelectorAll('#styleRow .pill').forEach(p =>
+      p.classList.toggle('active', p.dataset.style === state.style)
+    );
+  };
+
+  // Generate button
+  document.getElementById('btnGenerate').onclick = generateHeadlines;
+
+  // Shuffle button
+  document.getElementById('btnShuffle').onclick = () => {
+    // Pick a random style
+    const styles = Object.keys(TEMPLATES);
+    state.style = styles[Math.floor(Math.random() * styles.length)];
+    document.querySelectorAll('#styleRow .pill').forEach(p =>
+      p.classList.toggle('active', p.dataset.style === state.style)
+    );
+    generateHeadlines();
+  };
+
+  // Headline list event delegation
+  document.getElementById('headlineList').addEventListener('click', e => {
+    // Copy button
+    const copyBtn = e.target.closest('[data-copy]');
+    if (copyBtn) {
+      const idx = +copyBtn.dataset.copy;
+      const h = headlines[idx];
+      if (h) {
+        navigator.clipboard.writeText(h.text).then(() => {
+          copyBtn.classList.add('copied');
+          copyBtn.innerHTML = '\u2713';
+          setTimeout(() => {
+            copyBtn.classList.remove('copied');
+            copyBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+          }, 1500);
+        });
+      }
+      return;
+    }
+
+    // Favorite button
+    const favBtn = e.target.closest('[data-fav]');
+    if (favBtn) {
+      const idx = +favBtn.dataset.fav;
+      const h = headlines[idx];
+      if (!h) return;
+      const existing = favorites.findIndex(f => f.text === h.text);
+      if (existing >= 0) {
+        favorites.splice(existing, 1);
+      } else {
+        favorites.unshift({
+          text: h.text,
+          style: h.style,
+          platform: PLATFORMS[h.platform]?.name || h.platform,
+          ts: Date.now(),
+        });
+        if (favorites.length > 100) favorites.length = 100;
+      }
+      saveFavorites();
+      renderHeadlines();
+      return;
+    }
+  });
+
+  // Saved section event delegation
+  document.getElementById('savedSection').addEventListener('click', e => {
+    const copyBtn = e.target.closest('[data-copy-saved]');
+    if (copyBtn) {
+      const idx = +copyBtn.dataset.copySaved;
+      const f = favorites[idx];
+      if (f) {
+        navigator.clipboard.writeText(f.text).then(() => {
+          copyBtn.classList.add('copied');
+          copyBtn.innerHTML = '\u2713';
+          setTimeout(() => {
+            copyBtn.classList.remove('copied');
+            copyBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+          }, 1500);
+        });
+      }
+      return;
+    }
+
+    const rmBtn = e.target.closest('[data-rm-saved]');
+    if (rmBtn) {
+      const idx = +rmBtn.dataset.rmSaved;
+      favorites.splice(idx, 1);
+      saveFavorites();
+      renderHeadlines();
+      return;
+    }
+  });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+bindEvents();
+renderHeadlines();
+</script>
+</body>
+</html>

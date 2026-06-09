@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Frequency Calculator — FreeAdStore</title>
+<meta name="description" content="Calculate ad frequency, compare against optimal ranges by objective, and project diminishing returns. Free, instant, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#ef4444;--accent-hover:#dc2626;--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--panel:#ffffff;--line:#e5e7eb;--green:#16a34a;--yellow:#f59e0b;--red:#ef4444;--sidebar-w:360px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+/* Layout */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--panel);border-right:1px solid var(--line);padding:1.25rem;overflow-y:auto;display:flex;flex-direction:column;gap:.1rem}
+.main{flex:1;padding:1.5rem 2rem;overflow-y:auto;max-height:100vh}
+
+/* Back link */
+.back{display:inline-flex;align-items:center;gap:.35rem;font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:.75rem}
+.back:hover{color:var(--accent);text-decoration:none}
+
+/* Sidebar heading */
+.sidebar h1{font-family:'Fraunces',serif;font-size:1.25rem;font-weight:700;margin-bottom:.15rem}
+.sidebar .subtitle{font-size:.72rem;color:var(--muted);line-height:1.45;margin-bottom:.85rem}
+
+/* Section title */
+.section-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:.35rem;margin-top:.6rem}
+
+/* Form elements */
+.field{margin-bottom:.7rem}
+.field label{display:block;font-size:.72rem;font-weight:600;color:var(--muted);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.3px}
+.field input[type="text"],
+.field input[type="number"],
+.field select{width:100%;padding:.5rem .65rem;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:.82rem;background:#fff;color:var(--text);transition:border-color .15s}
+.field input:focus,.field select:focus{outline:none;border-color:var(--accent)}
+.field select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center;padding-right:1.8rem}
+.field .hint{font-size:.65rem;color:var(--muted);margin-top:.2rem}
+
+/* Row */
+.row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+
+/* Calculate button */
+.btn-calc{width:100%;padding:.65rem;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;transition:background .15s;margin-top:.5rem}
+.btn-calc:hover{background:var(--accent-hover)}
+
+/* Main area */
+.main h2{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;margin-bottom:1rem}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;text-align:center;color:var(--muted)}
+.empty-state .icon{font-size:3rem;margin-bottom:1rem;opacity:.4}
+.empty-state p{font-size:.88rem;max-width:340px;line-height:1.5}
+
+/* Cards */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:1.1rem;margin-bottom:.85rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card h3{font-size:.88rem;font-weight:700;margin-bottom:.65rem;display:flex;align-items:center;gap:.4rem}
+.card h3 .card-icon{color:var(--accent)}
+
+/* Frequency hero */
+.freq-hero{text-align:center;padding:1.6rem 1rem;border-radius:14px;border:1px solid var(--line);background:var(--panel);margin-bottom:1rem}
+.freq-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:.3rem}
+.freq-value{font-family:'Fraunces',serif;font-size:3.6rem;font-weight:700;line-height:1}
+.freq-value.under{color:var(--yellow)}
+.freq-value.optimal{color:var(--green)}
+.freq-value.over{color:var(--red)}
+.freq-badge{display:inline-block;padding:.2rem .65rem;border-radius:99px;font-size:.72rem;font-weight:700;margin-top:.5rem}
+.freq-badge.under{background:#fef3c7;color:#92400e}
+.freq-badge.optimal{background:#dcfce7;color:#065f46}
+.freq-badge.over{background:#fee2e2;color:#991b1b}
+.freq-explanation{font-size:.8rem;color:var(--muted);margin-top:.5rem;line-height:1.5}
+.freq-explanation strong{color:var(--text)}
+
+/* Stats grid */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1rem}
+.stat{text-align:center;padding:.75rem .5rem;background:#fafafa;border-radius:8px;border:1px solid var(--line)}
+.stat .number{font-size:1.35rem;font-weight:800;color:var(--text);font-family:'Fraunces',serif}
+.stat .label{font-size:.65rem;color:var(--muted);font-weight:600;margin-top:.15rem;text-transform:uppercase;letter-spacing:.3px}
+
+/* Objective table */
+.obj-table{width:100%;border-collapse:collapse}
+.obj-table th,.obj-table td{text-align:left;padding:.5rem .6rem;font-size:.78rem;border-bottom:1px solid var(--line)}
+.obj-table th{font-weight:700;color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.3px}
+.obj-table tr:last-child td{border-bottom:none}
+.obj-table .active-row{background:#fef2f2}
+.obj-range{font-weight:700;font-family:'Fraunces',serif;font-size:.88rem}
+.obj-status{font-size:.65rem;font-weight:700;padding:.15rem .45rem;border-radius:99px;white-space:nowrap;display:inline-block}
+.obj-status.under{background:#fef3c7;color:#92400e}
+.obj-status.optimal{background:#dcfce7;color:#065f46}
+.obj-status.over{background:#fee2e2;color:#991b1b}
+
+/* Projection */
+.projection-text{font-size:.82rem;color:var(--muted);line-height:1.6;margin-bottom:.6rem}
+.projection-text strong{color:var(--text)}
+
+/* Diminishing returns chart */
+.chart-container{position:relative;margin:.5rem 0}
+.chart-svg{width:100%;height:200px;display:block}
+.chart-axis-label{font-size:.6rem;fill:var(--muted);font-family:'Manrope',sans-serif}
+.chart-grid-line{stroke:var(--line);stroke-width:1;stroke-dasharray:4,4}
+.chart-line{fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.chart-area{opacity:.1}
+.chart-dot{stroke:#fff;stroke-width:2}
+.chart-zone{opacity:.08}
+.chart-legend{display:flex;gap:1rem;justify-content:center;margin-top:.5rem;font-size:.7rem;font-weight:600;color:var(--muted)}
+.chart-legend span{display:flex;align-items:center;gap:.3rem}
+.chart-legend .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* Platform caps */
+.cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.cap-card{background:#fafafa;border:1px solid var(--line);border-radius:8px;padding:.75rem}
+.cap-platform{font-size:.78rem;font-weight:700;margin-bottom:.2rem;display:flex;align-items:center;gap:.35rem}
+.cap-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cap-rec{font-size:.72rem;color:var(--muted);line-height:1.45}
+.cap-rec strong{color:var(--text)}
+
+/* Toast */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:#fff;padding:.65rem 1.1rem;border-radius:8px;font-size:.78rem;font-weight:600;opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none;z-index:999}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* Responsive */
+@media(max-width:900px){
+  .layout{flex-direction:column}
+  .sidebar{width:100%;min-width:unset;border-right:none;border-bottom:1px solid var(--line);max-height:unset}
+  .main{max-height:unset;padding:1.25rem}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .cap-grid{grid-template-columns:1fr}
+}
+@media(max-width:500px){
+  .row{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <a href="/" class="back">&larr; FreeAdStore</a>
+    <h1>Frequency Calculator</h1>
+    <p class="subtitle">Calculate ad frequency, compare against optimal ranges by campaign objective, and project diminishing returns.</p>
+
+    <div class="section-title">Campaign Data</div>
+
+    <div class="field">
+      <label>Total Impressions</label>
+      <input type="number" id="impressions" min="0" placeholder="e.g., 500000">
+    </div>
+
+    <div class="field">
+      <label>Unique Reach</label>
+      <input type="number" id="reach" min="0" placeholder="e.g., 120000">
+      <div class="hint">Number of unique people who saw the ad</div>
+    </div>
+
+    <div class="field">
+      <label>Campaign Duration (Days)</label>
+      <input type="number" id="duration" min="1" placeholder="e.g., 30">
+    </div>
+
+    <div class="field">
+      <label>Platform</label>
+      <select id="platform">
+        <option value="meta">Meta (Facebook/Instagram)</option>
+        <option value="google-display">Google Display</option>
+        <option value="google-search">Google Search</option>
+        <option value="linkedin">LinkedIn</option>
+        <option value="tiktok">TikTok</option>
+        <option value="youtube">YouTube</option>
+        <option value="x">X (Twitter)</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Campaign Objective</label>
+      <select id="objective">
+        <option value="awareness">Awareness / Brand</option>
+        <option value="consideration">Consideration / Traffic</option>
+        <option value="conversion">Conversion / Sales</option>
+      </select>
+    </div>
+
+    <button class="btn-calc" onclick="calculate()">Calculate Frequency</button>
+  </aside>
+
+  <!-- Main -->
+  <main class="main" id="mainArea">
+    <div class="empty-state" id="emptyState">
+      <div class="icon">&#128246;</div>
+      <p>Enter your campaign impressions, reach, and objective, then click <strong>Calculate</strong> to see frequency analysis and optimization recommendations.</p>
+    </div>
+
+    <div id="results" style="display:none">
+      <h2>Frequency Analysis</h2>
+
+      <!-- Frequency hero -->
+      <div class="freq-hero" id="freqHero">
+        <div class="freq-label">Current Frequency</div>
+        <div class="freq-value" id="freqValue">--</div>
+        <div id="freqBadge"></div>
+        <div class="freq-explanation" id="freqExplanation"></div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat">
+          <div class="number" id="statImpr">--</div>
+          <div class="label">Total Impressions</div>
+        </div>
+        <div class="stat">
+          <div class="number" id="statReach">--</div>
+          <div class="label">Unique Reach</div>
+        </div>
+        <div class="stat">
+          <div class="number" id="statDaily">--</div>
+          <div class="label">Daily Frequency</div>
+        </div>
+      </div>
+
+      <!-- Optimal by objective -->
+      <div class="card">
+        <h3><span class="card-icon">&#9632;</span> Frequency by Objective</h3>
+        <table class="obj-table" id="objTable">
+          <thead><tr><th>Objective</th><th>Optimal Range</th><th>Your Status</th></tr></thead>
+          <tbody id="objBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Projection -->
+      <div class="card">
+        <h3><span class="card-icon">&#9670;</span> End-of-Campaign Projection</h3>
+        <div class="projection-text" id="projText"></div>
+      </div>
+
+      <!-- Diminishing returns chart -->
+      <div class="card">
+        <h3><span class="card-icon">&#9881;</span> Frequency vs. Diminishing Returns</h3>
+        <div class="chart-container" id="chartContainer"></div>
+        <div class="chart-legend">
+          <span><span class="dot" style="background:var(--green)"></span> Optimal zone</span>
+          <span><span class="dot" style="background:var(--yellow)"></span> Diminishing returns</span>
+          <span><span class="dot" style="background:var(--red)"></span> Over-exposure</span>
+          <span><span class="dot" style="background:var(--accent)"></span> You</span>
+        </div>
+      </div>
+
+      <!-- Platform recommendations -->
+      <div class="card">
+        <h3><span class="card-icon">&#9745;</span> Platform Frequency Cap Recommendations</h3>
+        <div class="cap-grid" id="capGrid"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var objectives = {
+    awareness:     { label: 'Awareness / Brand',        min: 2, max: 3 },
+    consideration: { label: 'Consideration / Traffic',   min: 3, max: 5 },
+    conversion:    { label: 'Conversion / Sales',        min: 5, max: 8 }
+  };
+
+  var platformCaps = {
+    meta:           { name: 'Meta', color: '#1877f2', cap: '2-3x/week for awareness, 1x/day for conversion. Use Reach & Frequency buying for precise control.' },
+    'google-display': { name: 'Google Display', color: '#4285f4', cap: '3-5 impressions/user/day. Set frequency caps in campaign settings under "Additional settings."' },
+    'google-search': { name: 'Google Search', color: '#34a853', cap: 'Not typically capped (intent-based). Consider dayparting if impressions per user are high.' },
+    linkedin:       { name: 'LinkedIn', color: '#0a66c2', cap: '4-8x over 30 days. LinkedIn limits organic frequency naturally due to smaller audience pools.' },
+    tiktok:         { name: 'TikTok', color: '#010101', cap: '3-4x/week. Set frequency caps in Ad Group settings. Creative fatigue hits faster on TikTok.' },
+    youtube:        { name: 'YouTube', color: '#ff0000', cap: '3-5x/week for awareness. Use frequency management in Display & Video 360 for advanced control.' },
+    x:              { name: 'X (Twitter)', color: '#1da1f2', cap: '3-5x/week. Timeline-based serving naturally limits frequency. Use Tweet engager audiences to retarget.' },
+    other:          { name: 'Other', color: '#6b7280', cap: 'General best practice: 3-5x/week for awareness, up to 1x/day for conversion campaigns.' }
+  };
+
+  function formatNum(n){
+    if(n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+    if(n >= 1000) return (n/1000).toFixed(1) + 'K';
+    return n.toLocaleString();
+  }
+
+  window.calculate = function(){
+    var impressions = parseFloat(document.getElementById('impressions').value);
+    var reach = parseFloat(document.getElementById('reach').value);
+    var duration = parseInt(document.getElementById('duration').value);
+    var platform = document.getElementById('platform').value;
+    var objective = document.getElementById('objective').value;
+
+    if(isNaN(impressions) || isNaN(reach) || isNaN(duration) || impressions <= 0 || reach <= 0 || duration <= 0){
+      toast('Please fill in all fields with valid numbers');
+      return;
+    }
+
+    var freq = impressions / reach;
+    var dailyImpr = impressions / duration;
+    var dailyFreq = freq / duration;
+    var obj = objectives[objective];
+
+    var status, statusClass;
+    if(freq < obj.min){
+      status = 'Under-frequency'; statusClass = 'under';
+    } else if(freq <= obj.max){
+      status = 'Optimal'; statusClass = 'optimal';
+    } else {
+      status = 'Over-frequency'; statusClass = 'over';
+    }
+
+    // Show results
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('results').style.display = '';
+
+    // Hero
+    document.getElementById('freqValue').textContent = freq.toFixed(1) + 'x';
+    document.getElementById('freqValue').className = 'freq-value ' + statusClass;
+    document.getElementById('freqBadge').innerHTML = '<span class="freq-badge ' + statusClass + '">' + status + '</span>';
+
+    var explain = 'Each person in your audience has seen your ad an average of <strong>' + freq.toFixed(1) + ' times</strong> over <strong>' + duration + ' days</strong>.';
+    if(statusClass === 'under'){
+      explain += ' For <strong>' + obj.label.toLowerCase() + '</strong> campaigns, aim for ' + obj.min + '-' + obj.max + 'x to maximize impact.';
+    } else if(statusClass === 'optimal'){
+      explain += ' This is within the optimal range for <strong>' + obj.label.toLowerCase() + '</strong> campaigns.';
+    } else {
+      explain += ' This exceeds the recommended ' + obj.min + '-' + obj.max + 'x range for <strong>' + obj.label.toLowerCase() + '</strong>. Consider expanding reach or lowering impression volume.';
+    }
+    document.getElementById('freqExplanation').innerHTML = explain;
+
+    // Stats
+    document.getElementById('statImpr').textContent = formatNum(impressions);
+    document.getElementById('statReach').textContent = formatNum(reach);
+    document.getElementById('statDaily').textContent = dailyFreq.toFixed(2) + 'x';
+
+    // Objective table
+    renderObjTable(freq, objective);
+
+    // Projection
+    renderProjection(freq, duration, dailyImpr, reach, objective);
+
+    // Chart
+    renderChart(freq, objective);
+
+    // Platform caps
+    renderPlatformCaps(platform);
+
+    document.getElementById('mainArea').scrollTop = 0;
+  };
+
+  function renderObjTable(freq, activeObj){
+    var tbody = document.getElementById('objBody');
+    tbody.innerHTML = '';
+    var keys = ['awareness', 'consideration', 'conversion'];
+    keys.forEach(function(key){
+      var o = objectives[key];
+      var isActive = key === activeObj;
+      var st, stClass;
+      if(freq < o.min){ st = 'Under'; stClass = 'under'; }
+      else if(freq <= o.max){ st = 'Optimal'; stClass = 'optimal'; }
+      else { st = 'Over'; stClass = 'over'; }
+
+      var tr = document.createElement('tr');
+      if(isActive) tr.className = 'active-row';
+      tr.innerHTML =
+        '<td>' + o.label + (isActive ? ' <strong>(selected)</strong>' : '') + '</td>' +
+        '<td><span class="obj-range">' + o.min + '-' + o.max + 'x</span></td>' +
+        '<td><span class="obj-status ' + stClass + '">' + st + '</span></td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderProjection(freq, duration, dailyImpr, reach, objective){
+    var obj = objectives[objective];
+    // Project end-of-campaign frequency assuming constant daily rate
+    var remainingDays = duration; // already the full duration
+    var projectedFreq = freq; // current is already end-of-campaign if data is complete
+    // But let's assume user is mid-campaign — project forward
+    var daysElapsed = duration;
+    var dailyFreqRate = freq / duration;
+    // If they had X more days at same rate...
+    var daysLeft = Math.max(0, 30 - duration); // assume 30-day campaign
+    var projFreq30 = freq + dailyFreqRate * daysLeft;
+
+    var el = document.getElementById('projText');
+    var html = 'At the current pace of <strong>' + dailyFreqRate.toFixed(2) + 'x per day</strong>, ';
+
+    if(daysLeft > 0){
+      html += 'frequency will reach <strong>' + projFreq30.toFixed(1) + 'x</strong> by day 30 of the campaign.';
+      if(projFreq30 > obj.max){
+        html += ' <span style="color:var(--red);font-weight:700">This would exceed the recommended ' + obj.max + 'x cap for ' + obj.label.toLowerCase() + '.</span>';
+        html += ' Consider reducing daily impressions to <strong>' + Math.round(reach * obj.max / 30).toLocaleString() + '</strong> or expanding reach.';
+      } else if(projFreq30 >= obj.min){
+        html += ' <span style="color:var(--green);font-weight:700">This stays within the optimal range.</span>';
+      } else {
+        html += ' <span style="color:var(--yellow);font-weight:700">This would still be below the minimum ' + obj.min + 'x for ' + obj.label.toLowerCase() + '.</span>';
+        html += ' Consider increasing daily budget or narrowing your audience.';
+      }
+    } else {
+      html += 'over <strong>' + duration + ' days</strong>, your campaign has accumulated <strong>' + freq.toFixed(1) + 'x frequency</strong>.';
+      if(freq > obj.max){
+        html += ' <span style="color:var(--red);font-weight:700">Frequency is above optimal. Future campaigns should cap at ' + obj.max + 'x.</span>';
+      }
+    }
+    el.innerHTML = html;
+  }
+
+  function renderChart(freq, objective){
+    var container = document.getElementById('chartContainer');
+    var W = 580, H = 200, padL = 44, padR = 16, padT = 20, padB = 32;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+
+    // Diminishing returns curve: effectiveness = 1 - e^(-0.4 * f) for increasing, then drop
+    var maxFreq = 12;
+    var obj = objectives[objective];
+
+    function effectiveness(f){
+      // Modeled: rises quickly, plateaus, then drops
+      if(f <= 0) return 0;
+      var rise = 1 - Math.exp(-0.6 * f);
+      var fatigue = f > 4 ? Math.max(0, 1 - (f - 4) * 0.06) : 1;
+      return rise * fatigue;
+    }
+    var maxEff = 1;
+
+    function x(f){ return padL + (f / maxFreq) * plotW; }
+    function y(e){ return padT + plotH - (e / maxEff * plotH); }
+
+    // Zones
+    var zones = '';
+    // Green zone
+    zones += '<rect x="' + x(obj.min) + '" y="' + padT + '" width="' + (x(obj.max) - x(obj.min)) + '" height="' + plotH + '" fill="var(--green)" class="chart-zone"/>';
+    // Yellow zone before
+    if(obj.min > 0) zones += '<rect x="' + x(0) + '" y="' + padT + '" width="' + (x(obj.min) - x(0)) + '" height="' + plotH + '" fill="var(--yellow)" class="chart-zone"/>';
+    // Red zone after
+    zones += '<rect x="' + x(obj.max) + '" y="' + padT + '" width="' + (x(maxFreq) - x(obj.max)) + '" height="' + plotH + '" fill="var(--red)" class="chart-zone"/>';
+
+    // Curve
+    var pathD = '';
+    var areaD = '';
+    var steps = 50;
+    for(var i = 0; i <= steps; i++){
+      var f = (i / steps) * maxFreq;
+      var e = effectiveness(f);
+      var px = x(f), py = y(e);
+      pathD += (i === 0 ? 'M' : 'L') + px.toFixed(1) + ',' + py.toFixed(1);
+      areaD += (i === 0 ? 'M' : 'L') + px.toFixed(1) + ',' + py.toFixed(1);
+    }
+    areaD += 'L' + x(maxFreq).toFixed(1) + ',' + (padT + plotH) + 'L' + x(0).toFixed(1) + ',' + (padT + plotH) + 'Z';
+
+    // Grid
+    var grid = '';
+    for(var i = 0; i <= 4; i++){
+      var val = maxEff * i / 4;
+      var yy = y(val);
+      grid += '<text x="' + (padL - 6) + '" y="' + (yy + 3) + '" text-anchor="end" class="chart-axis-label">' + (val * 100).toFixed(0) + '%</text>';
+      grid += '<line x1="' + padL + '" y1="' + yy + '" x2="' + (W - padR) + '" y2="' + yy + '" class="chart-grid-line"/>';
+    }
+    // X labels
+    for(var f = 0; f <= maxFreq; f += 2){
+      grid += '<text x="' + x(f).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle" class="chart-axis-label">' + f + 'x</text>';
+    }
+
+    // Your marker
+    var yourF = Math.min(freq, maxFreq);
+    var yourE = effectiveness(yourF);
+    var marker = '<line x1="' + x(yourF).toFixed(1) + '" y1="' + padT + '" x2="' + x(yourF).toFixed(1) + '" y2="' + (padT + plotH) + '" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6,3"/>';
+    marker += '<circle cx="' + x(yourF).toFixed(1) + '" cy="' + y(yourE).toFixed(1) + '" r="6" fill="var(--accent)" class="chart-dot"/>';
+    marker += '<text x="' + (x(yourF) + 8).toFixed(1) + '" y="' + (y(yourE) - 8).toFixed(1) + '" class="chart-axis-label" fill="var(--accent)" font-weight="700">You: ' + freq.toFixed(1) + 'x</text>';
+
+    container.innerHTML =
+      '<svg class="chart-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet">' +
+      zones + grid +
+      '<path d="' + areaD + '" fill="var(--accent)" class="chart-area"/>' +
+      '<path d="' + pathD + '" stroke="var(--accent)" class="chart-line"/>' +
+      marker +
+      '</svg>';
+  }
+
+  function renderPlatformCaps(selectedPlatform){
+    var grid = document.getElementById('capGrid');
+    var platforms = ['meta', 'google-display', 'google-search', 'linkedin', 'tiktok', 'youtube', 'x'];
+    // Put selected first
+    var sorted = [selectedPlatform].concat(platforms.filter(function(p){ return p !== selectedPlatform; }));
+    // Show 4 most relevant
+    sorted = sorted.slice(0, 4);
+
+    grid.innerHTML = '';
+    sorted.forEach(function(key){
+      var p = platformCaps[key];
+      if(!p) return;
+      var card = document.createElement('div');
+      card.className = 'cap-card';
+      if(key === selectedPlatform) card.style.borderColor = 'var(--accent)';
+      card.innerHTML =
+        '<div class="cap-platform"><span class="cap-dot" style="background:' + p.color + '"></span>' + p.name + (key === selectedPlatform ? ' (selected)' : '') + '</div>' +
+        '<div class="cap-rec">' + p.cap + '</div>';
+      grid.appendChild(card);
+    });
+  }
+
+  /* ── Toast ── */
+  function toast(msg){
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(function(){ el.classList.remove('show'); }, 2200);
+  }
+  window.toast = toast;
+})();
+</script>
+</body>
+</html>

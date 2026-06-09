@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Ad Preview - FreeAdStore</title>
+<meta name="description" content="Preview how your promotional email appears in Gmail, Outlook, and mobile inbox. See inbox line items and opened email views. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--panel:#ffffff;--line:#e5e7eb;--radius:10px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 24px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px;font-family:'Fraunces',serif}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:#f1f3f4}
+
+/* TABS */
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--line);background:var(--panel);flex-shrink:0;padding:0 20px}
+.tab{padding:12px 18px;font-size:.78rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);font-family:inherit;background:none;border-top:none;border-left:none;border-right:none;transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* PREVIEW AREA */
+.preview-area{flex:1;overflow-y:auto;display:flex;align-items:flex-start;justify-content:center;padding:24px}
+
+/* PANELS */
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.03em}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 3px;font-weight:500}
+input[type=text],input[type=color],textarea,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;resize:none}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+input[type=color]{height:36px;padding:2px;cursor:pointer}
+textarea{min-height:50px;line-height:1.4}
+.char-count{font-size:.65rem;color:var(--muted);text-align:right;margin-top:2px;font-variant-numeric:tabular-nums}
+.char-count.over{color:var(--accent)}
+
+/* Color input row */
+.color-row{display:flex;gap:8px;align-items:center}
+.color-row input[type=color]{width:44px;flex-shrink:0;border-radius:8px}
+.color-row input[type=text]{flex:1}
+
+/* IMAGE UPLOAD */
+.drop-zone{border:2px dashed var(--line);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg);position:relative}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:#fef2f2}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop-zone-text{font-size:.75rem;color:var(--muted)}
+.drop-zone-text strong{color:var(--text)}
+.image-preview-wrap{position:relative;border-radius:var(--radius);overflow:hidden;margin-top:6px}
+.image-preview-wrap img{width:100%;display:block;border-radius:var(--radius)}
+.image-preview-wrap .remove-img{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+
+/* ============================================================
+   EMAIL CLIENT FRAMES
+   ============================================================ */
+
+/* GMAIL */
+.gmail-frame{width:700px;background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.1);overflow:hidden;font-family:'Google Sans',Roboto,-apple-system,sans-serif}
+.gmail-header{background:#fff;padding:8px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #e8eaed}
+.gmail-header .gmail-logo{display:flex;align-items:center;gap:8px}
+.gmail-header .gmail-logo-icon{width:32px;height:32px}
+.gmail-header .gmail-logo-text{font-size:20px;color:#5f6368;font-weight:400}
+.gmail-header .gmail-search{flex:1;background:#eaf1fb;border-radius:8px;padding:8px 16px;display:flex;align-items:center;gap:8px}
+.gmail-header .gmail-search svg{width:18px;height:18px;color:#5f6368}
+.gmail-header .gmail-search span{font-size:14px;color:#5f6368}
+.gmail-header .gmail-avatar{width:32px;height:32px;border-radius:50%;background:#1a73e8;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:500}
+
+/* Gmail tabs */
+.gmail-tabs{display:flex;border-bottom:1px solid #e8eaed}
+.gmail-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;font-size:13px;color:#5f6368;cursor:default;border-bottom:2px solid transparent;font-weight:500}
+.gmail-tab.active{color:#1a73e8;border-bottom-color:#1a73e8}
+.gmail-tab svg{width:18px;height:18px}
+
+/* Gmail inbox rows */
+.gmail-row{display:flex;align-items:center;padding:0 16px;height:40px;cursor:pointer;border-bottom:1px solid #f2f2f2;font-size:13px}
+.gmail-row:hover{box-shadow:inset 0 0 0 1000px rgba(0,0,0,.04)}
+.gmail-row.unread{font-weight:700;background:#f2f6fc}
+.gmail-row .g-check{width:20px;height:20px;border:2px solid #d1d1d1;border-radius:2px;margin-right:8px;flex-shrink:0}
+.gmail-row .g-star{width:18px;height:18px;color:#d1d1d1;margin-right:8px;flex-shrink:0}
+.gmail-row .g-sender{width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#202124;flex-shrink:0}
+.gmail-row .g-content{flex:1;display:flex;align-items:center;min-width:0;gap:4px}
+.gmail-row .g-subject{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#202124}
+.gmail-row .g-preview{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#5f6368;font-weight:400}
+.gmail-row .g-date{width:60px;text-align:right;color:#5f6368;flex-shrink:0;font-size:12px}
+.gmail-row .g-ad-badge{display:inline-block;font-size:10px;font-weight:700;color:#188038;background:#e6f4ea;border-radius:3px;padding:1px 4px;margin-right:6px;flex-shrink:0}
+.gmail-row .g-sender-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;margin-right:10px;flex-shrink:0}
+
+/* Gmail faded rows */
+.gmail-row.faded{opacity:.45;filter:blur(.3px)}
+
+/* Gmail opened email */
+.gmail-email{padding:20px 24px;font-family:'Google Sans',Roboto,sans-serif}
+.gmail-email-subject{font-size:22px;color:#202124;font-weight:400;margin-bottom:16px}
+.gmail-email-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:20px}
+.gmail-email-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0}
+.gmail-email-meta{flex:1;min-width:0}
+.gmail-email-sender{font-size:14px;font-weight:500;color:#202124;display:flex;align-items:center;gap:8px}
+.gmail-email-sender .ad-tag{font-size:10px;font-weight:700;color:#188038;background:#e6f4ea;border-radius:3px;padding:1px 4px}
+.gmail-email-to{font-size:12px;color:#5f6368}
+.gmail-email-date{font-size:12px;color:#5f6368;flex-shrink:0;text-align:right}
+.gmail-email-body{font-size:14px;color:#202124;line-height:1.6}
+.gmail-email-image{width:100%;max-width:560px;border-radius:8px;margin:16px 0;overflow:hidden;background:#f7f7f7}
+.gmail-email-image img{width:100%;display:block}
+.gmail-email-image .placeholder{height:200px;display:flex;align-items:center;justify-content:center;color:#bbb}
+.gmail-email-headline{font-size:24px;font-weight:700;color:#202124;margin:12px 0 8px;line-height:1.3}
+.gmail-email-text{font-size:14px;color:#3c4043;line-height:1.7;margin-bottom:16px}
+.gmail-email-cta{display:inline-block;padding:12px 28px;border-radius:8px;font-size:15px;font-weight:600;color:#fff;text-decoration:none;cursor:default}
+.gmail-email-unsub{margin-top:20px;font-size:11px;color:#5f6368}
+
+/* Divider */
+.gmail-divider{border-top:2px solid #e8eaed;margin:16px 0}
+
+/* ============================================================
+   OUTLOOK
+   ============================================================ */
+.outlook-frame{width:700px;background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,.1);overflow:hidden;font-family:'Segoe UI',-apple-system,sans-serif}
+.outlook-header{background:#0078d4;padding:8px 16px;display:flex;align-items:center;gap:12px}
+.outlook-header .outlook-logo{font-size:16px;color:#fff;font-weight:600;display:flex;align-items:center;gap:6px}
+.outlook-header .outlook-logo svg{width:20px;height:20px;color:#fff}
+.outlook-header .outlook-search{flex:1;background:rgba(255,255,255,.2);border-radius:4px;padding:6px 12px;display:flex;align-items:center;gap:6px}
+.outlook-header .outlook-search svg{width:16px;height:16px;color:rgba(255,255,255,.7)}
+.outlook-header .outlook-search span{font-size:13px;color:rgba(255,255,255,.7)}
+
+/* Outlook tabs */
+.outlook-tabs{display:flex;gap:0;border-bottom:1px solid #edebe9;background:#faf9f8}
+.outlook-tab{padding:10px 20px;font-size:13px;color:#605e5c;cursor:default;border-bottom:2px solid transparent;font-weight:600}
+.outlook-tab.active{color:#0078d4;border-bottom-color:#0078d4}
+
+/* Outlook inbox rows */
+.outlook-row{display:flex;align-items:center;padding:10px 16px;cursor:pointer;border-bottom:1px solid #edebe9;border-left:3px solid transparent}
+.outlook-row:hover{background:#f3f2f1}
+.outlook-row.unread{background:#e8f4fd;border-left-color:#0078d4;font-weight:600}
+.outlook-row .o-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;margin-right:12px;flex-shrink:0}
+.outlook-row .o-content{flex:1;min-width:0}
+.outlook-row .o-sender{font-size:13px;color:#323130;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.outlook-row .o-subject{font-size:13px;color:#323130;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.outlook-row .o-preview{font-size:12px;color:#605e5c;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.outlook-row .o-date{font-size:12px;color:#605e5c;flex-shrink:0;margin-left:12px}
+.outlook-row .o-ad-badge{display:inline-block;font-size:9px;font-weight:700;color:#0078d4;background:#deecf9;border-radius:2px;padding:1px 4px;margin-left:6px}
+.outlook-row.faded{opacity:.45;filter:blur(.3px)}
+
+/* Outlook opened email */
+.outlook-email{padding:20px 24px;font-family:'Segoe UI',sans-serif}
+.outlook-email-subject{font-size:20px;color:#323130;font-weight:600;margin-bottom:16px}
+.outlook-email-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #edebe9}
+.outlook-email-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0}
+.outlook-email-meta{flex:1;min-width:0}
+.outlook-email-sender{font-size:14px;font-weight:600;color:#323130}
+.outlook-email-to{font-size:12px;color:#605e5c}
+.outlook-email-date{font-size:12px;color:#605e5c;flex-shrink:0}
+.outlook-email-body{font-size:14px;color:#323130;line-height:1.6}
+.outlook-email-image{width:100%;max-width:560px;border-radius:4px;margin:16px 0;overflow:hidden;background:#f3f2f1}
+.outlook-email-image img{width:100%;display:block}
+.outlook-email-image .placeholder{height:200px;display:flex;align-items:center;justify-content:center;color:#bbb}
+.outlook-email-headline{font-size:22px;font-weight:700;color:#323130;margin:12px 0 8px;line-height:1.3}
+.outlook-email-text{font-size:14px;color:#323130;line-height:1.7;margin-bottom:16px}
+.outlook-email-cta{display:inline-block;padding:10px 24px;border-radius:4px;font-size:14px;font-weight:600;color:#fff;text-decoration:none;cursor:default}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+.mobile-frame{width:375px;height:720px;border-radius:36px;background:#111;padding:12px;box-shadow:0 8px 40px rgba(0,0,0,.25);position:relative;overflow:hidden}
+.mobile-screen{width:100%;height:100%;border-radius:26px;overflow-y:auto;background:#fff;font-family:-apple-system,'SF Pro Display','Helvetica Neue',sans-serif}
+.mobile-notch{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:120px;height:28px;background:#111;border-radius:0 0 14px 14px;z-index:10}
+.mobile-time{position:absolute;top:16px;left:32px;font-size:14px;font-weight:600;color:#000;z-index:5;font-family:-apple-system,system-ui,sans-serif}
+.mobile-status{position:absolute;top:16px;right:32px;display:flex;gap:4px;align-items:center;z-index:5}
+.mobile-status svg{width:16px;height:16px;color:#000}
+
+.mobile-inbox-header{padding:50px 16px 8px;display:flex;align-items:center;justify-content:space-between}
+.mobile-inbox-title{font-size:32px;font-weight:700;color:#000}
+.mobile-inbox-filter{font-size:14px;color:#007aff}
+
+.mobile-row{display:flex;align-items:flex-start;padding:12px 16px;border-bottom:1px solid #e5e5ea;gap:10px}
+.mobile-row.unread .m-sender{font-weight:700}
+.mobile-row.unread .m-subject{font-weight:600}
+.mobile-row .m-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+.mobile-row .m-content{flex:1;min-width:0}
+.mobile-row .m-sender{font-size:15px;color:#000;margin-bottom:1px}
+.mobile-row .m-subject{font-size:14px;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px}
+.mobile-row .m-preview{font-size:13px;color:#8e8e93;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mobile-row .m-date{font-size:12px;color:#8e8e93;flex-shrink:0}
+.mobile-row .m-ad-badge{display:inline-block;font-size:9px;font-weight:700;color:#34c759;background:#e6f9ed;border-radius:3px;padding:1px 4px;margin-left:4px}
+.mobile-row.faded{opacity:.45;filter:blur(.3px)}
+
+/* Mobile opened email */
+.mobile-email{padding:16px}
+.mobile-email-back{font-size:14px;color:#007aff;margin-bottom:12px;display:flex;align-items:center;gap:4px}
+.mobile-email-back svg{width:16px;height:16px}
+.mobile-email-subject{font-size:20px;font-weight:700;color:#000;margin-bottom:12px}
+.mobile-email-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:16px}
+.mobile-email-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+.mobile-email-meta{flex:1;min-width:0}
+.mobile-email-sender{font-size:15px;font-weight:600;color:#000}
+.mobile-email-to{font-size:12px;color:#8e8e93}
+.mobile-email-date{font-size:12px;color:#8e8e93;flex-shrink:0}
+.mobile-email-body{font-size:15px;color:#000;line-height:1.6}
+.mobile-email-image{width:100%;border-radius:8px;margin:12px 0;overflow:hidden;background:#f2f2f7}
+.mobile-email-image img{width:100%;display:block}
+.mobile-email-image .placeholder{height:160px;display:flex;align-items:center;justify-content:center;color:#bbb}
+.mobile-email-headline{font-size:20px;font-weight:700;color:#000;margin:8px 0 6px;line-height:1.3}
+.mobile-email-text{font-size:15px;color:#3c3c43;line-height:1.6;margin-bottom:12px}
+.mobile-email-cta{display:inline-block;padding:10px 24px;border-radius:8px;font-size:15px;font-weight:600;color:#fff;text-decoration:none;cursor:default}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .preview-area{min-height:500px}
+  .gmail-frame,.outlook-frame{width:100%;max-width:700px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Controls -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&larr; FreeAdStore</a>
+      <h1>Email Ad Preview</h1>
+      <p>See how your promotional email looks in Gmail, Outlook, and mobile.</p>
+    </div>
+    <div class="sidebar-scroll" id="controls"></div>
+  </div>
+  <!-- RIGHT: Preview -->
+  <div class="main">
+    <div class="tab-bar" id="tabBar"></div>
+    <div class="preview-area" id="previewArea"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  sender: 'Brew & Bean Coffee',
+  subject: 'Your morning just got better - 40% off first order',
+  previewText: 'Hand-roasted single-origin beans delivered to your door. Limited time offer.',
+  headline: 'Start Every Morning Right',
+  bodyText: 'Our award-winning single-origin beans are hand-roasted in small batches for the perfect cup, every time. For a limited time, new customers get 40% off their first order with free shipping.',
+  ctaText: 'Shop Now',
+  ctaUrl: 'https://brewandbean.com/shop',
+  imageData: null,
+  brandColor: '#8B4513',
+  activeTab: 'gmail'
+};
+
+const TABS = [
+  {id:'gmail', label:'Gmail'},
+  {id:'outlook', label:'Outlook'},
+  {id:'mobile', label:'Mobile'}
+];
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function charCountHTML(current, limit){
+  const cls = current > limit ? 'char-count over' : 'char-count';
+  return `<div class="${cls}">${current} / ${limit} recommended</div>`;
+}
+
+function getInitial(name){
+  return (name || 'B').trim().charAt(0).toUpperCase();
+}
+
+// ============================================================
+// BUILD CONTROLS
+// ============================================================
+function buildControls(){
+  const c = document.getElementById('controls');
+  c.innerHTML = `
+  <div class="panel">
+    <div class="panel-title">Sender</div>
+    <input type="text" id="inpSender" value="${esc(S.sender)}" placeholder="Company or brand name">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Subject Line</div>
+    <input type="text" id="inpSubject" value="${esc(S.subject)}" placeholder="Subject line" maxlength="120">
+    ${charCountHTML(S.subject.length, 60)}
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Preview Text</div>
+    <input type="text" id="inpPreview" value="${esc(S.previewText)}" placeholder="Text shown after subject in inbox" maxlength="180">
+    ${charCountHTML(S.previewText.length, 90)}
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Email Content</div>
+    <label>Headline</label>
+    <input type="text" id="inpHeadline" value="${esc(S.headline)}" placeholder="Main headline in email body">
+    <label>Body Text</label>
+    <textarea id="inpBody" rows="3">${esc(S.bodyText)}</textarea>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Call to Action</div>
+    <label>Button Text</label>
+    <input type="text" id="inpCta" value="${esc(S.ctaText)}" placeholder="Shop Now, Learn More, etc.">
+    <label>Button URL</label>
+    <input type="text" id="inpCtaUrl" value="${esc(S.ctaUrl)}" placeholder="https://example.com">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Image</div>
+    <div class="drop-zone" id="dropZone">
+      <input type="file" accept="image/*" id="fileInput">
+      <div class="drop-zone-text">
+        <strong>Drop image here</strong> or click to upload<br>
+        <span style="font-size:.65rem;color:var(--muted)">Recommended: 600px wide</span>
+      </div>
+    </div>
+    ${S.imageData ? `<div class="image-preview-wrap"><img src="${S.imageData}" alt="Email image"><button class="remove-img" id="removeImg">&times;</button></div>` : ''}
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Brand Color</div>
+    <div class="color-row">
+      <input type="color" id="inpColor" value="${S.brandColor}">
+      <input type="text" id="inpColorText" value="${esc(S.brandColor)}" placeholder="#8B4513">
+    </div>
+    <div style="font-size:.62rem;color:var(--muted);margin-top:3px">Used for CTA button and accents</div>
+  </div>
+  `;
+  bindControls();
+}
+
+// ============================================================
+// BIND CONTROLS
+// ============================================================
+function bindControls(){
+  const $ = id => document.getElementById(id);
+
+  $('inpSender').oninput = e => { S.sender = e.target.value; render(); };
+  $('inpSubject').oninput = e => { S.subject = e.target.value; buildControls(); render(); restoreFocus('inpSubject'); };
+  $('inpPreview').oninput = e => { S.previewText = e.target.value; buildControls(); render(); restoreFocus('inpPreview'); };
+  $('inpHeadline').oninput = e => { S.headline = e.target.value; render(); };
+  $('inpBody').oninput = e => { S.bodyText = e.target.value; render(); };
+  $('inpCta').oninput = e => { S.ctaText = e.target.value; render(); };
+  $('inpCtaUrl').oninput = e => { S.ctaUrl = e.target.value; render(); };
+
+  $('inpColor').oninput = e => { S.brandColor = e.target.value; $('inpColorText').value = e.target.value; render(); };
+  $('inpColorText').oninput = e => {
+    const v = e.target.value;
+    if(/^#[0-9a-fA-F]{6}$/.test(v)){ S.brandColor = v; $('inpColor').value = v; render(); }
+  };
+
+  // Image upload
+  const dropZone = $('dropZone');
+  const fileInput = $('fileInput');
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); const f = e.dataTransfer.files[0]; if(f && f.type.startsWith('image/')) loadImage(f); });
+  fileInput.addEventListener('change', e => { const f = e.target.files[0]; if(f) loadImage(f); });
+  const removeBtn = $('removeImg');
+  if(removeBtn) removeBtn.onclick = () => { S.imageData = null; buildControls(); render(); };
+}
+
+let _activeId = null, _cursorPos = null;
+document.addEventListener('focusin', e => { if(e.target.matches('input[type=text],textarea')) _activeId = e.target.id; });
+document.addEventListener('selectionchange', () => { const el = document.activeElement; if(el && el.matches && el.matches('input[type=text],textarea')) _cursorPos = el.selectionStart; });
+
+function restoreFocus(id){
+  const targetId = id || _activeId;
+  if(targetId){
+    const el = document.getElementById(targetId);
+    if(el){ el.focus(); try{ if(_cursorPos!=null) el.setSelectionRange(_cursorPos,_cursorPos); }catch(e){} }
+  }
+}
+
+function loadImage(file){
+  const r = new FileReader();
+  r.onload = e => { S.imageData = e.target.result; buildControls(); render(); };
+  r.readAsDataURL(file);
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function buildTabs(){
+  document.getElementById('tabBar').innerHTML = TABS.map(t =>
+    `<button class="tab${t.id===S.activeTab?' active':''}" data-tab="${t.id}">${t.label}</button>`
+  ).join('');
+  document.getElementById('tabBar').onclick = e => {
+    const tab = e.target.closest('[data-tab]');
+    if(!tab) return;
+    S.activeTab = tab.dataset.tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === S.activeTab));
+    render();
+  };
+}
+
+// ============================================================
+// SHARED
+// ============================================================
+function emailImageHTML(cls){
+  if(S.imageData) return `<img src="${S.imageData}" alt="Email image">`;
+  return `<div class="placeholder"><svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render(){
+  const area = document.getElementById('previewArea');
+  switch(S.activeTab){
+    case 'gmail': area.innerHTML = renderGmail(); break;
+    case 'outlook': area.innerHTML = renderOutlook(); break;
+    case 'mobile': area.innerHTML = renderMobile(); break;
+  }
+}
+
+function renderGmail(){
+  const initial = getInitial(S.sender);
+  const fakeRows = [
+    {sender:'GitHub', subject:'[repo] New pull request #42', preview:' - Review requested by teammate', color:'#333', unread:false},
+    {sender:'Slack', subject:'5 new messages in #general', preview:' - Team updates from today', color:'#4A154B', unread:true},
+  ];
+  const fakeRowsAfter = [
+    {sender:'LinkedIn', subject:'New connection request', preview:' - John D. wants to connect', color:'#0A66C2', unread:false},
+    {sender:'Notion', subject:'Weekly digest: 3 pages updated', preview:' - Changes in your workspace', color:'#000', unread:false},
+  ];
+
+  let html = `<div class="gmail-frame">`;
+
+  // Header
+  html += `
+  <div class="gmail-header">
+    <div class="gmail-logo">
+      <svg class="gmail-logo-icon" viewBox="0 0 24 24"><path d="M2 6l10 7 10-7v12H2V6z" fill="#EA4335" opacity=".8"/><path d="M22 6l-10 7L2 6" fill="none" stroke="#C5221F" stroke-width="1.5"/></svg>
+      <span class="gmail-logo-text">Gmail</span>
+    </div>
+    <div class="gmail-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>Search mail</span>
+    </div>
+    <div class="gmail-avatar">S</div>
+  </div>`;
+
+  // Tabs
+  html += `
+  <div class="gmail-tabs">
+    <div class="gmail-tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Primary
+    </div>
+    <div class="gmail-tab active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#1a73e8" stroke-width="2"><path d="M20 7h-9m9 5h-5m5 5h-8"/><path d="M4 7h.01M4 12h.01M4 17h.01"/></svg>
+      Promotions
+    </div>
+    <div class="gmail-tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Social
+    </div>
+  </div>`;
+
+  // Inbox rows (before)
+  fakeRows.forEach(r => {
+    html += `
+    <div class="gmail-row faded${r.unread ? ' unread' : ''}">
+      <div class="g-check"></div>
+      <svg class="g-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <div class="g-sender-icon" style="background:${r.color}">${r.sender.charAt(0)}</div>
+      <div class="g-sender">${esc(r.sender)}</div>
+      <div class="g-content">
+        <span class="g-subject">${esc(r.subject)}</span>
+        <span class="g-preview">${esc(r.preview)}</span>
+      </div>
+      <div class="g-date">10:30 AM</div>
+    </div>`;
+  });
+
+  // Ad row (our email)
+  html += `
+  <div class="gmail-row unread">
+    <div class="g-check"></div>
+    <svg class="g-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    <div class="g-sender-icon" style="background:${S.brandColor}">${initial}</div>
+    <div class="g-sender">${esc(S.sender || 'Sender')}</div>
+    <div class="g-content">
+      <span class="g-ad-badge">Ad</span>
+      <span class="g-subject">${esc(S.subject)}</span>
+      <span class="g-preview"> - ${esc(S.previewText)}</span>
+    </div>
+    <div class="g-date">Now</div>
+  </div>`;
+
+  // Rows after
+  fakeRowsAfter.forEach(r => {
+    html += `
+    <div class="gmail-row faded">
+      <div class="g-check"></div>
+      <svg class="g-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <div class="g-sender-icon" style="background:${r.color}">${r.sender.charAt(0)}</div>
+      <div class="g-sender">${esc(r.sender)}</div>
+      <div class="g-content">
+        <span class="g-subject">${esc(r.subject)}</span>
+        <span class="g-preview">${esc(r.preview)}</span>
+      </div>
+      <div class="g-date">Yesterday</div>
+    </div>`;
+  });
+
+  // Divider + opened email
+  html += `<div class="gmail-divider"></div>`;
+  html += `
+  <div class="gmail-email">
+    <div class="gmail-email-subject">${esc(S.subject)}</div>
+    <div class="gmail-email-header">
+      <div class="gmail-email-avatar" style="background:${S.brandColor}">${initial}</div>
+      <div class="gmail-email-meta">
+        <div class="gmail-email-sender">${esc(S.sender)} <span class="ad-tag">Ad</span></div>
+        <div class="gmail-email-to">to me</div>
+      </div>
+      <div class="gmail-email-date">Just now</div>
+    </div>
+    <div class="gmail-email-body">
+      <div class="gmail-email-image">${emailImageHTML()}</div>
+      <div class="gmail-email-headline" style="color:${S.brandColor}">${esc(S.headline)}</div>
+      <div class="gmail-email-text">${esc(S.bodyText)}</div>
+      <a class="gmail-email-cta" style="background:${S.brandColor}">${esc(S.ctaText)}</a>
+      <div class="gmail-email-unsub">Unsubscribe | Privacy Policy | ${esc(S.sender)}</div>
+    </div>
+  </div>`;
+
+  html += `</div>`;
+  return html;
+}
+
+function renderOutlook(){
+  const initial = getInitial(S.sender);
+  const fakeRows = [
+    {sender:'Microsoft 365', subject:'Your monthly usage report', preview:'See how your team used Microsoft 365 this month', color:'#0078d4', unread:false},
+    {sender:'Teams', subject:'Meeting reminder: Weekly sync', preview:'Starting in 15 minutes', color:'#6264a7', unread:true},
+  ];
+  const fakeRowsAfter = [
+    {sender:'OneDrive', subject:'File shared with you', preview:'Sarah shared "Q2 Report.xlsx"', color:'#0078d4', unread:false},
+    {sender:'Azure', subject:'Your deployment is ready', preview:'Resource group updated successfully', color:'#0089d6', unread:false},
+  ];
+
+  let html = `<div class="outlook-frame">`;
+
+  // Header
+  html += `
+  <div class="outlook-header">
+    <div class="outlook-logo">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 6v12l8 2V4L2 6zm10-2v16l10 2V2L12 4z" opacity=".9"/></svg>
+      Outlook
+    </div>
+    <div class="outlook-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>Search</span>
+    </div>
+  </div>`;
+
+  // Tabs
+  html += `
+  <div class="outlook-tabs">
+    <div class="outlook-tab active">Focused</div>
+    <div class="outlook-tab">Other</div>
+  </div>`;
+
+  // Inbox rows before
+  fakeRows.forEach(r => {
+    html += `
+    <div class="outlook-row faded${r.unread ? ' unread' : ''}">
+      <div class="o-avatar" style="background:${r.color}">${r.sender.charAt(0)}</div>
+      <div class="o-content">
+        <div class="o-sender">${esc(r.sender)}</div>
+        <div class="o-subject">${esc(r.subject)}</div>
+        <div class="o-preview">${esc(r.preview)}</div>
+      </div>
+      <div class="o-date">10:15 AM</div>
+    </div>`;
+  });
+
+  // Ad row
+  html += `
+  <div class="outlook-row unread">
+    <div class="o-avatar" style="background:${S.brandColor}">${initial}</div>
+    <div class="o-content">
+      <div class="o-sender">${esc(S.sender)} <span class="o-ad-badge">Ad</span></div>
+      <div class="o-subject">${esc(S.subject)}</div>
+      <div class="o-preview">${esc(S.previewText)}</div>
+    </div>
+    <div class="o-date">Now</div>
+  </div>`;
+
+  // Rows after
+  fakeRowsAfter.forEach(r => {
+    html += `
+    <div class="outlook-row faded">
+      <div class="o-avatar" style="background:${r.color}">${r.sender.charAt(0)}</div>
+      <div class="o-content">
+        <div class="o-sender">${esc(r.sender)}</div>
+        <div class="o-subject">${esc(r.subject)}</div>
+        <div class="o-preview">${esc(r.preview)}</div>
+      </div>
+      <div class="o-date">Yesterday</div>
+    </div>`;
+  });
+
+  // Divider + opened email
+  html += `<div style="border-top:3px solid #e8eaed;margin:12px 0"></div>`;
+  html += `
+  <div class="outlook-email">
+    <div class="outlook-email-subject">${esc(S.subject)}</div>
+    <div class="outlook-email-header">
+      <div class="outlook-email-avatar" style="background:${S.brandColor}">${initial}</div>
+      <div class="outlook-email-meta">
+        <div class="outlook-email-sender">${esc(S.sender)}</div>
+        <div class="outlook-email-to">To: you</div>
+      </div>
+      <div class="outlook-email-date">Just now</div>
+    </div>
+    <div class="outlook-email-body">
+      <div class="outlook-email-image">${emailImageHTML()}</div>
+      <div class="outlook-email-headline" style="color:${S.brandColor}">${esc(S.headline)}</div>
+      <div class="outlook-email-text">${esc(S.bodyText)}</div>
+      <a class="outlook-email-cta" style="background:${S.brandColor}">${esc(S.ctaText)}</a>
+    </div>
+  </div>`;
+
+  html += `</div>`;
+  return html;
+}
+
+function renderMobile(){
+  const initial = getInitial(S.sender);
+
+  const fakeRows = [
+    {sender:'App Store', subject:'Weekly recommendations', preview:'New apps you might like', color:'#0D84FF', unread:false},
+    {sender:'Apple', subject:'Your iCloud storage is almost full', preview:'Upgrade your plan to keep using iCloud', color:'#333', unread:true},
+  ];
+  const fakeRowsAfter = [
+    {sender:'Instagram', subject:'You have new followers', preview:'3 people started following you', color:'#E1306C', unread:false},
+  ];
+
+  let html = `<div class="mobile-frame">
+    <div class="mobile-notch"></div>
+    <div class="mobile-time">9:41</div>
+    <div class="mobile-status">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 0 0-6 0zm-4-4l2 2a7.074 7.074 0 0 1 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="6" width="18" height="12" rx="2"/><rect x="20" y="9" width="2" height="6" rx="1"/><rect x="4" y="8" width="10" height="8" rx="1" fill="#34c759"/></svg>
+    </div>
+    <div class="mobile-screen">`;
+
+  // Inbox header
+  html += `
+  <div class="mobile-inbox-header">
+    <div class="mobile-inbox-title">Inbox</div>
+    <div class="mobile-inbox-filter">Filter</div>
+  </div>`;
+
+  // Rows before
+  fakeRows.forEach(r => {
+    html += `
+    <div class="mobile-row faded${r.unread ? ' unread' : ''}">
+      <div class="m-avatar" style="background:${r.color}">${r.sender.charAt(0)}</div>
+      <div class="m-content">
+        <div class="m-sender">${esc(r.sender)}</div>
+        <div class="m-subject">${esc(r.subject)}</div>
+        <div class="m-preview">${esc(r.preview)}</div>
+      </div>
+      <div class="m-date">10:30</div>
+    </div>`;
+  });
+
+  // Ad row
+  html += `
+  <div class="mobile-row unread">
+    <div class="m-avatar" style="background:${S.brandColor}">${initial}</div>
+    <div class="m-content">
+      <div class="m-sender">${esc(S.sender)} <span class="m-ad-badge">Ad</span></div>
+      <div class="m-subject">${esc(S.subject)}</div>
+      <div class="m-preview">${esc(S.previewText)}</div>
+    </div>
+    <div class="m-date">Now</div>
+  </div>`;
+
+  // Rows after
+  fakeRowsAfter.forEach(r => {
+    html += `
+    <div class="mobile-row faded">
+      <div class="m-avatar" style="background:${r.color}">${r.sender.charAt(0)}</div>
+      <div class="m-content">
+        <div class="m-sender">${esc(r.sender)}</div>
+        <div class="m-subject">${esc(r.subject)}</div>
+        <div class="m-preview">${esc(r.preview)}</div>
+      </div>
+      <div class="m-date">Yesterday</div>
+    </div>`;
+  });
+
+  // Separator
+  html += `<div style="border-top:4px solid #e5e5ea;margin:8px 0"></div>`;
+
+  // Opened email
+  html += `
+  <div class="mobile-email">
+    <div class="mobile-email-back"><svg viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg> Inbox</div>
+    <div class="mobile-email-subject">${esc(S.subject)}</div>
+    <div class="mobile-email-header">
+      <div class="mobile-email-avatar" style="background:${S.brandColor}">${initial}</div>
+      <div class="mobile-email-meta">
+        <div class="mobile-email-sender">${esc(S.sender)}</div>
+        <div class="mobile-email-to">To: me</div>
+      </div>
+      <div class="mobile-email-date">Just now</div>
+    </div>
+    <div class="mobile-email-body">
+      <div class="mobile-email-image">${emailImageHTML()}</div>
+      <div class="mobile-email-headline" style="color:${S.brandColor}">${esc(S.headline)}</div>
+      <div class="mobile-email-text">${esc(S.bodyText)}</div>
+      <a class="mobile-email-cta" style="background:${S.brandColor}">${esc(S.ctaText)}</a>
+    </div>
+  </div>`;
+
+  html += `</div></div>`;
+  return html;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildControls();
+buildTabs();
+render();
+</script>
+</body>
+</html>

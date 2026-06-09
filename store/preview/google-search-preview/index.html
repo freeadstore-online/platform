@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Search Ad Preview - FreeAdStore</title>
+<meta name="description" content="Preview how your Google Search Ad appears on the SERP. Real-time ad builder with sitelinks, callouts, snippets. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--panel:#ffffff;--line:#e5e7eb;--radius:10px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 24px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:#f1f3f4}
+
+/* PANELS */
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+.panel-title svg{width:14px;height:14px;color:var(--muted)}
+label{font-size:.7rem;color:var(--muted);display:block;margin:6px 0 3px;font-weight:500}
+input[type=text],select,textarea{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;resize:none}
+input[type=text]:focus,select:focus,textarea:focus{border-color:var(--accent)}
+.input-row{position:relative}
+.char-count{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:.65rem;font-weight:600;font-variant-numeric:tabular-nums;pointer-events:none;padding:1px 5px;border-radius:4px}
+.char-count.green{color:#16a34a;background:#f0fdf4}
+.char-count.yellow{color:#ca8a04;background:#fefce8}
+.char-count.red{color:#dc2626;background:#fef2f2}
+.textarea-row{position:relative}
+.textarea-row .char-count{top:10px;transform:none}
+
+/* SITELINKS */
+.sitelink-pair{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px}
+.sitelink-pair input{font-size:.8rem;padding:6px 8px}
+
+/* DEVICE TOGGLE */
+.device-toggle{display:flex;gap:4px;margin-bottom:12px}
+.device-btn{flex:1;padding:8px;border:1px solid var(--line);border-radius:var(--radius);font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;background:var(--bg);text-align:center;transition:all .12s}
+.device-btn:hover{border-color:var(--accent)}
+.device-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* PREVIEW AREA */
+.preview-wrap{flex:1;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:32px 24px}
+
+/* GOOGLE SERP SIMULATION */
+.serp{width:100%;max-width:652px;margin:0 auto}
+.serp.mobile{max-width:400px}
+
+/* Search bar */
+.serp-search{background:#fff;border-radius:24px;border:1px solid #dfe1e5;padding:10px 20px;display:flex;align-items:center;gap:12px;margin-bottom:20px;box-shadow:0 1px 6px rgba(32,33,36,.12)}
+.serp-search input{border:none;outline:none;font-size:16px;font-family:Arial,sans-serif;flex:1;background:transparent;color:#202124}
+.serp-search .search-icon{color:#9aa0a6;flex-shrink:0}
+.serp-search .search-icon svg{width:20px;height:20px}
+.serp-search .mic-icon{color:#4285f4;flex-shrink:0;cursor:pointer}
+.serp-search .mic-icon svg{width:20px;height:20px}
+
+/* Nav tabs */
+.serp-nav{display:flex;gap:4px;border-bottom:1px solid #ebebeb;margin-bottom:16px;padding:0 4px}
+.serp-nav span{padding:8px 12px;font-size:13px;font-family:Arial,sans-serif;color:#70757a;cursor:pointer;position:relative}
+.serp-nav span:first-child{color:#1a73e8;font-weight:500}
+.serp-nav span:first-child::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:3px;background:#1a73e8;border-radius:3px 3px 0 0}
+
+/* Ad container */
+.ad-card{background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid #dadce0}
+.serp.mobile .ad-card{border-radius:0;border-left:none;border-right:none;margin:0 -24px 16px;padding:16px 24px}
+
+/* Sponsored label */
+.sponsored-label{font-size:12px;font-family:Arial,sans-serif;color:#70757a;margin-bottom:6px;font-weight:400}
+
+/* Ad identity row */
+.ad-identity{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.ad-favicon{width:26px;height:26px;border-radius:50%;background:#f1f3f4;display:flex;align-items:center;justify-content:center;font-size:12px;font-family:Arial,sans-serif;font-weight:700;color:#202124;text-transform:uppercase;overflow:hidden;border:1px solid #dadce0;flex-shrink:0}
+.ad-url-col{display:flex;flex-direction:column;min-width:0}
+.ad-site-name{font-size:14px;font-family:Arial,sans-serif;color:#202124;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ad-display-url{font-size:12px;font-family:Arial,sans-serif;color:#4d5156;line-height:1.3;display:flex;align-items:center;gap:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ad-display-url .ad-badge{display:inline-block;font-size:10px;font-weight:700;color:#70757a;border:1px solid #dadce0;border-radius:3px;padding:0 4px;line-height:16px;margin-right:4px;flex-shrink:0}
+.ad-dots{margin-left:auto;cursor:pointer;color:#70757a;font-size:18px;flex-shrink:0;line-height:1}
+
+/* Headlines */
+.ad-headlines{font-size:20px;font-family:Arial,sans-serif;color:#1a0dab;line-height:1.3;margin-bottom:4px;cursor:pointer;text-decoration:none;display:block;word-wrap:break-word}
+.ad-headlines:hover{text-decoration:underline}
+.serp.mobile .ad-headlines{font-size:18px}
+
+/* Descriptions */
+.ad-descriptions{font-size:14px;font-family:Arial,sans-serif;color:#4d5156;line-height:1.58;word-wrap:break-word}
+.serp.mobile .ad-descriptions{font-size:13px}
+
+/* Sitelinks */
+.ad-sitelinks{margin-top:10px}
+.ad-sitelinks-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.ad-sitelinks-stacked{display:flex;flex-direction:column;gap:0}
+.ad-sitelink-item{padding:8px 0;border-top:1px solid #ebebeb}
+.ad-sitelinks-grid .ad-sitelink-item:nth-child(-n+2){border-top:1px solid #ebebeb}
+.ad-sitelink-item a{font-size:14px;font-family:Arial,sans-serif;color:#1a0dab;text-decoration:none;display:block;line-height:1.3}
+.ad-sitelink-item a:hover{text-decoration:underline}
+.ad-sitelink-item .sl-url{font-size:12px;color:#4d5156;font-family:Arial,sans-serif;margin-top:1px}
+
+/* Callouts */
+.ad-callouts{margin-top:8px;font-size:13px;font-family:Arial,sans-serif;color:#4d5156;line-height:1.5}
+.ad-callouts span{display:inline}
+.ad-callout-sep{color:#dadce0;margin:0 6px}
+
+/* Structured snippets */
+.ad-snippets{margin-top:4px;font-size:13px;font-family:Arial,sans-serif;color:#4d5156;line-height:1.5}
+.ad-snippets strong{color:#202124;font-weight:700}
+
+/* Organic results (fake) */
+.organic-result{margin-bottom:20px;opacity:.55;filter:blur(0.3px)}
+.organic-result .org-identity{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.organic-result .org-favicon{width:26px;height:26px;border-radius:50%;background:#e8eaed;display:flex;align-items:center;justify-content:center;font-size:11px;font-family:Arial,sans-serif;font-weight:700;color:#5f6368}
+.organic-result .org-url{font-size:12px;font-family:Arial,sans-serif;color:#4d5156}
+.organic-result .org-title{font-size:20px;font-family:Arial,sans-serif;color:#1a0dab;margin-bottom:4px;cursor:pointer}
+.organic-result .org-title:hover{text-decoration:underline}
+.organic-result .org-desc{font-size:14px;font-family:Arial,sans-serif;color:#4d5156;line-height:1.58}
+.serp.mobile .organic-result .org-title{font-size:18px}
+.serp.mobile .organic-result .org-desc{font-size:13px}
+
+/* Collapsible sections */
+.section-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:4px 0;user-select:none}
+.section-toggle:hover .panel-title{color:var(--accent)}
+.section-toggle .chevron{width:16px;height:16px;color:var(--muted);transition:transform .2s;flex-shrink:0}
+.section-toggle .chevron.open{transform:rotate(180deg)}
+.section-body{overflow:hidden;transition:max-height .2s ease}
+.section-body.collapsed{max-height:0!important}
+
+/* Export bar */
+.export-bar{border-top:1px solid var(--line);padding:12px 16px;background:var(--panel);flex-shrink:0;display:flex;gap:6px;flex-wrap:wrap}
+.btn{padding:7px 14px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;border:none;transition:all .12s}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{filter:brightness(1.1)}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:5px 10px;font-size:.72rem}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .preview-wrap{min-height:60vh}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Controls -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">Back to Store</a>
+      <h1>Google Search Ad Preview</h1>
+      <p>See exactly how your ad appears on Google. Free, no signup.</p>
+    </div>
+    <div class="sidebar-scroll" id="controls"></div>
+    <div class="export-bar">
+      <button class="btn btn-primary btn-sm" id="btnCopyText">Copy Ad Text</button>
+      <button class="btn btn-outline btn-sm" id="btnScreenshot">Screenshot</button>
+      <button class="btn btn-outline btn-sm" id="btnReset">Reset</button>
+    </div>
+  </div>
+  <!-- RIGHT: Preview -->
+  <div class="main">
+    <div class="preview-wrap">
+      <div class="serp" id="serpPreview"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const DEFAULTS = {
+  displayUrl: 'acmesaas.com/platform',
+  headline1: 'Acme SaaS Platform',
+  headline2: 'Start Free, Scale Fast',
+  headline3: 'Trusted by 10,000+ Teams',
+  desc1: 'All-in-one platform to build, deploy, and scale your applications. No credit card required. Get started in under 2 minutes with our guided setup.',
+  desc2: 'Enterprise-grade security, 99.99% uptime SLA, and 24/7 support included on every plan. Migrate from legacy tools in one click.',
+  sl1Title: 'Pricing Plans', sl1Url: 'acmesaas.com/pricing',
+  sl2Title: 'Customer Stories', sl2Url: 'acmesaas.com/customers',
+  sl3Title: 'Free Developer Tools', sl3Url: 'acmesaas.com/tools',
+  sl4Title: 'Book a Demo', sl4Url: 'acmesaas.com/demo',
+  callouts: 'Free Trial, No Credit Card, 24/7 Support, SOC 2 Certified',
+  snippetType: 'Brands',
+  snippetValues: 'Startup Plan, Growth Plan, Enterprise Plan',
+  device: 'desktop',
+  searchQuery: 'best saas platform for startups'
+};
+
+let S = {...DEFAULTS};
+
+const LIMITS = {
+  headline1: 30, headline2: 30, headline3: 30,
+  desc1: 90, desc2: 90,
+  slTitle: 25
+};
+
+const SNIPPET_TYPES = [
+  'Amenities','Brands','Courses','Degree programs','Destinations',
+  'Featured hotels','Insurance coverage','Models','Neighborhoods',
+  'Service catalog','Shows','Styles','Types'
+];
+
+// ============================================================
+// CHAR COUNT HELPERS
+// ============================================================
+function charClass(len, max) {
+  if (len > max) return 'red';
+  if (len >= max * 0.8) return 'yellow';
+  return 'green';
+}
+
+function charLabel(len, max) {
+  return `${len}/${max}`;
+}
+
+// ============================================================
+// BUILD CONTROLS
+// ============================================================
+function buildControls() {
+  const c = document.getElementById('controls');
+  c.innerHTML = `
+  <div class="panel">
+    <div class="panel-title">Display URL</div>
+    <input type="text" id="inpUrl" value="${esc(S.displayUrl)}" placeholder="example.com/path">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Headlines</div>
+    <label>Headline 1 <span style="color:var(--accent)">*</span></label>
+    <div class="input-row">
+      <input type="text" id="inpH1" value="${esc(S.headline1)}" placeholder="30 characters max" maxlength="60">
+      <span class="char-count ${charClass(S.headline1.length, LIMITS.headline1)}" id="cntH1">${charLabel(S.headline1.length, LIMITS.headline1)}</span>
+    </div>
+    <label>Headline 2 <span style="color:var(--accent)">*</span></label>
+    <div class="input-row">
+      <input type="text" id="inpH2" value="${esc(S.headline2)}" placeholder="30 characters max" maxlength="60">
+      <span class="char-count ${charClass(S.headline2.length, LIMITS.headline2)}" id="cntH2">${charLabel(S.headline2.length, LIMITS.headline2)}</span>
+    </div>
+    <label>Headline 3 <span style="font-size:.6rem;color:var(--muted)">(optional)</span></label>
+    <div class="input-row">
+      <input type="text" id="inpH3" value="${esc(S.headline3)}" placeholder="30 characters max" maxlength="60">
+      <span class="char-count ${charClass(S.headline3.length, LIMITS.headline3)}" id="cntH3">${charLabel(S.headline3.length, LIMITS.headline3)}</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Descriptions</div>
+    <label>Description 1 <span style="color:var(--accent)">*</span></label>
+    <div class="textarea-row">
+      <textarea id="inpD1" rows="3" placeholder="90 characters max" maxlength="180">${esc(S.desc1)}</textarea>
+      <span class="char-count ${charClass(S.desc1.length, LIMITS.desc1)}" id="cntD1">${charLabel(S.desc1.length, LIMITS.desc1)}</span>
+    </div>
+    <label>Description 2 <span style="font-size:.6rem;color:var(--muted)">(optional)</span></label>
+    <div class="textarea-row">
+      <textarea id="inpD2" rows="3" placeholder="90 characters max" maxlength="180">${esc(S.desc2)}</textarea>
+      <span class="char-count ${charClass(S.desc2.length, LIMITS.desc2)}" id="cntD2">${charLabel(S.desc2.length, LIMITS.desc2)}</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-toggle" data-section="sitelinks">
+      <div class="panel-title" style="margin:0">Sitelinks <span style="font-size:.6rem;color:var(--muted);font-weight:400;text-transform:none">(optional)</span></div>
+      <svg class="chevron open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="section-body" id="secSitelinks">
+      <div style="margin-top:6px">
+        <label>Sitelink 1</label>
+        <div class="sitelink-pair">
+          <input type="text" id="inpSL1T" value="${esc(S.sl1Title)}" placeholder="Title (25 chars)">
+          <input type="text" id="inpSL1U" value="${esc(S.sl1Url)}" placeholder="URL path">
+        </div>
+        <label>Sitelink 2</label>
+        <div class="sitelink-pair">
+          <input type="text" id="inpSL2T" value="${esc(S.sl2Title)}" placeholder="Title (25 chars)">
+          <input type="text" id="inpSL2U" value="${esc(S.sl2Url)}" placeholder="URL path">
+        </div>
+        <label>Sitelink 3</label>
+        <div class="sitelink-pair">
+          <input type="text" id="inpSL3T" value="${esc(S.sl3Title)}" placeholder="Title (25 chars)">
+          <input type="text" id="inpSL3U" value="${esc(S.sl3Url)}" placeholder="URL path">
+        </div>
+        <label>Sitelink 4</label>
+        <div class="sitelink-pair">
+          <input type="text" id="inpSL4T" value="${esc(S.sl4Title)}" placeholder="Title (25 chars)">
+          <input type="text" id="inpSL4U" value="${esc(S.sl4Url)}" placeholder="URL path">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-toggle" data-section="callouts">
+      <div class="panel-title" style="margin:0">Callout Extensions <span style="font-size:.6rem;color:var(--muted);font-weight:400;text-transform:none">(optional)</span></div>
+      <svg class="chevron open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="section-body" id="secCallouts">
+      <div style="margin-top:6px">
+        <input type="text" id="inpCallouts" value="${esc(S.callouts)}" placeholder="Free Shipping, 24/7 Support, No Contract">
+        <div style="font-size:.62rem;color:var(--muted);margin-top:3px">Comma-separated, 25 chars each max</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-toggle" data-section="snippets">
+      <div class="panel-title" style="margin:0">Structured Snippets <span style="font-size:.6rem;color:var(--muted);font-weight:400;text-transform:none">(optional)</span></div>
+      <svg class="chevron open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="section-body" id="secSnippets">
+      <div style="margin-top:6px">
+        <label>Header type</label>
+        <select id="inpSnipType">
+          ${SNIPPET_TYPES.map(t => `<option value="${t}"${S.snippetType === t ? ' selected' : ''}>${t}</option>`).join('')}
+        </select>
+        <label>Values</label>
+        <input type="text" id="inpSnipVals" value="${esc(S.snippetValues)}" placeholder="Value 1, Value 2, Value 3">
+        <div style="font-size:.62rem;color:var(--muted);margin-top:3px">Comma-separated snippet values</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Device Preview</div>
+    <div class="device-toggle">
+      <button class="device-btn${S.device === 'desktop' ? ' active' : ''}" data-device="desktop">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:4px"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Desktop
+      </button>
+      <button class="device-btn${S.device === 'mobile' ? ' active' : ''}" data-device="mobile">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:4px"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>Mobile
+      </button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Search Query</div>
+    <input type="text" id="inpQuery" value="${esc(S.searchQuery)}" placeholder="What the user searched for">
+    <div style="font-size:.62rem;color:var(--muted);margin-top:3px">Shown in the Google search bar above your ad</div>
+  </div>
+  `;
+  bindControls();
+}
+
+function esc(s) { return s.replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+function escHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+// ============================================================
+// BIND EVENTS
+// ============================================================
+function bindControls() {
+  const $ = id => document.getElementById(id);
+
+  // Text inputs with char counters
+  function bindInput(id, key, countId, limit) {
+    const el = $(id);
+    if (!el) return;
+    el.oninput = e => {
+      S[key] = e.target.value;
+      if (countId && limit) {
+        const cnt = $(countId);
+        cnt.textContent = charLabel(S[key].length, limit);
+        cnt.className = 'char-count ' + charClass(S[key].length, limit);
+      }
+      render();
+    };
+  }
+
+  bindInput('inpUrl', 'displayUrl');
+  bindInput('inpH1', 'headline1', 'cntH1', LIMITS.headline1);
+  bindInput('inpH2', 'headline2', 'cntH2', LIMITS.headline2);
+  bindInput('inpH3', 'headline3', 'cntH3', LIMITS.headline3);
+  bindInput('inpD1', 'desc1', 'cntD1', LIMITS.desc1);
+  bindInput('inpD2', 'desc2', 'cntD2', LIMITS.desc2);
+
+  // Sitelinks
+  bindInput('inpSL1T', 'sl1Title'); bindInput('inpSL1U', 'sl1Url');
+  bindInput('inpSL2T', 'sl2Title'); bindInput('inpSL2U', 'sl2Url');
+  bindInput('inpSL3T', 'sl3Title'); bindInput('inpSL3U', 'sl3Url');
+  bindInput('inpSL4T', 'sl4Title'); bindInput('inpSL4U', 'sl4Url');
+
+  // Extensions
+  bindInput('inpCallouts', 'callouts');
+  bindInput('inpSnipVals', 'snippetValues');
+  bindInput('inpQuery', 'searchQuery');
+
+  // Snippet type
+  $('inpSnipType').onchange = e => { S.snippetType = e.target.value; render(); };
+
+  // Device toggle
+  document.querySelectorAll('.device-btn').forEach(btn => {
+    btn.onclick = () => {
+      S.device = btn.dataset.device;
+      document.querySelectorAll('.device-btn').forEach(b => b.classList.toggle('active', b.dataset.device === S.device));
+      render();
+    };
+  });
+
+  // Section toggles
+  document.querySelectorAll('.section-toggle').forEach(toggle => {
+    toggle.onclick = () => {
+      const chevron = toggle.querySelector('.chevron');
+      const section = toggle.dataset.section;
+      const body = document.getElementById('sec' + section.charAt(0).toUpperCase() + section.slice(1));
+      chevron.classList.toggle('open');
+      body.classList.toggle('collapsed');
+    };
+  });
+
+  // Export buttons
+  $('btnCopyText').onclick = copyAdText;
+  $('btnScreenshot').onclick = takeScreenshot;
+  $('btnReset').onclick = () => { S = {...DEFAULTS}; buildControls(); render(); };
+}
+
+// ============================================================
+// RENDER SERP PREVIEW
+// ============================================================
+function render() {
+  const serp = document.getElementById('serpPreview');
+  const isMobile = S.device === 'mobile';
+  serp.className = 'serp' + (isMobile ? ' mobile' : '');
+
+  // Extract domain from display URL
+  const domain = (S.displayUrl || 'example.com').replace(/^https?:\/\//, '').split('/')[0];
+  const urlPath = (S.displayUrl || '').replace(/^https?:\/\//, '');
+  const favicon = domain.charAt(0).toUpperCase();
+
+  // Build breadcrumb URL display
+  const urlParts = urlPath.split('/').filter(Boolean);
+  let breadcrumb = 'https://' + urlParts[0];
+  if (urlParts.length > 1) {
+    breadcrumb += ' > ' + urlParts.slice(1).join(' > ');
+  }
+
+  // Build headlines
+  const headlines = [S.headline1, S.headline2, S.headline3].filter(h => h.trim());
+  const headlineText = headlines.join(' | ');
+
+  // Build descriptions
+  const descs = [S.desc1, S.desc2].filter(d => d.trim()).join(' ');
+
+  // Build sitelinks
+  const sitelinks = [
+    {title: S.sl1Title, url: S.sl1Url},
+    {title: S.sl2Title, url: S.sl2Url},
+    {title: S.sl3Title, url: S.sl3Url},
+    {title: S.sl4Title, url: S.sl4Url},
+  ].filter(sl => sl.title.trim());
+
+  // Build callouts
+  const calloutList = S.callouts.split(',').map(c => c.trim()).filter(Boolean);
+
+  // Build snippets
+  const snippetList = S.snippetValues.split(',').map(v => v.trim()).filter(Boolean);
+
+  let html = '';
+
+  // Search bar
+  html += `
+  <div class="serp-search">
+    <div class="search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+    <input type="text" value="${esc(S.searchQuery)}" readonly tabindex="-1">
+    <div class="mic-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg></div>
+  </div>`;
+
+  // Nav tabs
+  html += `
+  <div class="serp-nav">
+    <span>All</span>
+    <span>Images</span>
+    <span>Videos</span>
+    <span>News</span>
+    <span>Shopping</span>
+  </div>`;
+
+  // Ad card
+  html += `<div class="ad-card">`;
+
+  // Sponsored label
+  html += `<div class="sponsored-label">Sponsored</div>`;
+
+  // Identity row: favicon + URL
+  html += `
+  <div class="ad-identity">
+    <div class="ad-favicon">${favicon}</div>
+    <div class="ad-url-col">
+      <div class="ad-site-name">${escHtml(domain)}</div>
+      <div class="ad-display-url"><span class="ad-badge">Ad</span>${escHtml(breadcrumb)}</div>
+    </div>
+    <div class="ad-dots">&#8942;</div>
+  </div>`;
+
+  // Headlines
+  if (headlineText) {
+    html += `<a class="ad-headlines" href="javascript:void(0)">${escHtml(headlineText)}</a>`;
+  }
+
+  // Descriptions
+  if (descs) {
+    html += `<div class="ad-descriptions">${escHtml(descs)}</div>`;
+  }
+
+  // Sitelinks
+  if (sitelinks.length > 0) {
+    html += `<div class="ad-sitelinks">`;
+    if (isMobile) {
+      html += `<div class="ad-sitelinks-stacked">`;
+      sitelinks.forEach(sl => {
+        html += `<div class="ad-sitelink-item"><a href="javascript:void(0)">${escHtml(sl.title)}</a></div>`;
+      });
+      html += `</div>`;
+    } else {
+      html += `<div class="ad-sitelinks-grid">`;
+      sitelinks.forEach(sl => {
+        html += `<div class="ad-sitelink-item"><a href="javascript:void(0)">${escHtml(sl.title)}</a>${sl.url ? `<div class="sl-url">${escHtml(sl.url)}</div>` : ''}</div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+
+  // Callouts
+  if (calloutList.length > 0) {
+    html += `<div class="ad-callouts">`;
+    html += calloutList.map(c => `<span>${escHtml(c)}</span>`).join('<span class="ad-callout-sep">&#183;</span>');
+    html += `</div>`;
+  }
+
+  // Structured snippets
+  if (snippetList.length > 0 && S.snippetType) {
+    html += `<div class="ad-snippets"><strong>${escHtml(S.snippetType)}:</strong> ${snippetList.map(v => escHtml(v)).join(', ')}</div>`;
+  }
+
+  html += `</div>`; // end ad-card
+
+  // Organic results (fake, blurred)
+  html += renderOrganicResults(isMobile);
+
+  serp.innerHTML = html;
+}
+
+function renderOrganicResults(isMobile) {
+  const results = [
+    {
+      favicon: 'W',
+      site: 'en.wikipedia.org',
+      url: 'https://en.wikipedia.org > wiki > SaaS',
+      title: 'Software as a service - Wikipedia',
+      desc: 'Software as a service is a software licensing and delivery model in which software is licensed on a subscription basis and is centrally hosted...'
+    },
+    {
+      favicon: 'G',
+      site: 'gartner.com',
+      url: 'https://www.gartner.com > reviews > saas-platforms',
+      title: 'Best SaaS Platforms 2026 - Gartner Peer Insights',
+      desc: 'Compare and evaluate the top SaaS platforms based on verified user reviews. See ratings, pricing, and feature comparisons from real enterprise users...'
+    },
+    {
+      favicon: 'F',
+      site: 'forbes.com',
+      url: 'https://www.forbes.com > advisor > saas-tools',
+      title: 'Top 10 SaaS Tools For Small Businesses (2026) - Forbes',
+      desc: 'Our experts reviewed the best SaaS platforms for small businesses based on pricing, features, scalability, and customer support quality...'
+    }
+  ];
+
+  return results.map(r => `
+    <div class="organic-result">
+      <div class="org-identity">
+        <div class="org-favicon">${r.favicon}</div>
+        <div>
+          <div style="font-size:14px;font-family:Arial,sans-serif;color:#202124">${escHtml(r.site)}</div>
+          <div class="org-url">${escHtml(r.url)}</div>
+        </div>
+      </div>
+      <div class="org-title">${escHtml(r.title)}</div>
+      <div class="org-desc">${escHtml(r.desc)}</div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// EXPORT FUNCTIONS
+// ============================================================
+function copyAdText() {
+  const headlines = [S.headline1, S.headline2, S.headline3].filter(h => h.trim());
+  const descs = [S.desc1, S.desc2].filter(d => d.trim());
+  const sitelinks = [
+    {title: S.sl1Title, url: S.sl1Url},
+    {title: S.sl2Title, url: S.sl2Url},
+    {title: S.sl3Title, url: S.sl3Url},
+    {title: S.sl4Title, url: S.sl4Url},
+  ].filter(sl => sl.title.trim());
+
+  let text = `Google Search Ad\n${'='.repeat(40)}\n\n`;
+  text += `Display URL: ${S.displayUrl}\n\n`;
+  text += `Headlines:\n`;
+  headlines.forEach((h, i) => text += `  H${i+1}: ${h} (${h.length}/${LIMITS['headline' + (i+1)]})\n`);
+  text += `\nDescriptions:\n`;
+  descs.forEach((d, i) => text += `  D${i+1}: ${d} (${d.length}/${LIMITS['desc' + (i+1)]})\n`);
+  if (sitelinks.length) {
+    text += `\nSitelinks:\n`;
+    sitelinks.forEach(sl => text += `  ${sl.title} -> ${sl.url}\n`);
+  }
+  if (S.callouts.trim()) text += `\nCallouts: ${S.callouts}\n`;
+  if (S.snippetValues.trim()) text += `\nStructured Snippets (${S.snippetType}): ${S.snippetValues}\n`;
+
+  // Character limit warnings
+  const warnings = [];
+  if (S.headline1.length > LIMITS.headline1) warnings.push(`H1 over limit (${S.headline1.length}/${LIMITS.headline1})`);
+  if (S.headline2.length > LIMITS.headline2) warnings.push(`H2 over limit (${S.headline2.length}/${LIMITS.headline2})`);
+  if (S.headline3.length > LIMITS.headline3) warnings.push(`H3 over limit (${S.headline3.length}/${LIMITS.headline3})`);
+  if (S.desc1.length > LIMITS.desc1) warnings.push(`D1 over limit (${S.desc1.length}/${LIMITS.desc1})`);
+  if (S.desc2.length > LIMITS.desc2) warnings.push(`D2 over limit (${S.desc2.length}/${LIMITS.desc2})`);
+  if (warnings.length) {
+    text += `\nWARNINGS:\n`;
+    warnings.forEach(w => text += `  - ${w}\n`);
+  }
+
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('btnCopyText');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy Ad Text', 1500);
+  });
+}
+
+async function takeScreenshot() {
+  const btn = document.getElementById('btnScreenshot');
+  btn.textContent = 'Capturing...';
+  btn.disabled = true;
+
+  try {
+    const serpEl = document.getElementById('serpPreview');
+    // Use html2canvas-style approach with canvas
+    const canvas = document.createElement('canvas');
+    const rect = serpEl.getBoundingClientRect();
+    const scale = 2;
+    canvas.width = rect.width * scale;
+    canvas.height = rect.height * scale;
+
+    // Serialize the SERP to SVG foreignObject for canvas rendering
+    const data = new XMLSerializer().serializeToString(serpEl);
+    const styles = `
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        ${document.querySelector('style').textContent}
+      </style>
+    `;
+    const svgStr = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${rect.width * scale}" height="${rect.height * scale}">
+        <foreignObject width="${rect.width}" height="${rect.height}" transform="scale(${scale})">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="background:#f1f3f4;padding:0">
+            ${styles}
+            ${data}
+          </div>
+        </foreignObject>
+      </svg>
+    `;
+
+    const img = new Image();
+    const blob = new Blob([svgStr], {type: 'image/svg+xml;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+
+    img.onload = () => {
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#f1f3f4';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+
+      canvas.toBlob(pngBlob => {
+        if (pngBlob) {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(pngBlob);
+          a.download = 'google-ad-preview.png';
+          a.click();
+          URL.revokeObjectURL(a.href);
+        }
+        btn.textContent = 'Screenshot';
+        btn.disabled = false;
+      }, 'image/png');
+    };
+
+    img.onerror = () => {
+      // Fallback: just copy the HTML
+      navigator.clipboard.writeText(serpEl.outerHTML).then(() => {
+        btn.textContent = 'HTML Copied';
+        setTimeout(() => { btn.textContent = 'Screenshot'; btn.disabled = false; }, 1500);
+      });
+    };
+
+    img.src = url;
+  } catch (e) {
+    btn.textContent = 'Screenshot';
+    btn.disabled = false;
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildControls();
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Ad Report Generator - FreeAdStore</title>
+<meta name="description" content="Generate professional ad campaign reports with executive summary, metrics tables, and recommendations. Export as PDF or Markdown. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:#fef2f2;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#22c55e;--blue:#3b82f6;--purple:#8b5cf6;--orange:#f97316}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 16px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px;font-family:'Fraunces',serif}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-width:0;padding:24px 32px 40px}
+
+.panel{margin-bottom:12px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+label{font-size:.7rem;color:var(--muted);display:block;margin:6px 0 3px;font-weight:500}
+input[type=text],input[type=date],input[type=number]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.82rem;font-family:inherit;background:var(--bg);outline:none;transition:border-color .15s;font-weight:500}
+input:focus{border-color:var(--accent)}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.82rem;font-family:inherit;background:var(--bg);outline:none;cursor:pointer;font-weight:500}
+
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* Checkboxes */
+.check-grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.check-item{display:flex;align-items:center;gap:4px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;font-size:.7rem;font-weight:500;cursor:pointer;transition:all .12s;user-select:none}
+.check-item:hover{border-color:var(--accent)}
+.check-item.active{background:var(--accent-light);border-color:var(--accent);color:var(--accent);font-weight:600}
+.check-item input{display:none}
+
+/* Channel section */
+.ch-section{border:1px solid var(--line);border-radius:var(--radius);padding:10px;margin-bottom:8px;background:var(--bg)}
+.ch-header{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.ch-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ch-name{font-size:.76rem;font-weight:700}
+.ch-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.ch-fields label{margin:0;font-size:.62rem}
+.ch-fields input{padding:5px 6px;font-size:.76rem}
+
+.btn{padding:8px 16px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;border:none;transition:all .12s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{filter:brightness(1.1)}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.sep{border:none;border-top:1px solid var(--line);margin:12px 0}
+
+/* Report preview */
+.report{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:32px;max-width:800px}
+.report-header{border-bottom:2px solid var(--accent);padding-bottom:16px;margin-bottom:20px}
+.report-header h1{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;color:var(--text);margin-bottom:4px}
+.report-header .report-meta{font-size:.76rem;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap}
+.report-header .report-meta span{display:flex;align-items:center;gap:4px}
+
+.report h2{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.report h3{font-size:.85rem;font-weight:700;margin:14px 0 6px}
+
+.exec-summary{background:var(--bg);border-radius:var(--radius);padding:14px;margin-bottom:16px;font-size:.8rem;line-height:1.7;color:var(--text)}
+.exec-summary strong{color:var(--accent)}
+
+/* Report table */
+.report-table{width:100%;border-collapse:collapse;font-size:.76rem;margin-bottom:16px}
+.report-table th{text-align:left;padding:8px 10px;border-bottom:2px solid var(--line);font-size:.66rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600;background:var(--bg)}
+.report-table td{padding:7px 10px;border-bottom:1px solid var(--line)}
+.report-table tr:last-child td{border-bottom:none}
+.report-table .num{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.report-table .ch-cell{font-weight:600;display:flex;align-items:center;gap:5px}
+.report-table .total-row{font-weight:700;background:var(--bg)}
+.report-table .good{color:var(--green)}.report-table .bad{color:var(--accent)}
+
+/* Performer cards */
+.perf-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.perf-card{border:1px solid var(--line);border-radius:var(--radius);padding:12px}
+.perf-card.top{border-color:rgba(34,197,94,.3);background:#f0fdf4}
+.perf-card.bottom{border-color:rgba(239,68,68,.3);background:#fef2f2}
+.perf-card h4{font-size:.74rem;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+.perf-card.top h4{color:#065f46}.perf-card.bottom h4{color:#991b1b}
+.perf-item{font-size:.74rem;color:var(--text);margin-bottom:4px;padding-left:12px;position:relative;line-height:1.5}
+.perf-item::before{content:'';position:absolute;left:0;top:7px;width:5px;height:5px;border-radius:50%}
+.perf-card.top .perf-item::before{background:var(--green)}
+.perf-card.bottom .perf-item::before{background:var(--accent)}
+
+/* Recommendations list */
+.reco-list{list-style:none;padding:0;margin-bottom:16px}
+.reco-list li{font-size:.78rem;color:var(--text);line-height:1.6;margin-bottom:8px;padding:8px 12px;background:var(--accent-light);border-radius:var(--radius);border-left:3px solid var(--accent)}
+
+/* Export bar */
+.export-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.empty-state h3{font-size:.9rem;font-weight:700;margin-bottom:4px;color:var(--text)}
+.empty-state p{font-size:.78rem}
+
+.toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;padding:10px 20px;border-radius:8px;font-size:.78rem;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100}
+.toast.show{opacity:1}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .main{padding:16px}
+  .perf-grid{grid-template-columns:1fr}
+  .ch-fields{grid-template-columns:1fr 1fr}
+}
+@media print{
+  .sidebar,.back,.export-bar{display:none!important}
+  .app{display:block}.main{padding:0;overflow:visible}
+  body{background:#fff}
+  .report{border:none;padding:0;box-shadow:none}
+  @page{margin:1.5cm}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&#8592; FreeAdStore</a>
+      <h1>Ad Report Generator</h1>
+      <p>Create professional campaign reports with auto-generated insights.</p>
+    </div>
+    <div class="sidebar-scroll">
+      <div class="panel">
+        <div class="panel-title">Report Settings</div>
+        <label>Report Type</label>
+        <select id="reportType">
+          <option value="Weekly">Weekly Report</option>
+          <option value="Monthly">Monthly Report</option>
+        </select>
+        <div class="row-2" style="margin-top:6px">
+          <div><label>Start Date</label><input type="date" id="dateStart"></div>
+          <div><label>End Date</label><input type="date" id="dateEnd"></div>
+        </div>
+        <label>Campaign Name</label>
+        <input type="text" id="campaignName" placeholder="e.g. Summer Sale 2026">
+        <label>Prepared By</label>
+        <input type="text" id="preparedBy" placeholder="e.g. Marketing Team">
+      </div>
+
+      <hr class="sep">
+
+      <div class="panel">
+        <div class="panel-title">Channels</div>
+        <div class="check-grid" id="channelChecks"></div>
+      </div>
+
+      <hr class="sep">
+
+      <div class="panel">
+        <div class="panel-title">Metrics to Include</div>
+        <div class="check-grid" id="metricChecks"></div>
+      </div>
+
+      <hr class="sep">
+
+      <div class="panel">
+        <div class="panel-title">Per-Channel Data</div>
+        <div id="channelData"></div>
+      </div>
+
+      <hr class="sep">
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnGenerate" style="flex:1">Generate Report</button>
+        <button class="btn btn-outline" id="btnReset">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="empty-state" id="emptyState">
+      <h3>Configure your report and click "Generate"</h3>
+      <p>Select channels, metrics, enter data, and generate a professional campaign report.</p>
+    </div>
+    <div id="reportArea" style="display:none">
+      <div class="export-bar">
+        <button class="btn btn-primary" onclick="window.print()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Export PDF
+        </button>
+        <button class="btn btn-outline" id="btnCopyMD">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy as Markdown
+        </button>
+      </div>
+      <div class="report" id="report"></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+const CHANNELS = [
+  {id:'google',name:'Google Ads',color:'#4285f4'},
+  {id:'meta',name:'Meta Ads',color:'#1877f2'},
+  {id:'linkedin',name:'LinkedIn Ads',color:'#0a66c2'},
+  {id:'tiktok',name:'TikTok Ads',color:'#000000'},
+  {id:'email',name:'Email',color:'#059669'},
+  {id:'organic',name:'Organic',color:'#8b5cf6'}
+];
+
+const METRICS = [
+  {id:'impressions',name:'Impressions',fmt:'num'},
+  {id:'clicks',name:'Clicks',fmt:'num'},
+  {id:'ctr',name:'CTR',fmt:'pct'},
+  {id:'cpc',name:'CPC',fmt:'dollar'},
+  {id:'conversions',name:'Conversions',fmt:'num'},
+  {id:'cvr',name:'CVR',fmt:'pct'},
+  {id:'spend',name:'Spend',fmt:'dollar'},
+  {id:'revenue',name:'Revenue',fmt:'dollar'},
+  {id:'roas',name:'ROAS',fmt:'x'}
+];
+
+let selectedChannels = new Set(['google','meta','linkedin']);
+let selectedMetrics = new Set(['impressions','clicks','ctr','cpc','conversions','cvr','spend','revenue','roas']);
+
+function $(id){return document.getElementById(id)}
+function fmtNum(n){return isNaN(n)?'0':n.toLocaleString('en-US',{maximumFractionDigits:0})}
+function fmtDollar(n){return isNaN(n)?'$0':'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function fmtPct(n){return isNaN(n)?'0%':n.toFixed(2)+'%'}
+function fmtX(n){return isNaN(n)||!isFinite(n)?'\u2014':n.toFixed(2)+'x'}
+function fmtMetric(m, v){
+  if(m.fmt==='num') return fmtNum(v);
+  if(m.fmt==='dollar') return fmtDollar(v);
+  if(m.fmt==='pct') return fmtPct(v);
+  if(m.fmt==='x') return fmtX(v);
+  return String(v);
+}
+
+function showToast(msg){
+  const t=$('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+// Set default dates
+function setDefaults(){
+  const now = new Date();
+  const end = now.toISOString().slice(0,10);
+  const start = new Date(now - 7*86400000).toISOString().slice(0,10);
+  $('dateStart').value = start;
+  $('dateEnd').value = end;
+}
+
+// Build channel checkboxes
+function buildChecks(){
+  $('channelChecks').innerHTML = CHANNELS.map(ch => {
+    const active = selectedChannels.has(ch.id);
+    return `<label class="check-item ${active?'active':''}" data-ch="${ch.id}"><input type="checkbox" ${active?'checked':''}><span class="ch-dot" style="background:${ch.color}"></span>${ch.name}</label>`;
+  }).join('');
+
+  $('metricChecks').innerHTML = METRICS.map(m => {
+    const active = selectedMetrics.has(m.id);
+    return `<label class="check-item ${active?'active':''}" data-met="${m.id}"><input type="checkbox" ${active?'checked':''}>${m.name}</label>`;
+  }).join('');
+
+  // Bind channel checks
+  $('channelChecks').querySelectorAll('.check-item').forEach(el => {
+    el.addEventListener('click', e => {
+      e.preventDefault();
+      const id = el.dataset.ch;
+      if(selectedChannels.has(id)) selectedChannels.delete(id); else selectedChannels.add(id);
+      el.classList.toggle('active');
+      el.querySelector('input').checked = selectedChannels.has(id);
+      buildChannelData();
+    });
+  });
+
+  // Bind metric checks
+  $('metricChecks').querySelectorAll('.check-item').forEach(el => {
+    el.addEventListener('click', e => {
+      e.preventDefault();
+      const id = el.dataset.met;
+      if(selectedMetrics.has(id)) selectedMetrics.delete(id); else selectedMetrics.add(id);
+      el.classList.toggle('active');
+      el.querySelector('input').checked = selectedMetrics.has(id);
+      buildChannelData();
+    });
+  });
+}
+
+// Build per-channel data inputs
+function buildChannelData(){
+  const container = $('channelData');
+  const inputMetrics = METRICS.filter(m => selectedMetrics.has(m.id) && !['ctr','cvr','roas'].includes(m.id));
+
+  if(!selectedChannels.size){
+    container.innerHTML = '<p style="font-size:.72rem;color:var(--muted);text-align:center;padding:8px">Select at least one channel above.</p>';
+    return;
+  }
+
+  container.innerHTML = Array.from(selectedChannels).map(chId => {
+    const ch = CHANNELS.find(c => c.id === chId);
+    if(!ch) return '';
+    return `<div class="ch-section">
+      <div class="ch-header"><span class="ch-dot" style="background:${ch.color}"></span><span class="ch-name">${ch.name}</span></div>
+      <div class="ch-fields">
+        ${inputMetrics.map(m => `<div>
+          <label>${m.name}</label>
+          <input type="number" id="d_${chId}_${m.id}" placeholder="0" min="0" step="any">
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Gather data
+function gatherData(){
+  const data = [];
+  selectedChannels.forEach(chId => {
+    const ch = CHANNELS.find(c => c.id === chId);
+    const row = {channel: ch};
+    METRICS.forEach(m => {
+      if(['ctr','cvr','roas'].includes(m.id)) return;
+      const el = document.getElementById('d_'+chId+'_'+m.id);
+      row[m.id] = el ? (parseFloat(el.value)||0) : 0;
+    });
+    // Compute derived
+    row.ctr = row.impressions > 0 ? (row.clicks / row.impressions * 100) : 0;
+    row.cvr = row.clicks > 0 ? (row.conversions / row.clicks * 100) : 0;
+    row.roas = row.spend > 0 ? row.revenue / row.spend : 0;
+    data.push(row);
+  });
+  return data;
+}
+
+// Generate report
+function generate(){
+  const data = gatherData();
+  if(!data.length){
+    alert('Select at least one channel and enter data.');
+    return;
+  }
+
+  $('emptyState').style.display = 'none';
+  $('reportArea').style.display = 'block';
+
+  const campaign = $('campaignName').value || 'Ad Campaign';
+  const preparedBy = $('preparedBy').value || 'Marketing Team';
+  const reportType = $('reportType').value;
+  const dateStart = $('dateStart').value;
+  const dateEnd = $('dateEnd').value;
+  const dateRange = dateStart && dateEnd ? `${dateStart} to ${dateEnd}` : 'Not specified';
+
+  // Totals
+  const totals = {};
+  METRICS.forEach(m => totals[m.id] = 0);
+  data.forEach(r => {
+    ['impressions','clicks','conversions','spend','revenue'].forEach(k => totals[k] += r[k]);
+  });
+  totals.ctr = totals.impressions > 0 ? (totals.clicks / totals.impressions * 100) : 0;
+  totals.cvr = totals.clicks > 0 ? (totals.conversions / totals.clicks * 100) : 0;
+  totals.cpc = totals.clicks > 0 ? totals.spend / totals.clicks : 0;
+  totals.roas = totals.spend > 0 ? totals.revenue / totals.spend : 0;
+
+  // Sort for top/bottom
+  const byRoas = data.filter(r => r.spend > 0).sort((a,b) => b.roas - a.roas);
+  const byCtr = data.filter(r => r.impressions > 0).sort((a,b) => b.ctr - a.ctr);
+
+  // Executive summary
+  const profit = totals.revenue - totals.spend;
+  let summaryParts = [];
+  summaryParts.push(`During this ${reportType.toLowerCase()} period, the <strong>${campaign}</strong> campaign generated <strong>${fmtDollar(totals.revenue)}</strong> in revenue from <strong>${fmtDollar(totals.spend)}</strong> in ad spend, resulting in an overall ROAS of <strong>${fmtX(totals.roas)}</strong>.`);
+  if(profit > 0) summaryParts.push(`Net profit was <strong>${fmtDollar(profit)}</strong>.`);
+  else if(profit < 0) summaryParts.push(`The campaign is currently <strong>${fmtDollar(Math.abs(profit))}</strong> below break-even.`);
+  if(byRoas.length >= 2){
+    summaryParts.push(`<strong>${byRoas[0].channel.name}</strong> was the top performer with ${fmtX(byRoas[0].roas)} ROAS, while <strong>${byRoas[byRoas.length-1].channel.name}</strong> underperformed at ${fmtX(byRoas[byRoas.length-1].roas)}.`);
+  }
+  summaryParts.push(`Total conversions: <strong>${fmtNum(totals.conversions)}</strong> at a CVR of <strong>${fmtPct(totals.cvr)}</strong>.`);
+
+  // Recommendations
+  const recos = [];
+  if(byRoas.length >= 2 && byRoas[byRoas.length-1].roas < 1){
+    recos.push(`<strong>${byRoas[byRoas.length-1].channel.name}</strong> ROAS is below break-even (${fmtX(byRoas[byRoas.length-1].roas)}). Consider pausing or restructuring campaigns on this channel.`);
+  }
+  if(byRoas.length >= 2 && byRoas[0].roas >= 3){
+    recos.push(`<strong>${byRoas[0].channel.name}</strong> shows excellent returns (${fmtX(byRoas[0].roas)}). Consider increasing budget allocation to capture more volume.`);
+  }
+  data.forEach(r => {
+    if(r.ctr < 1 && r.impressions > 1000) recos.push(`CTR on <strong>${r.channel.name}</strong> is ${fmtPct(r.ctr)} -- consider refreshing creative or adjusting targeting.`);
+    if(r.cvr > 0 && r.cvr < 1 && r.clicks > 100) recos.push(`CVR on <strong>${r.channel.name}</strong> is ${fmtPct(r.cvr)} -- review landing page experience.`);
+  });
+  if(totals.cpc > 5) recos.push(`Average CPC is ${fmtDollar(totals.cpc)}. Look for long-tail keywords or audience refinement to reduce costs.`);
+  if(!recos.length) recos.push('All channels are performing within expected ranges. Continue monitoring and maintain current strategy.');
+
+  // Active metrics for table
+  const activeMetrics = METRICS.filter(m => selectedMetrics.has(m.id));
+
+  let html = '';
+  // Header
+  html += `<div class="report-header">
+    <h1>${campaign} -- ${reportType} Report</h1>
+    <div class="report-meta">
+      <span><strong>Period:</strong> ${dateRange}</span>
+      <span><strong>Prepared by:</strong> ${preparedBy}</span>
+      <span><strong>Generated:</strong> ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>
+    </div>
+  </div>`;
+
+  // Executive summary
+  html += `<h2>Executive Summary</h2>
+  <div class="exec-summary">${summaryParts.join(' ')}</div>`;
+
+  // Metrics table
+  html += `<h2>Metrics by Channel</h2>
+  <table class="report-table">
+    <thead><tr><th>Channel</th>${activeMetrics.map(m => `<th class="num">${m.name}</th>`).join('')}</tr></thead>
+    <tbody>`;
+  data.forEach(r => {
+    html += `<tr><td><span class="ch-cell"><span class="ch-dot" style="background:${r.channel.color}"></span>${r.channel.name}</span></td>`;
+    activeMetrics.forEach(m => {
+      let cls = '';
+      if(m.id === 'roas') cls = r.roas >= 3 ? 'good' : r.roas < 1 ? 'bad' : '';
+      html += `<td class="num ${cls}">${fmtMetric(m, r[m.id])}</td>`;
+    });
+    html += '</tr>';
+  });
+  // Totals row
+  html += `<tr class="total-row"><td><strong>Total</strong></td>`;
+  activeMetrics.forEach(m => {
+    let cls = '';
+    if(m.id === 'roas') cls = totals.roas >= 3 ? 'good' : totals.roas < 1 ? 'bad' : '';
+    html += `<td class="num ${cls}">${fmtMetric(m, totals[m.id])}</td>`;
+  });
+  html += '</tr></tbody></table>';
+
+  // Top / Bottom performers
+  if(byRoas.length >= 2){
+    html += '<h2>Performance Highlights</h2><div class="perf-grid">';
+    html += '<div class="perf-card top"><h4>Top Performers</h4>';
+    byRoas.slice(0, Math.min(3, byRoas.length)).forEach(r => {
+      html += `<div class="perf-item"><strong>${r.channel.name}</strong> -- ROAS ${fmtX(r.roas)}, ${fmtNum(r.conversions)} conversions, CTR ${fmtPct(r.ctr)}</div>`;
+    });
+    html += '</div>';
+    html += '<div class="perf-card bottom"><h4>Underperformers</h4>';
+    byRoas.slice(-Math.min(3, byRoas.length)).reverse().forEach(r => {
+      html += `<div class="perf-item"><strong>${r.channel.name}</strong> -- ROAS ${fmtX(r.roas)}, ${fmtNum(r.conversions)} conversions, CTR ${fmtPct(r.ctr)}</div>`;
+    });
+    html += '</div></div>';
+  }
+
+  // Recommendations
+  html += '<h2>Recommendations</h2><ul class="reco-list">';
+  recos.forEach(r => html += `<li>${r}</li>`);
+  html += '</ul>';
+
+  $('report').innerHTML = html;
+}
+
+// Copy as Markdown
+function copyAsMarkdown(){
+  const data = gatherData();
+  const campaign = $('campaignName').value || 'Ad Campaign';
+  const reportType = $('reportType').value;
+  const dateStart = $('dateStart').value;
+  const dateEnd = $('dateEnd').value;
+  const preparedBy = $('preparedBy').value || 'Marketing Team';
+  const activeMetrics = METRICS.filter(m => selectedMetrics.has(m.id));
+
+  const totals = {};
+  METRICS.forEach(m => totals[m.id] = 0);
+  data.forEach(r => {
+    ['impressions','clicks','conversions','spend','revenue'].forEach(k => totals[k] += r[k]);
+  });
+  totals.ctr = totals.impressions > 0 ? (totals.clicks / totals.impressions * 100) : 0;
+  totals.cvr = totals.clicks > 0 ? (totals.conversions / totals.clicks * 100) : 0;
+  totals.cpc = totals.clicks > 0 ? totals.spend / totals.clicks : 0;
+  totals.roas = totals.spend > 0 ? totals.revenue / totals.spend : 0;
+
+  let md = `# ${campaign} -- ${reportType} Report\n\n`;
+  md += `**Period:** ${dateStart} to ${dateEnd}  \n`;
+  md += `**Prepared by:** ${preparedBy}  \n`;
+  md += `**Generated:** ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}\n\n`;
+
+  md += '## Executive Summary\n\n';
+  md += `Total Revenue: ${fmtDollar(totals.revenue)} | Spend: ${fmtDollar(totals.spend)} | ROAS: ${fmtX(totals.roas)} | Conversions: ${fmtNum(totals.conversions)}\n\n`;
+
+  md += '## Metrics by Channel\n\n';
+  md += '| Channel | ' + activeMetrics.map(m => m.name).join(' | ') + ' |\n';
+  md += '| --- | ' + activeMetrics.map(() => '---').join(' | ') + ' |\n';
+  data.forEach(r => {
+    md += `| ${r.channel.name} | ` + activeMetrics.map(m => fmtMetric(m, r[m.id])).join(' | ') + ' |\n';
+  });
+  md += `| **Total** | ` + activeMetrics.map(m => fmtMetric(m, totals[m.id])).join(' | ') + ' |\n\n';
+
+  md += '## Recommendations\n\n';
+  // Simple recos
+  const byRoas = data.filter(r => r.spend > 0).sort((a,b) => b.roas - a.roas);
+  if(byRoas.length >= 2){
+    md += `- Top performer: ${byRoas[0].channel.name} (${fmtX(byRoas[0].roas)} ROAS)\n`;
+    md += `- Underperformer: ${byRoas[byRoas.length-1].channel.name} (${fmtX(byRoas[byRoas.length-1].roas)} ROAS)\n`;
+  }
+  md += `- Overall ROAS: ${fmtX(totals.roas)}\n`;
+
+  navigator.clipboard.writeText(md).then(() => showToast('Markdown copied to clipboard')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = md;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Markdown copied to clipboard');
+  });
+}
+
+// Events
+$('btnGenerate').addEventListener('click', generate);
+$('btnCopyMD').addEventListener('click', copyAsMarkdown);
+$('btnReset').addEventListener('click', () => {
+  $('campaignName').value = '';
+  $('preparedBy').value = '';
+  setDefaults();
+  selectedChannels = new Set(['google','meta','linkedin']);
+  selectedMetrics = new Set(['impressions','clicks','ctr','cpc','conversions','cvr','spend','revenue','roas']);
+  buildChecks();
+  buildChannelData();
+  $('emptyState').style.display = 'block';
+  $('reportArea').style.display = 'none';
+});
+
+// Init
+setDefaults();
+buildChecks();
+buildChannelData();
+})();
+</script>
+</body>
+</html>

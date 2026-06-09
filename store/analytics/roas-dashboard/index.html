@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ROAS Dashboard - FreeAdStore</title>
+<meta name="description" content="Multi-channel ROAS dashboard with efficiency quadrant, optimization recommendations, and PDF export. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:#fef2f2;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#22c55e;--blue:#3b82f6;--purple:#8b5cf6;--orange:#f97316;--cyan:#06b6d4}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 16px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px;font-family:'Fraunces',serif}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-width:0;padding:24px 32px 40px}
+
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em}
+label{font-size:.7rem;color:var(--muted);display:block;margin:6px 0 3px;font-weight:500}
+input[type=number]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;transition:border-color .15s;font-weight:600}
+input[type=number]:focus{border-color:var(--accent)}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.82rem;font-family:inherit;background:var(--bg);outline:none;cursor:pointer;font-weight:500}
+
+.channel-section{margin-bottom:12px;border:1px solid var(--line);border-radius:var(--radius);padding:10px;background:var(--bg)}
+.channel-header{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.channel-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.channel-name{font-size:.78rem;font-weight:700}
+.channel-inputs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.channel-inputs label{margin:0}
+.input-wrap{position:relative}
+.input-wrap .prefix{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:.78rem;color:var(--muted);font-weight:600;pointer-events:none}
+.input-wrap input{padding-left:22px}
+
+.btn{padding:8px 16px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;border:none;transition:all .12s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{filter:brightness(1.1)}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-row{display:flex;gap:8px;margin-top:12px}
+.sep{border:none;border-top:1px solid var(--line);margin:14px 0}
+
+/* Period pills */
+.pills{display:flex;gap:4px;margin-bottom:10px}
+.pill{flex:1;padding:6px 4px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:.72rem;font-weight:600;cursor:pointer;text-align:center;font-family:inherit;color:var(--muted);transition:all .15s}
+.pill.active{background:var(--accent);border-color:var(--accent);color:white}
+.pill:hover:not(.active){border-color:var(--accent);color:var(--accent)}
+
+/* Main */
+.section{margin-bottom:24px}
+.section-title{font-family:'Fraunces',serif;font-size:1.05rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-title svg{width:20px;height:20px;color:var(--accent)}
+
+/* Hero ROAS */
+.roas-hero{text-align:center;padding:28px 16px;border-radius:14px;border:1px solid var(--line);background:var(--panel);margin-bottom:20px}
+.roas-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px}
+.roas-big{font-family:'Fraunces',serif;font-size:3.6rem;font-weight:700;line-height:1;transition:color .3s}
+.roas-big.green{color:var(--green)}.roas-big.yellow{color:#f59e0b}.roas-big.red{color:var(--accent)}
+.roas-period{font-size:.75rem;color:var(--muted);margin-top:6px;font-weight:500}
+.roas-badge{display:inline-block;padding:3px 12px;border-radius:99px;font-size:.68rem;font-weight:700;margin-top:8px}
+.roas-badge.green{background:#d1fae5;color:#065f46}.roas-badge.yellow{background:#fef3c7;color:#92400e}.roas-badge.red{background:#fee2e2;color:#991b1b}
+
+/* Metric strip */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.metric{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px}
+.metric-label{font-size:.66rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px}
+.metric-val{font-size:1.2rem;font-weight:800;font-family:'Fraunces',serif}
+.metric-val.pos{color:var(--green)}.metric-val.neg{color:var(--accent)}
+
+/* Horizontal ROAS bars */
+.roas-bars{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:20px}
+.roas-bars h3{font-size:.82rem;font-weight:700;margin-bottom:12px}
+.rbar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.rbar-label{font-size:.74rem;font-weight:600;width:80px;flex-shrink:0;display:flex;align-items:center;gap:5px}
+.rbar-track{flex:1;background:var(--bg);border-radius:5px;height:24px;overflow:hidden;border:1px solid var(--line)}
+.rbar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:.66rem;font-weight:700;color:#fff;transition:width .4s;white-space:nowrap;min-width:fit-content}
+.rbar-val{font-size:.78rem;font-weight:700;width:50px;text-align:right;flex-shrink:0}
+
+/* Spend vs Revenue */
+.sv-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:20px}
+.sv-card h3{font-size:.82rem;font-weight:700;margin-bottom:12px}
+.sv-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.sv-label{font-size:.74rem;font-weight:600;width:80px;flex-shrink:0;display:flex;align-items:center;gap:5px}
+.sv-bars{flex:1;display:flex;flex-direction:column;gap:3px}
+.sv-bar{height:14px;border-radius:3px;display:flex;align-items:center;padding-left:6px;font-size:.6rem;font-weight:600;color:#fff;transition:width .4s;min-width:fit-content;white-space:nowrap}
+
+/* Quadrant chart */
+.quadrant-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:20px}
+.quadrant-card h3{font-size:.82rem;font-weight:700;margin-bottom:12px}
+.quadrant-wrap{position:relative;width:100%;aspect-ratio:1.4;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--bg)}
+.q-axis-x{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)}
+.q-axis-y{position:absolute;top:50%;left:0;right:0;height:1px;background:var(--line)}
+.q-label{position:absolute;font-size:.58rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;opacity:.6}
+.q-tl{top:8px;left:8px;color:var(--green)}.q-tr{top:8px;right:8px;color:var(--blue)}
+.q-bl{bottom:8px;left:8px;color:#f59e0b}.q-br{bottom:8px;right:8px;color:var(--accent)}
+.q-dot{position:absolute;width:28px;height:28px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:.56rem;font-weight:800;color:#fff;cursor:default;transform:translate(-50%,-50%);transition:all .3s;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.q-dot:hover{transform:translate(-50%,-50%) scale(1.15);z-index:10}
+.q-x-label{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:.62rem;color:var(--muted);font-weight:600}
+.q-y-label{position:absolute;left:-22px;top:50%;transform:translateY(-50%) rotate(-90deg);font-size:.62rem;color:var(--muted);font-weight:600;white-space:nowrap}
+
+/* Recommendations */
+.reco-card{background:var(--accent-light);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius);padding:16px;margin-bottom:20px}
+.reco-card h3{font-size:.82rem;font-weight:700;color:var(--accent);margin-bottom:10px}
+.reco-item{font-size:.78rem;color:var(--text);line-height:1.6;margin-bottom:8px;padding-left:16px;position:relative}
+.reco-item::before{content:'';position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.reco-item strong{color:var(--accent)}
+
+/* Export */
+.export-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:.76rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text);transition:all .15s}
+.export-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.empty-state h3{font-size:.9rem;font-weight:700;margin-bottom:4px;color:var(--text)}
+.empty-state p{font-size:.78rem}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .main{padding:16px}
+  .metrics{grid-template-columns:1fr 1fr}
+}
+@media print{
+  .sidebar,.back,.export-btn{display:none!important}
+  .app{display:block}.main{padding:.5rem;overflow:visible}
+  body{background:#fff}
+  .roas-hero,.metric,.roas-bars,.sv-card,.quadrant-card,.reco-card{break-inside:avoid;box-shadow:none}
+  @page{margin:1.5cm}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&#8592; FreeAdStore</a>
+      <h1>ROAS Dashboard</h1>
+      <p>Multi-channel Return on Ad Spend with efficiency analysis and recommendations.</p>
+    </div>
+    <div class="sidebar-scroll">
+      <div class="panel">
+        <div class="panel-title">Time Period</div>
+        <div class="pills">
+          <button class="pill" data-p="Daily">Daily</button>
+          <button class="pill active" data-p="Weekly">Weekly</button>
+          <button class="pill" data-p="Monthly">Monthly</button>
+          <button class="pill" data-p="Quarterly">Quarterly</button>
+        </div>
+      </div>
+      <hr class="sep">
+      <div class="panel-title">Per-Channel Spend & Revenue</div>
+      <div id="channelInputs"></div>
+      <hr class="sep">
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnCalc" style="flex:1">Update Dashboard</button>
+        <button class="btn btn-outline" id="btnReset">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main" id="mainArea">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px">
+      <div>
+        <h1 style="font-family:'Fraunces',serif;font-size:1.4rem;font-weight:700">ROAS Dashboard</h1>
+        <p style="font-size:.8rem;color:var(--muted)">Enter spend and revenue per channel to analyze performance</p>
+      </div>
+      <button class="export-btn" onclick="window.print()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Export PDF
+      </button>
+    </div>
+
+    <div id="dashboard">
+      <div class="empty-state" id="emptyState">
+        <h3>Enter channel data to generate dashboard</h3>
+        <p>Fill in spend and revenue for at least one channel, then click "Update Dashboard".</p>
+      </div>
+      <div id="results" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+const CHANNELS = [
+  {id:'google',name:'Google',color:'#4285f4',abbr:'G'},
+  {id:'meta',name:'Meta',color:'#1877f2',abbr:'M'},
+  {id:'linkedin',name:'LinkedIn',color:'#0a66c2',abbr:'Li'},
+  {id:'tiktok',name:'TikTok',color:'#000000',abbr:'Tk'},
+  {id:'other',name:'Other',color:'#6b7280',abbr:'O'}
+];
+
+let period = 'Weekly';
+
+function $(id){return document.getElementById(id)}
+function fmt(n){
+  if(n===null||isNaN(n)) return '$0';
+  const a=Math.abs(n);
+  if(a>=1e6) return (n<0?'-':'')+'$'+(a/1e6).toFixed(1)+'M';
+  if(a>=1e3) return (n<0?'-':'')+'$'+(a/1e3).toFixed(1)+'K';
+  return (n<0?'-':'')+'$'+a.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+function fmtR(r){return r===null||isNaN(r)||!isFinite(r)?'\u2014':r.toFixed(2)+'x'}
+function cls(r){if(r===null||isNaN(r)||!isFinite(r)) return '';return r>=3?'green':r>=1?'yellow':'red'}
+
+function buildInputs(){
+  const c = $('channelInputs');
+  c.innerHTML = CHANNELS.map(ch => `
+    <div class="channel-section">
+      <div class="channel-header">
+        <span class="channel-dot" style="background:${ch.color}"></span>
+        <span class="channel-name">${ch.name}</span>
+      </div>
+      <div class="channel-inputs">
+        <div>
+          <label>Spend</label>
+          <div class="input-wrap"><span class="prefix">$</span><input type="number" id="s_${ch.id}" placeholder="0" min="0" step="any"></div>
+        </div>
+        <div>
+          <label>Revenue</label>
+          <div class="input-wrap"><span class="prefix">$</span><input type="number" id="r_${ch.id}" placeholder="0" min="0" step="any"></div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function getData(){
+  const data = [];
+  let totalSpend = 0, totalRevenue = 0;
+  CHANNELS.forEach(ch => {
+    const s = parseFloat($('s_'+ch.id).value)||0;
+    const r = parseFloat($('r_'+ch.id).value)||0;
+    if(s > 0 || r > 0){
+      const roas = s > 0 ? r / s : (r > 0 ? Infinity : 0);
+      data.push({...ch, spend:s, revenue:r, roas});
+      totalSpend += s;
+      totalRevenue += r;
+    }
+  });
+  return {channels:data, totalSpend, totalRevenue, overallRoas: totalSpend > 0 ? totalRevenue/totalSpend : null};
+}
+
+function render(){
+  const d = getData();
+  if(!d.channels.length){
+    $('emptyState').style.display = 'block';
+    $('results').style.display = 'none';
+    return;
+  }
+  $('emptyState').style.display = 'none';
+  $('results').style.display = 'block';
+
+  const sorted = d.channels.slice().sort((a,b) => b.roas - a.roas);
+  const maxRoas = Math.max(...sorted.map(c => isFinite(c.roas)?c.roas:0), 1);
+  const maxSpend = Math.max(...d.channels.map(c => c.spend), 1);
+  const maxRev = Math.max(...d.channels.map(c => c.revenue), 1);
+  const maxSR = Math.max(maxSpend, maxRev);
+
+  const c = cls(d.overallRoas);
+  let badgeText = '';
+  if(d.overallRoas >= 3) badgeText = 'Excellent';
+  else if(d.overallRoas >= 2) badgeText = 'Good';
+  else if(d.overallRoas >= 1) badgeText = 'Break-even';
+  else badgeText = 'Losing money';
+
+  const profit = d.totalRevenue - d.totalSpend;
+  const margin = d.totalRevenue > 0 ? (profit / d.totalRevenue * 100) : 0;
+  const avgCPA = d.channels.length > 0 ? d.totalSpend / d.channels.length : 0;
+
+  // Build recommendations
+  const recos = [];
+  if(sorted.length >= 2){
+    const best = sorted[0];
+    const worst = sorted[sorted.length-1];
+    if(worst.spend > 0 && best.roas > worst.roas){
+      const shift = Math.round(worst.spend * 0.2);
+      recos.push(`Shift <strong>${fmt(shift)}</strong> from <strong>${worst.name}</strong> (${fmtR(worst.roas)}) to <strong>${best.name}</strong> (${fmtR(best.roas)}) for better overall returns.`);
+    }
+  }
+  sorted.forEach(ch => {
+    if(ch.roas < 1 && ch.spend > 0) recos.push(`<strong>${ch.name}</strong> has a ROAS of ${fmtR(ch.roas)} (below break-even). Consider pausing or restructuring campaigns.`);
+    else if(ch.roas >= 4 && ch.spend < d.totalSpend * 0.3) recos.push(`<strong>${ch.name}</strong> has excellent ROAS (${fmtR(ch.roas)}) but only ${(ch.spend/d.totalSpend*100).toFixed(0)}% of budget. Consider scaling up.`);
+  });
+  if(!recos.length) recos.push('All channels are performing above break-even. Monitor and maintain current allocation.');
+
+  // Quadrant positions
+  const avgSpend = d.totalSpend / d.channels.length;
+  const avgRoas = d.channels.reduce((s,c) => s + (isFinite(c.roas)?c.roas:0), 0) / d.channels.length;
+
+  let html = '';
+
+  // Hero ROAS
+  html += `<div class="roas-hero">
+    <div class="roas-label">Overall ROAS</div>
+    <div class="roas-big ${c}">${fmtR(d.overallRoas)}</div>
+    <div class="roas-period">${period}</div>
+    <span class="roas-badge ${c}">${badgeText}</span>
+  </div>`;
+
+  // Metrics
+  html += `<div class="metrics">
+    <div class="metric"><div class="metric-label">Total Spend</div><div class="metric-val">${fmt(d.totalSpend)}</div></div>
+    <div class="metric"><div class="metric-label">Total Revenue</div><div class="metric-val">${fmt(d.totalRevenue)}</div></div>
+    <div class="metric"><div class="metric-label">Net Profit</div><div class="metric-val ${profit>=0?'pos':'neg'}">${fmt(profit)}</div></div>
+    <div class="metric"><div class="metric-label">Margin</div><div class="metric-val ${margin>=0?'pos':'neg'}">${margin.toFixed(1)}%</div></div>
+  </div>`;
+
+  // Per-channel ROAS bars
+  html += `<div class="roas-bars"><h3>Per-Channel ROAS (best to worst)</h3>`;
+  sorted.forEach(ch => {
+    const pct = isFinite(ch.roas) ? Math.min((ch.roas / maxRoas * 100), 100) : 100;
+    const c2 = cls(ch.roas);
+    const fillColor = c2==='green'?'var(--green)':c2==='yellow'?'#f59e0b':'var(--accent)';
+    html += `<div class="rbar-row">
+      <div class="rbar-label"><span class="channel-dot" style="background:${ch.color}"></span>${ch.name}</div>
+      <div class="rbar-track"><div class="rbar-fill" style="width:${Math.max(pct,5)}%;background:${fillColor}">${fmt(ch.revenue)} rev</div></div>
+      <div class="rbar-val" style="color:${fillColor}">${fmtR(ch.roas)}</div>
+    </div>`;
+  });
+  html += '</div>';
+
+  // Spend vs Revenue
+  html += `<div class="sv-card"><h3>Spend vs Revenue by Channel</h3>`;
+  d.channels.forEach(ch => {
+    const sPct = (ch.spend / maxSR * 100).toFixed(1);
+    const rPct = (ch.revenue / maxSR * 100).toFixed(1);
+    html += `<div class="sv-row">
+      <div class="sv-label"><span class="channel-dot" style="background:${ch.color}"></span>${ch.name}</div>
+      <div class="sv-bars">
+        <div class="sv-bar" style="width:${Math.max(sPct,3)}%;background:${ch.color};opacity:.5">${fmt(ch.spend)} spend</div>
+        <div class="sv-bar" style="width:${Math.max(rPct,3)}%;background:${ch.color}">${fmt(ch.revenue)} revenue</div>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+
+  // Quadrant
+  if(d.channels.length >= 2){
+    html += `<div class="quadrant-card"><h3>Channel Efficiency Quadrant</h3>
+      <div class="quadrant-wrap">
+        <div class="q-axis-x"></div><div class="q-axis-y"></div>
+        <div class="q-label q-tl">Scale Up</div>
+        <div class="q-label q-tr">Stars</div>
+        <div class="q-label q-bl">Question Marks</div>
+        <div class="q-label q-br">Optimize</div>`;
+    d.channels.forEach(ch => {
+      // x = spend (0=left low, 100=right high), y = ROAS (0=bottom low, 100=top high)
+      const xPct = maxSpend > 0 ? (ch.spend / maxSpend * 80 + 10) : 50;
+      const yPct = maxRoas > 0 && isFinite(ch.roas) ? (100 - (ch.roas / maxRoas * 80 + 10)) : 50;
+      html += `<div class="q-dot" style="left:${xPct}%;top:${yPct}%;background:${ch.color}" title="${ch.name}: ${fmtR(ch.roas)} ROAS, ${fmt(ch.spend)} spend">${ch.abbr}</div>`;
+    });
+    html += `<div class="q-x-label">Spend &rarr;</div>
+      <div class="q-y-label">ROAS &rarr;</div>
+    </div>
+    <p style="font-size:.68rem;color:var(--muted);margin-top:8px;line-height:1.4"><strong>Top-left:</strong> Low spend, high ROAS &mdash; scale up. <strong>Top-right:</strong> High spend, high ROAS &mdash; stars, maintain. <strong>Bottom-left:</strong> Low spend, low ROAS &mdash; test or cut. <strong>Bottom-right:</strong> High spend, low ROAS &mdash; optimize or reduce.</p>
+    </div>`;
+  }
+
+  // Recommendations
+  html += `<div class="reco-card"><h3>Optimization Recommendations</h3>`;
+  recos.forEach(r => html += `<div class="reco-item">${r}</div>`);
+  html += '</div>';
+
+  $('results').innerHTML = html;
+}
+
+// Period pills
+document.querySelectorAll('.pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    period = btn.dataset.p;
+    render();
+  });
+});
+
+$('btnCalc').addEventListener('click', render);
+$('btnReset').addEventListener('click', () => {
+  CHANNELS.forEach(ch => {
+    $('s_'+ch.id).value = '';
+    $('r_'+ch.id).value = '';
+  });
+  $('emptyState').style.display = 'block';
+  $('results').style.display = 'none';
+});
+
+// Live update on input
+document.addEventListener('input', e => {
+  if(e.target.type === 'number' && (e.target.id.startsWith('s_') || e.target.id.startsWith('r_'))) render();
+});
+
+buildInputs();
+})();
+</script>
+</body>
+</html>

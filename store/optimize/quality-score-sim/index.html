@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Quality Score Simulator — FreeAdStore</title>
+<meta name="description" content="Simulate your Google Ads Quality Score. See how Expected CTR, Ad Relevance, and Landing Page Experience affect your CPC and ad rank. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#ef4444;--accent-hover:#dc2626;--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--panel:#ffffff;--line:#e5e7eb;--green:#16a34a;--yellow:#f59e0b;--red:#ef4444;--sidebar-w:360px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+/* Layout */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--panel);border-right:1px solid var(--line);padding:1.25rem;overflow-y:auto;display:flex;flex-direction:column;gap:.1rem}
+.main{flex:1;padding:1.5rem 2rem;overflow-y:auto;max-height:100vh}
+
+/* Back link */
+.back{display:inline-flex;align-items:center;gap:.35rem;font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:.75rem}
+.back:hover{color:var(--accent);text-decoration:none}
+
+/* Sidebar heading */
+.sidebar h1{font-family:'Fraunces',serif;font-size:1.25rem;font-weight:700;margin-bottom:.15rem}
+.sidebar .subtitle{font-size:.72rem;color:var(--muted);line-height:1.45;margin-bottom:.85rem}
+
+/* Section title */
+.section-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:.35rem;margin-top:.6rem}
+
+/* Form elements */
+.field{margin-bottom:.7rem}
+.field label{display:block;font-size:.72rem;font-weight:600;color:var(--muted);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.3px}
+.field input[type="text"],
+.field input[type="number"],
+.field select{width:100%;padding:.5rem .65rem;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:.82rem;background:#fff;color:var(--text);transition:border-color .15s}
+.field input:focus,.field select:focus{outline:none;border-color:var(--accent)}
+.field select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center;padding-right:1.8rem}
+.field .hint{font-size:.65rem;color:var(--muted);margin-top:.2rem}
+
+/* Divider */
+.sidebar-divider{height:1px;background:var(--line);margin:.4rem 0}
+
+/* Rating pills */
+.rating-pills{display:flex;gap:.3rem}
+.rate-pill{flex:1;padding:.4rem .1rem;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:.68rem;font-weight:600;cursor:pointer;text-align:center;font-family:inherit;color:var(--muted);transition:all .15s}
+.rate-pill:hover{border-color:var(--accent);color:var(--text)}
+.rate-pill.active.below{background:var(--red);border-color:var(--red);color:#fff}
+.rate-pill.active.average{background:var(--yellow);border-color:var(--yellow);color:#fff}
+.rate-pill.active.above{background:var(--green);border-color:var(--green);color:#fff}
+
+/* Calculate button */
+.btn-calc{width:100%;padding:.65rem;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;transition:background .15s;margin-top:.5rem}
+.btn-calc:hover{background:var(--accent-hover)}
+
+/* Main area */
+.main h2{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;margin-bottom:1rem}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;text-align:center;color:var(--muted)}
+.empty-state .icon{font-size:3rem;margin-bottom:1rem;opacity:.4}
+.empty-state p{font-size:.88rem;max-width:340px;line-height:1.5}
+
+/* Cards */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:1.1rem;margin-bottom:.85rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card h3{font-size:.88rem;font-weight:700;margin-bottom:.65rem;display:flex;align-items:center;gap:.4rem}
+.card h3 .card-icon{color:var(--accent)}
+
+/* QS Hero */
+.qs-hero{text-align:center;padding:1.6rem 1rem;border-radius:14px;border:1px solid var(--line);background:var(--panel);margin-bottom:1rem}
+.qs-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:.3rem}
+.qs-keyword{font-size:.82rem;color:var(--muted);margin-bottom:.5rem}
+.qs-keyword strong{color:var(--text)}
+
+/* QS Meter */
+.qs-meter{display:flex;gap:4px;justify-content:center;margin-bottom:.5rem}
+.qs-segment{width:32px;height:40px;border-radius:6px;transition:all .3s}
+.qs-segment.empty{background:var(--line)}
+.qs-segment.low{background:var(--red)}
+.qs-segment.med{background:var(--yellow)}
+.qs-segment.high{background:var(--green)}
+.qs-number{font-family:'Fraunces',serif;font-size:3.6rem;font-weight:700;line-height:1;margin-bottom:.15rem}
+.qs-number.low{color:var(--red)}.qs-number.med{color:var(--yellow)}.qs-number.high{color:var(--green)}
+.qs-rating{font-size:.78rem;font-weight:600;margin-top:.2rem}
+.qs-rating.low{color:var(--red)}.qs-rating.med{color:var(--yellow)}.qs-rating.high{color:var(--green)}
+
+/* Component scores */
+.comp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1rem}
+.comp-card{text-align:center;padding:.85rem .5rem;background:#fafafa;border-radius:8px;border:1px solid var(--line)}
+.comp-icon{font-size:1.5rem;margin-bottom:.3rem}
+.comp-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-bottom:.3rem}
+.comp-value{font-size:.82rem;font-weight:700;padding:.2rem .5rem;border-radius:99px;display:inline-block}
+.comp-value.below{background:#fee2e2;color:#991b1b}
+.comp-value.average{background:#fef3c7;color:#92400e}
+.comp-value.above{background:#dcfce7;color:#065f46}
+
+/* Impact explanation */
+.impact-list{list-style:none;padding:0}
+.impact-list li{display:flex;align-items:flex-start;gap:.55rem;padding:.5rem 0;border-bottom:1px solid var(--line);font-size:.78rem;line-height:1.5}
+.impact-list li:last-child{border-bottom:none}
+.impact-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.78rem;font-weight:700;color:#fff;background:var(--accent)}
+
+/* CPC impact */
+.cpc-impact{text-align:center;padding:1rem;background:#fafafa;border-radius:10px;border:1px solid var(--line);margin-bottom:.5rem}
+.cpc-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:.3rem}
+.cpc-value{font-family:'Fraunces',serif;font-size:2rem;font-weight:700}
+.cpc-value.savings{color:var(--green)}
+.cpc-value.penalty{color:var(--red)}
+.cpc-note{font-size:.75rem;color:var(--muted);margin-top:.3rem;line-height:1.5}
+.cpc-note strong{color:var(--text)}
+
+/* Improvement suggestions */
+.suggestion{padding:.6rem 0;border-bottom:1px solid var(--line)}
+.suggestion:last-child{border-bottom:none}
+.suggestion-title{font-size:.78rem;font-weight:700;margin-bottom:.15rem;display:flex;align-items:center;gap:.35rem}
+.suggestion-title .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.suggestion-text{font-size:.72rem;color:var(--muted);line-height:1.5}
+.suggestion-text strong{color:var(--text)}
+
+/* QS Scale */
+.qs-scale{display:flex;align-items:center;gap:2px;margin:.5rem 0}
+.qs-scale-seg{height:8px;flex:1;border-radius:4px}
+.qs-scale-labels{display:flex;justify-content:space-between;font-size:.62rem;color:var(--muted);font-weight:600}
+
+/* Toast */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:#fff;padding:.65rem 1.1rem;border-radius:8px;font-size:.78rem;font-weight:600;opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none;z-index:999}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* Responsive */
+@media(max-width:900px){
+  .layout{flex-direction:column}
+  .sidebar{width:100%;min-width:unset;border-right:none;border-bottom:1px solid var(--line);max-height:unset}
+  .main{max-height:unset;padding:1.25rem}
+  .comp-grid{grid-template-columns:1fr}
+}
+@media(max-width:500px){
+  .comp-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <a href="/" class="back">&larr; FreeAdStore</a>
+    <h1>Quality Score Simulator</h1>
+    <p class="subtitle">Estimate your Google Ads Quality Score and see how it affects your CPC, ad rank, and whether your ad shows at all.</p>
+
+    <div class="section-title">Ad Details</div>
+
+    <div class="field">
+      <label>Target Keyword</label>
+      <input type="text" id="keyword" placeholder="e.g., best running shoes">
+    </div>
+
+    <div class="field">
+      <label>Ad Headline 1</label>
+      <input type="text" id="headline1" placeholder="e.g., Best Running Shoes 2026" maxlength="30">
+      <div class="hint">Max 30 characters</div>
+    </div>
+
+    <div class="field">
+      <label>Ad Headline 2</label>
+      <input type="text" id="headline2" placeholder="e.g., Free Shipping + Returns" maxlength="30">
+      <div class="hint">Max 30 characters</div>
+    </div>
+
+    <div class="field">
+      <label>Ad Description</label>
+      <input type="text" id="adDesc" placeholder="e.g., Shop 500+ running shoes from top brands..." maxlength="90">
+      <div class="hint">Max 90 characters</div>
+    </div>
+
+    <div class="field">
+      <label>Landing Page URL</label>
+      <input type="text" id="lpUrl" placeholder="e.g., example.com/running-shoes">
+      <div class="hint">For display only — no automated scanning</div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+    <div class="section-title">Component Ratings (Self-Assessment)</div>
+
+    <div class="field">
+      <label>Expected CTR vs. Average</label>
+      <div class="rating-pills" id="ctrPills">
+        <button class="rate-pill" data-comp="ctr" data-val="below" onclick="setRating('ctr','below',this)">Below Avg</button>
+        <button class="rate-pill" data-comp="ctr" data-val="average" onclick="setRating('ctr','average',this)">Average</button>
+        <button class="rate-pill" data-comp="ctr" data-val="above" onclick="setRating('ctr','above',this)">Above Avg</button>
+      </div>
+      <div class="hint">How does your ad's CTR compare to others targeting this keyword?</div>
+    </div>
+
+    <div class="field">
+      <label>Ad Relevance to Keyword</label>
+      <div class="rating-pills" id="relPills">
+        <button class="rate-pill" data-comp="rel" data-val="below" onclick="setRating('rel','below',this)">Below Avg</button>
+        <button class="rate-pill" data-comp="rel" data-val="average" onclick="setRating('rel','average',this)">Average</button>
+        <button class="rate-pill" data-comp="rel" data-val="above" onclick="setRating('rel','above',this)">Above Avg</button>
+      </div>
+      <div class="hint">Does your ad copy directly address the keyword intent?</div>
+    </div>
+
+    <div class="field">
+      <label>Landing Page Experience</label>
+      <div class="rating-pills" id="lpPills">
+        <button class="rate-pill" data-comp="lp" data-val="below" onclick="setRating('lp','below',this)">Below Avg</button>
+        <button class="rate-pill" data-comp="lp" data-val="average" onclick="setRating('lp','average',this)">Average</button>
+        <button class="rate-pill" data-comp="lp" data-val="above" onclick="setRating('lp','above',this)">Above Avg</button>
+      </div>
+      <div class="hint">Is your landing page fast, relevant, and easy to navigate?</div>
+    </div>
+
+    <button class="btn-calc" onclick="simulate()">Simulate Quality Score</button>
+  </aside>
+
+  <!-- Main -->
+  <main class="main" id="mainArea">
+    <div class="empty-state" id="emptyState">
+      <div class="icon">&#9733;</div>
+      <p>Enter your ad details and rate each component, then click <strong>Simulate</strong> to see your estimated Quality Score and its impact on your CPC.</p>
+    </div>
+
+    <div id="results" style="display:none">
+      <h2>Quality Score Results</h2>
+
+      <!-- QS Hero -->
+      <div class="qs-hero" id="qsHero">
+        <div class="qs-label">Estimated Quality Score</div>
+        <div class="qs-keyword" id="qsKeyword"></div>
+        <div class="qs-meter" id="qsMeter"></div>
+        <div class="qs-number" id="qsNumber">--</div>
+        <div class="qs-rating" id="qsRating"></div>
+      </div>
+
+      <!-- Component scores -->
+      <div class="comp-grid" id="compGrid">
+        <div class="comp-card">
+          <div class="comp-icon">&#128200;</div>
+          <div class="comp-label">Expected CTR</div>
+          <div class="comp-value" id="compCTR">--</div>
+        </div>
+        <div class="comp-card">
+          <div class="comp-icon">&#127919;</div>
+          <div class="comp-label">Ad Relevance</div>
+          <div class="comp-value" id="compRel">--</div>
+        </div>
+        <div class="comp-card">
+          <div class="comp-icon">&#128196;</div>
+          <div class="comp-label">Landing Page</div>
+          <div class="comp-value" id="compLP">--</div>
+        </div>
+      </div>
+
+      <!-- CPC Impact -->
+      <div class="card">
+        <h3><span class="card-icon">&#9632;</span> CPC Impact</h3>
+        <div class="cpc-impact" id="cpcImpact">
+          <div class="cpc-label">Estimated CPC Modifier</div>
+          <div class="cpc-value" id="cpcValue">--</div>
+          <div class="cpc-note" id="cpcNote"></div>
+        </div>
+        <div class="qs-scale" id="qsScale"></div>
+        <div class="qs-scale-labels">
+          <span>QS 1 (+400%)</span>
+          <span>QS 5 (baseline)</span>
+          <span>QS 10 (-50%)</span>
+        </div>
+      </div>
+
+      <!-- Impact explanation -->
+      <div class="card">
+        <h3><span class="card-icon">&#9670;</span> What Quality Score Affects</h3>
+        <ul class="impact-list">
+          <li><div class="impact-icon">$</div><div><strong>Your CPC:</strong> Lower Quality Score = higher cost per click. A QS of 3 means you pay roughly 2x more than a competitor with QS 7 for the same position.</div></li>
+          <li><div class="impact-icon">&#8593;</div><div><strong>Your Ad Rank:</strong> Ad Rank = Max Bid x Quality Score. A higher QS lets you outrank competitors without increasing your bid.</div></li>
+          <li><div class="impact-icon">&#128064;</div><div><strong>Whether your ad shows:</strong> Google has minimum Quality Score thresholds. Very low QS (1-3) may prevent your ad from showing at all for competitive keywords.</div></li>
+        </ul>
+      </div>
+
+      <!-- Suggestions -->
+      <div class="card">
+        <h3><span class="card-icon">&#9881;</span> Improvement Suggestions</h3>
+        <div id="suggestions"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var ratings = { ctr: null, rel: null, lp: null };
+
+  window.setRating = function(comp, val, btn){
+    ratings[comp] = val;
+    var container = btn.parentElement;
+    container.querySelectorAll('.rate-pill').forEach(function(b){
+      b.classList.remove('active', 'below', 'average', 'above');
+      if(b.dataset.val === val){
+        b.classList.add('active', val);
+      }
+    });
+  };
+
+  function ratingToScore(r){
+    if(r === 'below') return 1;
+    if(r === 'average') return 2;
+    if(r === 'above') return 3;
+    return 0;
+  }
+
+  function ratingLabel(r){
+    if(r === 'below') return 'Below Average';
+    if(r === 'average') return 'Average';
+    if(r === 'above') return 'Above Average';
+    return '--';
+  }
+
+  window.simulate = function(){
+    if(!ratings.ctr || !ratings.rel || !ratings.lp){
+      toast('Please rate all three components');
+      return;
+    }
+
+    var keyword = document.getElementById('keyword').value.trim() || '(no keyword)';
+    var headline1 = document.getElementById('headline1').value.trim();
+    var headline2 = document.getElementById('headline2').value.trim();
+    var adDesc = document.getElementById('adDesc').value.trim();
+
+    var ctrScore = ratingToScore(ratings.ctr);
+    var relScore = ratingToScore(ratings.rel);
+    var lpScore = ratingToScore(ratings.lp);
+
+    // QS estimation: weighted sum mapped to 1-10
+    // CTR has highest weight in Google's actual algorithm
+    var raw = (ctrScore * 3.5 + relScore * 2.5 + lpScore * 3.0); // max = 3*3.5 + 3*2.5 + 3*3.0 = 27
+    var qs = Math.round(1 + (raw / 27) * 9); // map to 1-10
+    qs = Math.max(1, Math.min(10, qs));
+
+    // Check for keyword in ad copy bonus
+    if(keyword !== '(no keyword)' && headline1 && (headline1.toLowerCase().indexOf(keyword.toLowerCase()) !== -1 || (headline2 && headline2.toLowerCase().indexOf(keyword.toLowerCase()) !== -1))){
+      qs = Math.min(10, qs + 1);
+    }
+
+    // CPC modifier: QS 5 is baseline (1x), each point above/below adjusts
+    var cpcModifiers = { 1: 4.0, 2: 2.5, 3: 1.67, 4: 1.25, 5: 1.0, 6: 0.83, 7: 0.67, 8: 0.56, 9: 0.44, 10: 0.33 };
+    var cpcMod = cpcModifiers[qs] || 1.0;
+    var cpcPct = ((cpcMod - 1) * 100);
+
+    renderResults(keyword, qs, cpcMod, cpcPct);
+  };
+
+  function renderResults(keyword, qs, cpcMod, cpcPct){
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('results').style.display = '';
+
+    // Keyword
+    document.getElementById('qsKeyword').innerHTML = 'Keyword: <strong>' + esc(keyword) + '</strong>';
+
+    // Meter
+    var meterHtml = '';
+    for(var i = 1; i <= 10; i++){
+      var cls = 'qs-segment ';
+      if(i <= qs){
+        if(qs <= 3) cls += 'low';
+        else if(qs <= 6) cls += 'med';
+        else cls += 'high';
+      } else {
+        cls += 'empty';
+      }
+      meterHtml += '<div class="' + cls + '"></div>';
+    }
+    document.getElementById('qsMeter').innerHTML = meterHtml;
+
+    // Number
+    var numEl = document.getElementById('qsNumber');
+    numEl.textContent = qs + '/10';
+    var qsClass = qs <= 3 ? 'low' : qs <= 6 ? 'med' : 'high';
+    numEl.className = 'qs-number ' + qsClass;
+
+    // Rating text
+    var ratingEl = document.getElementById('qsRating');
+    var ratingText = qs <= 3 ? 'Poor — significant improvement needed' : qs <= 5 ? 'Below average — room for improvement' : qs <= 7 ? 'Good — competitive Quality Score' : 'Excellent — top-tier Quality Score';
+    ratingEl.textContent = ratingText;
+    ratingEl.className = 'qs-rating ' + qsClass;
+
+    // Component scores
+    var comps = { ctr: 'compCTR', rel: 'compRel', lp: 'compLP' };
+    Object.keys(comps).forEach(function(key){
+      var el = document.getElementById(comps[key]);
+      el.textContent = ratingLabel(ratings[key]);
+      el.className = 'comp-value ' + ratings[key];
+    });
+
+    // CPC impact
+    var cpcEl = document.getElementById('cpcValue');
+    if(cpcPct > 0){
+      cpcEl.textContent = '+' + cpcPct.toFixed(0) + '% CPC';
+      cpcEl.className = 'cpc-value penalty';
+    } else if(cpcPct < 0){
+      cpcEl.textContent = cpcPct.toFixed(0) + '% CPC';
+      cpcEl.className = 'cpc-value savings';
+    } else {
+      cpcEl.textContent = 'Baseline CPC';
+      cpcEl.className = 'cpc-value';
+    }
+
+    var noteEl = document.getElementById('cpcNote');
+    if(qs >= 7){
+      noteEl.innerHTML = 'With a Quality Score of <strong>' + qs + '</strong>, you pay approximately <strong>' + Math.abs(cpcPct).toFixed(0) + '% less</strong> than the average advertiser for the same ad position. This is a significant competitive advantage.';
+    } else if(qs >= 5){
+      noteEl.innerHTML = 'With a Quality Score of <strong>' + qs + '</strong>, your CPC is near the baseline. Improving to QS 7+ could reduce your costs by <strong>15-35%</strong>.';
+    } else {
+      noteEl.innerHTML = 'With a Quality Score of <strong>' + qs + '</strong>, you are paying <strong>' + cpcPct.toFixed(0) + '% more</strong> than advertisers with average Quality Scores. This dramatically increases your cost per acquisition.';
+    }
+
+    // QS Scale visualization
+    var scaleHtml = '';
+    for(var i = 1; i <= 10; i++){
+      var bgColor;
+      if(i <= 3) bgColor = 'var(--red)';
+      else if(i <= 6) bgColor = 'var(--yellow)';
+      else bgColor = 'var(--green)';
+      var opacity = i === qs ? '1' : '0.25';
+      var height = i === qs ? '14px' : '8px';
+      scaleHtml += '<div class="qs-scale-seg" style="background:' + bgColor + ';opacity:' + opacity + ';height:' + height + '"></div>';
+    }
+    document.getElementById('qsScale').innerHTML = scaleHtml;
+
+    // Suggestions
+    renderSuggestions(qs);
+
+    document.getElementById('mainArea').scrollTop = 0;
+  }
+
+  function renderSuggestions(qs){
+    var container = document.getElementById('suggestions');
+    var suggestions = [];
+
+    // Always show weakest component first
+    var weakest = null;
+    var weakestScore = 4;
+    var componentNames = { ctr: 'Expected CTR', rel: 'Ad Relevance', lp: 'Landing Page Experience' };
+
+    Object.keys(ratings).forEach(function(key){
+      var s = ratingToScore(ratings[key]);
+      if(s < weakestScore){ weakestScore = s; weakest = key; }
+    });
+
+    if(ratings.ctr === 'below'){
+      suggestions.push({
+        color: 'var(--red)',
+        title: 'Improve Expected CTR' + (weakest === 'ctr' ? ' (highest impact)' : ''),
+        text: 'Add your <strong>target keyword to headlines</strong>. Use numbers, urgency, and specific benefits. Test Responsive Search Ads with 10+ headline variations. Add sitelink, callout, and structured snippet extensions to increase ad real estate.'
+      });
+    } else if(ratings.ctr === 'average'){
+      suggestions.push({
+        color: 'var(--yellow)',
+        title: 'Optimize Expected CTR',
+        text: 'You are at average CTR. Test more headline variations, add emotional triggers, and make your <strong>unique value proposition</strong> clearer. Extensions (sitelinks, callouts) can boost CTR by 10-15%.'
+      });
+    } else {
+      suggestions.push({
+        color: 'var(--green)',
+        title: 'Expected CTR is strong',
+        text: 'Your CTR is above average. Maintain this by continuously refreshing ad copy and monitoring competitor ads for new angles.'
+      });
+    }
+
+    if(ratings.rel === 'below'){
+      suggestions.push({
+        color: 'var(--red)',
+        title: 'Improve Ad Relevance' + (weakest === 'rel' ? ' (highest impact)' : ''),
+        text: 'Your ad copy does not closely match the keyword intent. <strong>Include the exact keyword</strong> in at least one headline. Create tighter ad groups with 10-20 closely related keywords. Consider Single Keyword Ad Groups (SKAGs) for your top terms.'
+      });
+    } else if(ratings.rel === 'average'){
+      suggestions.push({
+        color: 'var(--yellow)',
+        title: 'Optimize Ad Relevance',
+        text: 'Tighten the connection between keyword and ad copy. Use <strong>Dynamic Keyword Insertion</strong> (DKI) where appropriate. Review search terms report to add negatives and improve intent matching.'
+      });
+    } else {
+      suggestions.push({
+        color: 'var(--green)',
+        title: 'Ad Relevance is strong',
+        text: 'Your ad copy closely matches keyword intent. Keep monitoring search terms to maintain relevance as search behavior evolves.'
+      });
+    }
+
+    if(ratings.lp === 'below'){
+      suggestions.push({
+        color: 'var(--red)',
+        title: 'Improve Landing Page Experience' + (weakest === 'lp' ? ' (highest impact)' : ''),
+        text: 'Focus on: <strong>page speed</strong> (under 3s load time), <strong>mobile responsiveness</strong>, <strong>content relevance</strong> to the keyword, and clear CTAs above the fold. Add HTTPS if missing. Remove interstitials and pop-ups that block content.'
+      });
+    } else if(ratings.lp === 'average'){
+      suggestions.push({
+        color: 'var(--yellow)',
+        title: 'Optimize Landing Page Experience',
+        text: 'Improve load speed with image compression and lazy loading. Ensure the <strong>landing page headline matches the ad</strong>. Add trust signals and reduce form fields. Test dedicated landing pages instead of generic website pages.'
+      });
+    } else {
+      suggestions.push({
+        color: 'var(--green)',
+        title: 'Landing Page Experience is strong',
+        text: 'Your landing page provides a good user experience. Continue monitoring Core Web Vitals and keep content fresh and relevant.'
+      });
+    }
+
+    // General tip based on overall QS
+    if(qs <= 4){
+      suggestions.push({
+        color: 'var(--accent)',
+        title: 'Consider pausing and rebuilding',
+        text: 'With a QS this low, you may be spending 2-4x more per click than necessary. Consider pausing these ads, rebuilding with tighter keyword-to-ad matching, and creating dedicated landing pages before resuming spend.'
+      });
+    }
+
+    container.innerHTML = '';
+    suggestions.forEach(function(s){
+      var div = document.createElement('div');
+      div.className = 'suggestion';
+      div.innerHTML =
+        '<div class="suggestion-title"><span class="dot" style="background:' + s.color + '"></span>' + s.title + '</div>' +
+        '<div class="suggestion-text">' + s.text + '</div>';
+      container.appendChild(div);
+    });
+  }
+
+  function esc(s){
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function toast(msg){
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(function(){ el.classList.remove('show'); }, 2200);
+  }
+  window.toast = toast;
+})();
+</script>
+</body>
+</html>

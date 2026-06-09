@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Responsive Search Ad Builder - FreeAdStore</title>
+<meta name="description" content="Build Google Responsive Search Ads with live SERP preview, ad strength meter, and combination counter. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--panel:#ffffff;--line:#e5e7eb;--radius:10px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 16px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.main-scroll{flex:1;overflow-y:auto;padding:24px 32px}
+
+/* PANELS */
+.panel{margin-bottom:14px}
+.panel-title{font-size:.75rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.03em}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 3px;font-weight:500}
+input[type=text],textarea,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;resize:none}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+
+/* HEADLINE / DESC ROWS */
+.entry-row{margin-bottom:10px;position:relative}
+.entry-row .input-wrap{display:flex;gap:6px;align-items:flex-start}
+.entry-row input[type=text],.entry-row textarea{flex:1}
+.entry-row select{width:100px;flex-shrink:0;font-size:.72rem;padding:8px 6px}
+.char-counter{font-size:.62rem;font-weight:600;text-align:right;margin-top:2px;padding-right:2px}
+.char-ok{color:#16a34a}.char-warn{color:#d97706}.char-over{color:#dc2626}
+.path-row{display:flex;gap:6px}
+.path-row input{flex:1}
+
+/* BUTTONS */
+.btn{padding:10px 18px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .12s;width:100%}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{filter:brightness(1.1)}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:6px 12px;font-size:.72rem;width:auto}
+.btn-row{display:flex;gap:8px;margin-top:10px}
+.btn:disabled{opacity:.4;cursor:default;filter:none}
+.section-counter{font-size:.62rem;color:var(--muted);font-weight:500;margin-left:6px}
+
+/* SERP PREVIEW */
+.serp-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px 28px;margin-bottom:20px;max-width:640px}
+.serp-label{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px}
+.serp-sponsored{font-size:.68rem;font-weight:700;color:#1a0dab;background:#e8f0fe;border-radius:3px;padding:1px 5px;display:inline-block;margin-bottom:6px}
+.serp-url-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.serp-favicon{width:26px;height:26px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:var(--muted);flex-shrink:0}
+.serp-url{font-size:.82rem;color:#202124}
+.serp-url .serp-path{color:#006621}
+.serp-title{font-size:1.2rem;font-weight:400;color:#1a0dab;line-height:1.3;margin-bottom:4px;cursor:pointer;font-family:Arial,sans-serif}
+.serp-title:hover{text-decoration:underline}
+.serp-desc{font-size:.85rem;color:#4d5156;line-height:1.45;font-family:Arial,sans-serif}
+.serp-rotating{position:relative;min-height:80px}
+
+/* AD STRENGTH */
+.strength-section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin-bottom:20px;max-width:640px}
+.strength-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.strength-title{font-size:.85rem;font-weight:700}
+.strength-value{font-size:.82rem;font-weight:700;padding:3px 10px;border-radius:6px}
+.strength-poor{background:#fef2f2;color:#dc2626}
+.strength-average{background:#fffbeb;color:#d97706}
+.strength-good{background:#f0fdf4;color:#16a34a}
+.strength-excellent{background:#ecfdf5;color:#059669}
+.strength-bar{display:flex;gap:3px;height:6px;border-radius:3px;overflow:hidden}
+.strength-bar .seg{flex:1;background:#e5e7eb;border-radius:3px;transition:background .3s}
+
+/* COMBO COUNTER */
+.combo-section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin-bottom:20px;max-width:640px;display:flex;align-items:center;gap:16px}
+.combo-number{font-family:'Fraunces',serif;font-size:2.2rem;font-weight:800;color:var(--accent);line-height:1}
+.combo-text{font-size:.82rem;color:var(--muted);font-weight:500}
+.combo-text strong{color:var(--text);display:block;font-size:.9rem}
+
+/* TIPS */
+.tips-section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin-bottom:20px;max-width:640px}
+.tips-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px;color:var(--text)}
+.tip-item{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line);font-size:.8rem;color:var(--muted)}
+.tip-item:last-child{border-bottom:none}
+.tip-icon{flex-shrink:0;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700}
+.tip-warn{background:#fffbeb;color:#d97706}
+.tip-good{background:#f0fdf4;color:#16a34a}
+.tip-info{background:#eff6ff;color:#3b82f6}
+
+/* EXPORT */
+.export-section{max-width:640px}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .main-scroll{padding:16px}
+  .serp-card,.strength-section,.combo-section,.tips-section{max-width:100%}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&#8592; FreeAdStore</a>
+      <h1>RSA Builder</h1>
+      <p>Compose Google Responsive Search Ads with live preview and ad strength scoring.</p>
+    </div>
+    <div class="sidebar-scroll" id="controls">
+      <!-- FINAL URL -->
+      <div class="panel">
+        <div class="panel-title">Final URL</div>
+        <input type="text" id="finalUrl" placeholder="https://example.com/landing-page" oninput="update()">
+      </div>
+
+      <!-- DISPLAY PATH -->
+      <div class="panel">
+        <div class="panel-title">Display Path</div>
+        <div class="path-row">
+          <input type="text" id="path1" placeholder="Path 1" maxlength="15" oninput="enforceMax(this,15);update()">
+          <input type="text" id="path2" placeholder="Path 2" maxlength="15" oninput="enforceMax(this,15);update()">
+        </div>
+        <div class="char-counter" style="display:flex;justify-content:space-between">
+          <span id="path1Count" class="char-ok">0/15</span>
+          <span id="path2Count" class="char-ok">0/15</span>
+        </div>
+      </div>
+
+      <!-- HEADLINES -->
+      <div class="panel">
+        <div class="panel-title">Headlines <span class="section-counter" id="headlineCounter">0 / 15 (min 3)</span></div>
+        <div id="headlineList"></div>
+        <button class="btn btn-outline btn-sm" style="margin-top:8px" id="addHeadlineBtn" onclick="addHeadline()">+ Add headline</button>
+      </div>
+
+      <!-- DESCRIPTIONS -->
+      <div class="panel">
+        <div class="panel-title">Descriptions <span class="section-counter" id="descCounter">0 / 4 (min 2)</span></div>
+        <div id="descList"></div>
+        <button class="btn btn-outline btn-sm" style="margin-top:8px" id="addDescBtn" onclick="addDesc()">+ Add description</button>
+      </div>
+
+      <!-- SUGGEST -->
+      <div class="panel">
+        <button class="btn btn-outline" onclick="suggestHeadlines()">Suggest headlines</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Main -->
+  <div class="main">
+    <div class="main-scroll">
+      <!-- SERP PREVIEW -->
+      <div class="serp-card">
+        <div class="serp-label">Live SERP Preview</div>
+        <div class="serp-rotating" id="serpPreview">
+          <div class="serp-sponsored">Sponsored</div>
+          <div class="serp-url-row">
+            <div class="serp-favicon" id="serpFavicon">E</div>
+            <div class="serp-url" id="serpUrl">example.com</div>
+          </div>
+          <div class="serp-title" id="serpTitle">Your ad headline will appear here</div>
+          <div class="serp-desc" id="serpDesc">Your ad description will appear here.</div>
+        </div>
+      </div>
+
+      <!-- AD STRENGTH -->
+      <div class="strength-section">
+        <div class="strength-header">
+          <span class="strength-title">Ad Strength</span>
+          <span class="strength-value strength-poor" id="strengthLabel">Poor</span>
+        </div>
+        <div class="strength-bar" id="strengthBar">
+          <div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div>
+        </div>
+      </div>
+
+      <!-- COMBINATION COUNTER -->
+      <div class="combo-section">
+        <div class="combo-number" id="comboNumber">0</div>
+        <div class="combo-text"><strong>Possible ad combinations</strong>Calculated from your headlines and descriptions</div>
+      </div>
+
+      <!-- TIPS -->
+      <div class="tips-section">
+        <div class="tips-title">Tips</div>
+        <div id="tipsList"></div>
+      </div>
+
+      <!-- EXPORT -->
+      <div class="export-section">
+        <button class="btn btn-primary" onclick="exportTSV()">Copy as spreadsheet format</button>
+        <p style="font-size:.7rem;color:var(--muted);margin-top:6px;text-align:center">Tab-separated, ready to paste into Google Ads Editor</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const MAX_HEADLINES = 15;
+const MIN_HEADLINES = 3;
+const MAX_DESCS = 4;
+const MIN_DESCS = 2;
+const HEADLINE_LIMIT = 30;
+const DESC_LIMIT = 90;
+const DEFAULT_HEADLINES = 5;
+const DEFAULT_DESCS = 2;
+
+let headlines = [];
+let descs = [];
+let rotateTimer = null;
+
+function init() {
+  for (let i = 0; i < DEFAULT_HEADLINES; i++) addHeadline();
+  for (let i = 0; i < DEFAULT_DESCS; i++) addDesc();
+  update();
+  startRotation();
+}
+
+function addHeadline() {
+  if (headlines.length >= MAX_HEADLINES) return;
+  const idx = headlines.length;
+  headlines.push({ text: '', pin: 'none' });
+  const container = document.getElementById('headlineList');
+  const row = document.createElement('div');
+  row.className = 'entry-row';
+  row.id = 'h-row-' + idx;
+  row.innerHTML =
+    '<div class="input-wrap">' +
+      '<input type="text" id="h-' + idx + '" placeholder="Headline ' + (idx + 1) + '" maxlength="' + HEADLINE_LIMIT + '" oninput="updateHeadline(' + idx + ',this)">' +
+      '<select id="hp-' + idx + '" onchange="updateHeadlinePin(' + idx + ',this)">' +
+        '<option value="none">No pin</option>' +
+        '<option value="1">Pos 1</option>' +
+        '<option value="2">Pos 2</option>' +
+        '<option value="3">Pos 3</option>' +
+      '</select>' +
+    '</div>' +
+    '<div class="char-counter char-ok" id="hc-' + idx + '">0/' + HEADLINE_LIMIT + '</div>';
+  container.appendChild(row);
+  if (headlines.length >= MAX_HEADLINES) document.getElementById('addHeadlineBtn').disabled = true;
+  update();
+}
+
+function addDesc() {
+  if (descs.length >= MAX_DESCS) return;
+  const idx = descs.length;
+  descs.push({ text: '', pin: 'none' });
+  const container = document.getElementById('descList');
+  const row = document.createElement('div');
+  row.className = 'entry-row';
+  row.id = 'd-row-' + idx;
+  row.innerHTML =
+    '<div class="input-wrap">' +
+      '<textarea id="d-' + idx + '" rows="2" maxlength="' + DESC_LIMIT + '" placeholder="Description ' + (idx + 1) + '" oninput="updateDesc(' + idx + ',this)"></textarea>' +
+      '<select id="dp-' + idx + '" onchange="updateDescPin(' + idx + ',this)">' +
+        '<option value="none">No pin</option>' +
+        '<option value="1">Pos 1</option>' +
+        '<option value="2">Pos 2</option>' +
+      '</select>' +
+    '</div>' +
+    '<div class="char-counter char-ok" id="dc-' + idx + '">0/' + DESC_LIMIT + '</div>';
+  container.appendChild(row);
+  if (descs.length >= MAX_DESCS) document.getElementById('addDescBtn').disabled = true;
+  update();
+}
+
+function enforceMax(el, max) {
+  if (el.value.length > max) el.value = el.value.slice(0, max);
+}
+
+function updateHeadline(idx, el) {
+  enforceMax(el, HEADLINE_LIMIT);
+  headlines[idx].text = el.value;
+  updateCharCounter('hc-' + idx, el.value.length, HEADLINE_LIMIT);
+  update();
+}
+
+function updateHeadlinePin(idx, el) {
+  headlines[idx].pin = el.value;
+  update();
+}
+
+function updateDesc(idx, el) {
+  enforceMax(el, DESC_LIMIT);
+  descs[idx].text = el.value;
+  updateCharCounter('dc-' + idx, el.value.length, DESC_LIMIT);
+  update();
+}
+
+function updateDescPin(idx, el) {
+  descs[idx].pin = el.value;
+  update();
+}
+
+function updateCharCounter(id, len, max) {
+  const el = document.getElementById(id);
+  el.textContent = len + '/' + max;
+  if (len === 0) { el.className = 'char-counter char-ok'; }
+  else if (len <= max * 0.8) { el.className = 'char-counter char-ok'; }
+  else if (len <= max) { el.className = 'char-counter char-warn'; }
+  else { el.className = 'char-counter char-over'; }
+}
+
+function filledHeadlines() { return headlines.filter(function(h) { return h.text.trim().length > 0; }); }
+function filledDescs() { return descs.filter(function(d) { return d.text.trim().length > 0; }); }
+
+// ---- SERP PREVIEW ----
+function getDisplayUrl() {
+  var raw = document.getElementById('finalUrl').value.trim();
+  var domain = 'example.com';
+  try {
+    if (raw) {
+      var u = new URL(raw.indexOf('://') === -1 ? 'https://' + raw : raw);
+      domain = u.hostname;
+    }
+  } catch(e) {}
+  var p1 = document.getElementById('path1').value.trim();
+  var p2 = document.getElementById('path2').value.trim();
+  var display = domain;
+  if (p1) display += ' > ' + p1;
+  if (p2) display += ' > ' + p2;
+  return { domain: domain, display: display, p1: p1, p2: p2 };
+}
+
+function pickRandomSubset(arr, count) {
+  var copy = arr.slice();
+  var result = [];
+  while (result.length < count && copy.length > 0) {
+    var idx = Math.floor(Math.random() * copy.length);
+    result.push(copy.splice(idx, 1)[0]);
+  }
+  return result;
+}
+
+function getAdCombination() {
+  var fh = filledHeadlines();
+  var fd = filledDescs();
+  var h = [];
+  var d = [];
+
+  // Respect pins for headlines
+  var pinned1 = fh.filter(function(x) { return x.pin === '1'; });
+  var pinned2 = fh.filter(function(x) { return x.pin === '2'; });
+  var pinned3 = fh.filter(function(x) { return x.pin === '3'; });
+  var unpinned = fh.filter(function(x) { return x.pin === 'none'; });
+
+  if (pinned1.length > 0) h[0] = pinned1[Math.floor(Math.random() * pinned1.length)].text;
+  if (pinned2.length > 0) h[1] = pinned2[Math.floor(Math.random() * pinned2.length)].text;
+  if (pinned3.length > 0) h[2] = pinned3[Math.floor(Math.random() * pinned3.length)].text;
+
+  // Fill remaining slots from unpinned
+  var remaining = pickRandomSubset(unpinned, 3);
+  for (var i = 0; i < 3; i++) {
+    if (!h[i] && remaining.length > 0) h[i] = remaining.shift().text;
+  }
+  h = h.filter(Boolean);
+
+  // Respect pins for descriptions
+  var dpinned1 = fd.filter(function(x) { return x.pin === '1'; });
+  var dpinned2 = fd.filter(function(x) { return x.pin === '2'; });
+  var dunpinned = fd.filter(function(x) { return x.pin === 'none'; });
+
+  if (dpinned1.length > 0) d[0] = dpinned1[Math.floor(Math.random() * dpinned1.length)].text;
+  if (dpinned2.length > 0) d[1] = dpinned2[Math.floor(Math.random() * dpinned2.length)].text;
+
+  var drem = pickRandomSubset(dunpinned, 2);
+  for (var i = 0; i < 2; i++) {
+    if (!d[i] && drem.length > 0) d[i] = drem.shift().text;
+  }
+  d = d.filter(Boolean);
+
+  return { headlines: h, descriptions: d };
+}
+
+function renderSerp() {
+  var url = getDisplayUrl();
+  document.getElementById('serpFavicon').textContent = url.domain.charAt(0).toUpperCase();
+  var urlHtml = url.domain;
+  if (url.p1) urlHtml += ' <span class="serp-path">/' + escHtml(url.p1) + '</span>';
+  if (url.p2) urlHtml += '<span class="serp-path">/' + escHtml(url.p2) + '</span>';
+  document.getElementById('serpUrl').innerHTML = urlHtml;
+
+  var combo = getAdCombination();
+  document.getElementById('serpTitle').textContent = combo.headlines.length > 0
+    ? combo.headlines.join(' | ')
+    : 'Your ad headline will appear here';
+  document.getElementById('serpDesc').textContent = combo.descriptions.length > 0
+    ? combo.descriptions.join(' ')
+    : 'Your ad description will appear here.';
+}
+
+function startRotation() {
+  if (rotateTimer) clearInterval(rotateTimer);
+  rotateTimer = setInterval(renderSerp, 3000);
+}
+
+function escHtml(s) {
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ---- AD STRENGTH ----
+function calcStrength() {
+  var fh = filledHeadlines();
+  var fd = filledDescs();
+  var score = 0;
+  var maxScore = 100;
+
+  // Headline count: 0-30 points (15 headlines = 30 pts)
+  score += Math.min(fh.length / MAX_HEADLINES, 1) * 30;
+
+  // Description count: 0-20 points (4 = 20)
+  score += Math.min(fd.length / MAX_DESCS, 1) * 20;
+
+  // Headline diversity (different lengths): 0-15 points
+  if (fh.length >= 3) {
+    var lengths = fh.map(function(h) { return h.text.length; });
+    var minLen = Math.min.apply(null, lengths);
+    var maxLen = Math.max.apply(null, lengths);
+    var spread = maxLen - minLen;
+    score += Math.min(spread / 15, 1) * 15;
+  }
+
+  // Keyword in URL check: 0-10 points
+  var url = document.getElementById('finalUrl').value.trim().toLowerCase();
+  if (url && fh.length > 0) {
+    var urlWords = url.replace(/[^a-z0-9]+/g, ' ').trim().split(/\s+/);
+    var headlineWords = fh.map(function(h) { return h.text.toLowerCase(); }).join(' ');
+    var matched = urlWords.filter(function(w) { return w.length > 3 && headlineWords.indexOf(w) !== -1; });
+    if (matched.length > 0) score += 10;
+  }
+
+  // Pinning penalty: fewer pins = better, 0-15 points
+  var totalPins = 0;
+  headlines.forEach(function(h) { if (h.pin !== 'none' && h.text.trim()) totalPins++; });
+  descs.forEach(function(d) { if (d.pin !== 'none' && d.text.trim()) totalPins++; });
+  var totalFilled = fh.length + fd.length;
+  if (totalFilled > 0) {
+    var pinRatio = totalPins / totalFilled;
+    score += (1 - pinRatio) * 15;
+  } else {
+    score += 15;
+  }
+
+  // Min requirements met: 0-10 points
+  if (fh.length >= MIN_HEADLINES) score += 5;
+  if (fd.length >= MIN_DESCS) score += 5;
+
+  return Math.round(score);
+}
+
+function renderStrength() {
+  var score = calcStrength();
+  var label, cls, segs;
+  if (score < 30) { label = 'Poor'; cls = 'strength-poor'; segs = 1; }
+  else if (score < 55) { label = 'Average'; cls = 'strength-average'; segs = 2; }
+  else if (score < 80) { label = 'Good'; cls = 'strength-good'; segs = 3; }
+  else { label = 'Excellent'; cls = 'strength-excellent'; segs = 4; }
+
+  var el = document.getElementById('strengthLabel');
+  el.textContent = label;
+  el.className = 'strength-value ' + cls;
+
+  var colors = { 1: '#ef4444', 2: '#f59e0b', 3: '#22c55e', 4: '#059669' };
+  var bar = document.getElementById('strengthBar').children;
+  for (var i = 0; i < 4; i++) {
+    bar[i].style.background = i < segs ? colors[segs] : '#e5e7eb';
+  }
+}
+
+// ---- COMBINATIONS ----
+function calcCombinations() {
+  var nh = filledHeadlines().length;
+  var nd = filledDescs().length;
+  if (nh < 1 || nd < 1) return 0;
+  // Google shows up to 3 headlines and 2 descriptions
+  var hCombos = comb(nh, Math.min(nh, 3)) * fact(Math.min(nh, 3));
+  var dCombos = comb(nd, Math.min(nd, 2)) * fact(Math.min(nd, 2));
+  return hCombos * dCombos;
+}
+
+function comb(n, k) {
+  if (k > n) return 0;
+  if (k === 0 || k === n) return 1;
+  var result = 1;
+  for (var i = 0; i < k; i++) {
+    result = result * (n - i) / (i + 1);
+  }
+  return Math.round(result);
+}
+
+function fact(n) {
+  var r = 1;
+  for (var i = 2; i <= n; i++) r *= i;
+  return r;
+}
+
+function renderCombinations() {
+  var c = calcCombinations();
+  document.getElementById('comboNumber').textContent = c.toLocaleString();
+}
+
+// ---- TIPS ----
+function renderTips() {
+  var fh = filledHeadlines();
+  var fd = filledDescs();
+  var tips = [];
+
+  if (fh.length < MIN_HEADLINES) {
+    tips.push({ type: 'warn', text: 'Add at least ' + MIN_HEADLINES + ' headlines (you have ' + fh.length + ').' });
+  }
+  if (fd.length < MIN_DESCS) {
+    tips.push({ type: 'warn', text: 'Add at least ' + MIN_DESCS + ' descriptions (you have ' + fd.length + ').' });
+  }
+  if (fh.length >= MIN_HEADLINES && fh.length < 8) {
+    tips.push({ type: 'info', text: 'Add more headlines for better performance. Google recommends 8-15 headlines.' });
+  }
+  if (fh.length >= 8 && fh.length < MAX_HEADLINES) {
+    tips.push({ type: 'info', text: 'Great headline count! Adding all 15 maximizes Google\'s optimization ability.' });
+  }
+  if (fh.length >= MAX_HEADLINES) {
+    tips.push({ type: 'good', text: 'Maximum 15 headlines added. Excellent ad flexibility.' });
+  }
+  if (fd.length >= MIN_DESCS && fd.length < MAX_DESCS) {
+    tips.push({ type: 'info', text: 'Add more descriptions. Using all 4 gives Google more options.' });
+  }
+  if (fd.length >= MAX_DESCS) {
+    tips.push({ type: 'good', text: 'All 4 descriptions filled. Great coverage.' });
+  }
+
+  // Length diversity
+  if (fh.length >= 3) {
+    var lengths = fh.map(function(h) { return h.text.length; });
+    var minLen = Math.min.apply(null, lengths);
+    var maxLen = Math.max.apply(null, lengths);
+    if (maxLen - minLen < 8) {
+      tips.push({ type: 'info', text: 'Try varying headline lengths. Mix short punchy headlines with longer detailed ones.' });
+    } else {
+      tips.push({ type: 'good', text: 'Good headline length variety.' });
+    }
+  }
+
+  // Pinning check
+  var totalPins = 0;
+  headlines.forEach(function(h) { if (h.pin !== 'none' && h.text.trim()) totalPins++; });
+  descs.forEach(function(d) { if (d.pin !== 'none' && d.text.trim()) totalPins++; });
+  if (totalPins > 3) {
+    tips.push({ type: 'warn', text: 'Heavy pinning (' + totalPins + ' pins) limits Google\'s ability to optimize. Pin only when necessary.' });
+  } else if (totalPins > 0) {
+    tips.push({ type: 'info', text: totalPins + ' pin(s) active. Pinning reduces optimization but ensures specific messaging.' });
+  }
+
+  // URL check
+  if (!document.getElementById('finalUrl').value.trim()) {
+    tips.push({ type: 'warn', text: 'Add a final URL for your ad.' });
+  }
+
+  if (tips.length === 0) {
+    tips.push({ type: 'good', text: 'Your ad looks great! Review the preview and export when ready.' });
+  }
+
+  var icons = { warn: '!', good: '\u2713', info: 'i' };
+  var html = tips.map(function(t) {
+    return '<div class="tip-item"><div class="tip-icon tip-' + t.type + '">' + icons[t.type] + '</div><span>' + escHtml(t.text) + '</span></div>';
+  }).join('');
+  document.getElementById('tipsList').innerHTML = html;
+}
+
+// ---- COUNTERS ----
+function renderCounters() {
+  var fh = filledHeadlines().length;
+  var fd = filledDescs().length;
+  document.getElementById('headlineCounter').textContent = fh + ' / ' + MAX_HEADLINES + ' (min ' + MIN_HEADLINES + ')';
+  document.getElementById('descCounter').textContent = fd + ' / ' + MAX_DESCS + ' (min ' + MIN_DESCS + ')';
+
+  // Path counters
+  var p1 = document.getElementById('path1').value.length;
+  var p2 = document.getElementById('path2').value.length;
+  updateCharCounter('path1Count', p1, 15);
+  updateCharCounter('path2Count', p2, 15);
+}
+
+// ---- SUGGEST HEADLINES ----
+function suggestHeadlines() {
+  var url = getDisplayUrl();
+  var domain = url.domain.replace(/^www\./, '').split('.')[0];
+  var brand = domain.charAt(0).toUpperCase() + domain.slice(1);
+  var p1 = url.p1 || 'Solutions';
+  var templates = [
+    brand + ' - Official Site',
+    'Try ' + brand + ' Free Today',
+    brand + ' ' + p1,
+    'Get Started with ' + brand,
+    '#1 ' + p1 + ' Platform',
+    'Save Time with ' + brand,
+    p1 + ' Made Simple',
+    brand + ' for Teams',
+    'Trusted ' + p1 + ' Solution',
+    'Start Your Free Trial'
+  ];
+  var fh = filledHeadlines();
+  var firstEmpty = -1;
+  for (var i = 0; i < headlines.length; i++) {
+    if (!headlines[i].text.trim()) { firstEmpty = i; break; }
+  }
+  var templateIdx = 0;
+  for (var i = 0; i < headlines.length && templateIdx < templates.length; i++) {
+    if (!headlines[i].text.trim()) {
+      var suggestion = templates[templateIdx].slice(0, HEADLINE_LIMIT);
+      headlines[i].text = suggestion;
+      document.getElementById('h-' + i).value = suggestion;
+      updateCharCounter('hc-' + i, suggestion.length, HEADLINE_LIMIT);
+      templateIdx++;
+    }
+  }
+  // If we still have templates and room, add more headline rows
+  while (templateIdx < templates.length && headlines.length < MAX_HEADLINES) {
+    addHeadline();
+    var idx = headlines.length - 1;
+    var suggestion = templates[templateIdx].slice(0, HEADLINE_LIMIT);
+    headlines[idx].text = suggestion;
+    document.getElementById('h-' + idx).value = suggestion;
+    updateCharCounter('hc-' + idx, suggestion.length, HEADLINE_LIMIT);
+    templateIdx++;
+  }
+  update();
+}
+
+// ---- EXPORT ----
+function exportTSV() {
+  var fh = filledHeadlines();
+  var fd = filledDescs();
+  if (fh.length < MIN_HEADLINES || fd.length < MIN_DESCS) {
+    alert('Need at least ' + MIN_HEADLINES + ' headlines and ' + MIN_DESCS + ' descriptions to export.');
+    return;
+  }
+  var url = document.getElementById('finalUrl').value.trim() || '';
+  var p1 = document.getElementById('path1').value.trim();
+  var p2 = document.getElementById('path2').value.trim();
+
+  var header = ['Final URL', 'Path 1', 'Path 2'];
+  for (var i = 1; i <= MAX_HEADLINES; i++) header.push('Headline ' + i);
+  for (var i = 1; i <= MAX_HEADLINES; i++) header.push('Headline ' + i + ' position');
+  for (var i = 1; i <= MAX_DESCS; i++) header.push('Description ' + i);
+  for (var i = 1; i <= MAX_DESCS; i++) header.push('Description ' + i + ' position');
+
+  var row = [url, p1, p2];
+  for (var i = 0; i < MAX_HEADLINES; i++) {
+    row.push(i < headlines.length && headlines[i].text.trim() ? headlines[i].text.trim() : '');
+  }
+  for (var i = 0; i < MAX_HEADLINES; i++) {
+    var pin = i < headlines.length && headlines[i].pin !== 'none' ? headlines[i].pin : '';
+    row.push(pin);
+  }
+  for (var i = 0; i < MAX_DESCS; i++) {
+    row.push(i < descs.length && descs[i].text.trim() ? descs[i].text.trim() : '');
+  }
+  for (var i = 0; i < MAX_DESCS; i++) {
+    var pin = i < descs.length && descs[i].pin !== 'none' ? descs[i].pin : '';
+    row.push(pin);
+  }
+
+  var tsv = header.join('\t') + '\n' + row.join('\t');
+  navigator.clipboard.writeText(tsv).then(function() {
+    var btn = document.querySelector('.export-section .btn');
+    var orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    btn.style.background = '#16a34a';
+    setTimeout(function() { btn.textContent = orig; btn.style.background = ''; }, 2000);
+  });
+}
+
+// ---- MASTER UPDATE ----
+function update() {
+  renderCounters();
+  renderSerp();
+  renderStrength();
+  renderCombinations();
+  renderTips();
+}
+
+init();
+</script>
+</body>
+</html>

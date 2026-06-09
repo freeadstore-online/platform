@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meta Ad Preview - FreeAdStore</title>
+<meta name="description" content="Preview how your ad will look on Facebook Feed, Stories, Reels, Right Column, and Instagram Feed. Pixel-accurate Meta ad mockups, free.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--panel:#ffffff;--line:#e5e7eb;--radius:10px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 24px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px;font-family:'Fraunces',serif}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:#f0f2f5}
+
+/* TABS */
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--line);background:var(--panel);flex-shrink:0;padding:0 20px}
+.tab{padding:12px 18px;font-size:.78rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);font-family:inherit;background:none;border-top:none;border-left:none;border-right:none;transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* PREVIEW AREA */
+.preview-area{flex:1;overflow-y:auto;display:flex;align-items:flex-start;justify-content:center;padding:24px}
+
+/* PANELS */
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.03em}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 3px;font-weight:500}
+input[type=text],textarea,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;resize:none}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{min-height:60px;line-height:1.4}
+.char-count{font-size:.65rem;color:var(--muted);text-align:right;margin-top:2px;font-variant-numeric:tabular-nums}
+.char-count.over{color:var(--accent)}
+
+/* IMAGE UPLOAD */
+.drop-zone{border:2px dashed var(--line);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg);position:relative}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:#fef2f2}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop-zone-text{font-size:.75rem;color:var(--muted)}
+.drop-zone-text strong{color:var(--text)}
+.image-preview-wrap{position:relative;border-radius:var(--radius);overflow:hidden;margin-top:6px}
+.image-preview-wrap img{width:100%;display:block;border-radius:var(--radius)}
+.image-preview-wrap .remove-img{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+
+/* ============================================================
+   FACEBOOK FEED PREVIEW
+   ============================================================ */
+.fb-feed{width:500px;background:#fff;border-radius:8px;box-shadow:0 1px 2px rgba(0,0,0,.1);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;overflow:hidden}
+.fb-feed-header{display:flex;align-items:center;gap:8px;padding:12px 16px}
+.fb-feed-avatar{width:40px;height:40px;border-radius:50%;background:#1877F2;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;flex-shrink:0}
+.fb-feed-meta{flex:1;min-width:0}
+.fb-feed-name{font-size:13px;font-weight:600;color:#050505;line-height:1.2}
+.fb-feed-sponsored{font-size:12px;color:#65676B;display:flex;align-items:center;gap:4px;line-height:1.3}
+.fb-feed-sponsored svg{width:12px;height:12px}
+.fb-feed-dots{width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:#65676B;cursor:default}
+.fb-feed-body{padding:0 16px 12px;font-size:15px;color:#050505;line-height:1.33;white-space:pre-wrap;word-break:break-word}
+.fb-feed-image{width:100%;aspect-ratio:1200/628;background:#E4E6EB;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.fb-feed-image img{width:100%;height:100%;object-fit:cover}
+.fb-feed-image .placeholder{color:#BCC0C4;font-size:48px}
+.fb-feed-link-bar{padding:12px 16px;background:#F0F2F5;border-top:1px solid #E4E6EB}
+.fb-feed-link-domain{font-size:12px;color:#65676B;text-transform:uppercase;margin-bottom:2px}
+.fb-feed-link-headline{font-size:16px;font-weight:600;color:#050505;line-height:1.25;margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fb-feed-link-desc{font-size:14px;color:#65676B;line-height:1.3;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.fb-feed-link-bottom{display:flex;align-items:center;justify-content:space-between}
+.fb-feed-link-text{flex:1;min-width:0}
+.fb-feed-cta{padding:0 16px;height:36px;border-radius:6px;background:#E4E6EB;border:none;font-size:14px;font-weight:600;color:#050505;cursor:default;font-family:inherit;flex-shrink:0;margin-left:12px}
+.fb-feed-actions{display:flex;border-top:1px solid #E4E6EB;padding:4px 16px}
+.fb-feed-action{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:6px 0;font-size:14px;font-weight:600;color:#65676B;cursor:default}
+.fb-feed-action svg{width:20px;height:20px}
+
+/* ============================================================
+   STORIES PREVIEW
+   ============================================================ */
+.stories-preview{width:360px;height:640px;border-radius:16px;overflow:hidden;position:relative;background:#000;box-shadow:0 4px 24px rgba(0,0,0,.3)}
+.stories-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.stories-bg img{width:100%;height:100%;object-fit:cover}
+.stories-bg .gradient-bg{position:absolute;inset:0;background:linear-gradient(135deg,#667eea,#764ba2)}
+.stories-overlay{position:absolute;inset:0;display:flex;flex-direction:column;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
+.stories-top{padding:16px;display:flex;flex-direction:column;gap:8px}
+.stories-progress{display:flex;gap:3px}
+.stories-progress-bar{flex:1;height:2px;border-radius:1px;background:rgba(255,255,255,.35)}
+.stories-progress-bar.filled{background:rgba(255,255,255,.9)}
+.stories-header{display:flex;align-items:center;gap:8px}
+.stories-avatar{width:32px;height:32px;border-radius:50%;background:#1877F2;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;border:2px solid #fff;flex-shrink:0}
+.stories-name{font-size:13px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.stories-sponsored-tag{font-size:11px;color:rgba(255,255,255,.8);text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.stories-bottom{margin-top:auto;padding:16px;text-align:center}
+.stories-text{font-size:18px;font-weight:600;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.6);margin-bottom:12px;line-height:1.3;padding:0 12px}
+.stories-cta-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.95);color:#050505;padding:10px 24px;border-radius:99px;font-size:14px;font-weight:600;cursor:default}
+.stories-swipe{margin-top:12px;font-size:11px;color:rgba(255,255,255,.7);display:flex;flex-direction:column;align-items:center;gap:2px}
+.stories-swipe svg{width:16px;height:16px}
+
+/* ============================================================
+   REELS PREVIEW
+   ============================================================ */
+.reels-preview{width:360px;height:640px;border-radius:16px;overflow:hidden;position:relative;background:#000;box-shadow:0 4px 24px rgba(0,0,0,.3)}
+.reels-bg{position:absolute;inset:0;overflow:hidden}
+.reels-bg img{width:100%;height:100%;object-fit:cover}
+.reels-bg .gradient-bg{position:absolute;inset:0;background:linear-gradient(135deg,#1a1a2e,#16213e)}
+.reels-overlay{position:absolute;inset:0;display:flex;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
+.reels-content{flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding:16px;padding-right:56px}
+.reels-sponsor{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.reels-sponsor-avatar{width:32px;height:32px;border-radius:50%;background:#1877F2;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;border:2px solid #fff;flex-shrink:0}
+.reels-sponsor-name{font-size:13px;font-weight:600;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.reels-sponsor-tag{font-size:11px;color:rgba(255,255,255,.7);margin-left:6px}
+.reels-follow{font-size:12px;color:#fff;border:1px solid rgba(255,255,255,.5);padding:3px 10px;border-radius:4px;margin-left:8px;cursor:default}
+.reels-caption{font-size:13px;color:#fff;line-height:1.4;margin-bottom:10px;text-shadow:0 1px 3px rgba(0,0,0,.5);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.reels-cta-bar{background:rgba(255,255,255,.15);backdrop-filter:blur(10px);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.reels-cta-text{flex:1;min-width:0}
+.reels-cta-headline{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reels-cta-desc{font-size:11px;color:rgba(255,255,255,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reels-cta-btn{background:#fff;color:#050505;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;cursor:default;flex-shrink:0}
+.reels-sidebar{position:absolute;right:8px;bottom:80px;display:flex;flex-direction:column;align-items:center;gap:20px}
+.reels-icon{display:flex;flex-direction:column;align-items:center;gap:4px}
+.reels-icon svg{width:28px;height:28px;color:#fff;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))}
+.reels-icon span{font-size:11px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.reels-music{position:absolute;right:8px;bottom:16px;width:36px;height:36px;border-radius:50%;background:#333;border:3px solid #555;display:flex;align-items:center;justify-content:center;animation:spin 3s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.reels-music-inner{width:12px;height:12px;border-radius:50%;background:#888}
+
+/* ============================================================
+   RIGHT COLUMN PREVIEW
+   ============================================================ */
+.right-col{width:254px;background:#fff;border-radius:8px;box-shadow:0 1px 2px rgba(0,0,0,.1);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;overflow:hidden}
+.right-col-image{width:254px;height:133px;background:#E4E6EB;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.right-col-image img{width:100%;height:100%;object-fit:cover}
+.right-col-image .placeholder{color:#BCC0C4;font-size:32px}
+.right-col-body{padding:10px 12px}
+.right-col-headline{font-size:13px;font-weight:600;color:#050505;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:4px}
+.right-col-desc{font-size:12px;color:#65676B;line-height:1.3;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:4px}
+.right-col-sponsor{font-size:11px;color:#65676B;display:flex;align-items:center;gap:4px}
+.right-col-sponsor svg{width:10px;height:10px}
+
+/* ============================================================
+   INSTAGRAM FEED PREVIEW
+   ============================================================ */
+.ig-feed{width:468px;background:#fff;border:1px solid #DBDBDB;border-radius:8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;overflow:hidden}
+.ig-feed-header{display:flex;align-items:center;gap:10px;padding:12px 14px}
+.ig-feed-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ig-feed-avatar-inner{width:28px;height:28px;border-radius:50%;background:#1877F2;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;border:2px solid #fff}
+.ig-feed-meta{flex:1;min-width:0}
+.ig-feed-name{font-size:13px;font-weight:600;color:#262626;line-height:1.2}
+.ig-feed-sponsored{font-size:11px;color:#8E8E8E;line-height:1.3}
+.ig-feed-dots{color:#262626;font-size:16px;letter-spacing:2px;cursor:default;padding:4px}
+.ig-feed-image{width:100%;aspect-ratio:1/1;background:#EFEFEF;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative}
+.ig-feed-image img{width:100%;height:100%;object-fit:cover}
+.ig-feed-image .placeholder{color:#DBDBDB;font-size:48px}
+.ig-feed-actions-row{display:flex;align-items:center;padding:8px 14px;gap:14px}
+.ig-feed-actions-row svg{width:24px;height:24px;color:#262626;cursor:default}
+.ig-feed-actions-row .spacer{flex:1}
+.ig-feed-likes{padding:0 14px;font-size:13px;font-weight:600;color:#262626;margin-bottom:4px}
+.ig-feed-caption-area{padding:0 14px 12px}
+.ig-feed-caption{font-size:13px;color:#262626;line-height:1.4}
+.ig-feed-caption strong{font-weight:600}
+.ig-feed-cta{display:block;width:100%;padding:10px 14px;background:transparent;border:none;border-top:1px solid #EFEFEF;font-size:14px;font-weight:600;color:#1877F2;text-align:left;cursor:default;font-family:inherit}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .preview-area{min-height:500px}
+  .fb-feed{width:100%;max-width:500px}
+  .ig-feed{width:100%;max-width:468px}
+  .stories-preview,.reels-preview{width:280px;height:497px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Controls -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&#8592; FreeAdStore</a>
+      <h1>Meta Ad Preview</h1>
+      <p>See how your ad looks on Facebook & Instagram before you publish.</p>
+    </div>
+    <div class="sidebar-scroll" id="controls"></div>
+  </div>
+  <!-- RIGHT: Preview -->
+  <div class="main">
+    <div class="tab-bar" id="tabBar"></div>
+    <div class="preview-area" id="previewArea"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  pageName: 'Brew & Bean Coffee',
+  primaryText: 'Start your morning right. Our single-origin beans are hand-roasted in small batches for the perfect cup, every time. Order now and get free shipping on your first bag.',
+  headline: 'Freshly Roasted Coffee Beans',
+  description: 'Free shipping on first order',
+  cta: 'Shop Now',
+  linkUrl: 'brewandbean.com',
+  imageData: null,
+  activeTab: 'feed'
+};
+
+const CTA_OPTIONS = ['Learn More','Shop Now','Sign Up','Book Now','Download','Apply Now','Contact Us','Get Offer'];
+const TABS = [
+  {id:'feed', label:'Feed'},
+  {id:'stories', label:'Stories'},
+  {id:'reels', label:'Reels'},
+  {id:'rightcol', label:'Right Column'},
+  {id:'instagram', label:'Instagram Feed'}
+];
+
+// ============================================================
+// HELPERS
+// ============================================================
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function getInitial(name){
+  return (name || 'B').trim().charAt(0).toUpperCase();
+}
+
+function charCountHTML(current, recommended){
+  const cls = current > recommended ? 'char-count over' : 'char-count';
+  return `<div class="${cls}">${current} / ${recommended} recommended</div>`;
+}
+
+function extractDomain(url){
+  return (url || '').replace(/^https?:\/\//,'').replace(/\/.*$/,'').toUpperCase();
+}
+
+// ============================================================
+// BUILD CONTROLS
+// ============================================================
+function buildControls(){
+  const c = document.getElementById('controls');
+  c.innerHTML = `
+  <div class="panel">
+    <div class="panel-title">Brand / Page</div>
+    <input type="text" id="inpPageName" value="${esc(S.pageName)}" placeholder="Your brand or page name">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Ad Copy</div>
+    <label>Primary Text</label>
+    <textarea id="inpPrimary" placeholder="Main ad copy (shows above the image)">${esc(S.primaryText)}</textarea>
+    ${charCountHTML(S.primaryText.length, 125)}
+    <label>Headline</label>
+    <input type="text" id="inpHeadline" value="${esc(S.headline)}" placeholder="Bold headline below image">
+    ${charCountHTML(S.headline.length, 40)}
+    <label>Description</label>
+    <input type="text" id="inpDesc" value="${esc(S.description)}" placeholder="Short description">
+    ${charCountHTML(S.description.length, 30)}
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Call to Action</div>
+    <select id="selCta">
+      ${CTA_OPTIONS.map(o => `<option value="${o}"${o===S.cta?' selected':''}>${o}</option>`).join('')}
+    </select>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Image</div>
+    <div class="drop-zone${S.imageData ? ' has-image':''}" id="dropZone">
+      <input type="file" accept="image/*" id="fileInput">
+      <div class="drop-zone-text">
+        <strong>Drop image here</strong> or click to upload<br>
+        <span style="font-size:.65rem;color:var(--muted)">Recommended: 1200x628 (Feed), 1080x1080 (IG), 1080x1920 (Stories)</span>
+      </div>
+    </div>
+    ${S.imageData ? `<div class="image-preview-wrap"><img src="${S.imageData}" alt="Ad image"><button class="remove-img" id="removeImg">&times;</button></div>` : ''}
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Display Link</div>
+    <input type="text" id="inpLink" value="${esc(S.linkUrl)}" placeholder="yourwebsite.com">
+  </div>
+  `;
+  bindControls();
+}
+
+// ============================================================
+// BIND CONTROLS
+// ============================================================
+function bindControls(){
+  const $ = id => document.getElementById(id);
+
+  $('inpPageName').oninput = e => { S.pageName = e.target.value; render(); };
+
+  $('inpPrimary').oninput = e => {
+    S.primaryText = e.target.value;
+    buildControls();
+    render();
+  };
+
+  $('inpHeadline').oninput = e => {
+    S.headline = e.target.value;
+    buildControls();
+    render();
+  };
+
+  $('inpDesc').oninput = e => {
+    S.description = e.target.value;
+    buildControls();
+    render();
+  };
+
+  $('selCta').onchange = e => { S.cta = e.target.value; render(); };
+  $('inpLink').oninput = e => { S.linkUrl = e.target.value; render(); };
+
+  // Image upload
+  const dropZone = $('dropZone');
+  const fileInput = $('fileInput');
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if(file && file.type.startsWith('image/')) loadImage(file);
+  });
+
+  fileInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if(file) loadImage(file);
+  });
+
+  const removeBtn = $('removeImg');
+  if(removeBtn){
+    removeBtn.onclick = () => {
+      S.imageData = null;
+      buildControls();
+      render();
+    };
+  }
+
+  // Restore cursor position for textareas
+  const primaryEl = $('inpPrimary');
+  if(document.activeElement && document.activeElement.id === 'inpPrimary'){
+    primaryEl.focus();
+    primaryEl.setSelectionRange(primaryEl.value.length, primaryEl.value.length);
+  }
+}
+
+function loadImage(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    S.imageData = e.target.result;
+    buildControls();
+    render();
+  };
+  reader.readAsDataURL(file);
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function buildTabs(){
+  document.getElementById('tabBar').innerHTML = TABS.map(t =>
+    `<button class="tab${t.id===S.activeTab?' active':''}" data-tab="${t.id}">${t.label}</button>`
+  ).join('');
+
+  document.getElementById('tabBar').onclick = e => {
+    const tab = e.target.closest('[data-tab]');
+    if(!tab) return;
+    S.activeTab = tab.dataset.tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === S.activeTab));
+    render();
+  };
+}
+
+// ============================================================
+// RENDER PREVIEWS
+// ============================================================
+function render(){
+  const area = document.getElementById('previewArea');
+  switch(S.activeTab){
+    case 'feed': area.innerHTML = renderFeed(); break;
+    case 'stories': area.innerHTML = renderStories(); break;
+    case 'reels': area.innerHTML = renderReels(); break;
+    case 'rightcol': area.innerHTML = renderRightCol(); break;
+    case 'instagram': area.innerHTML = renderInstagram(); break;
+  }
+}
+
+// ---------- FACEBOOK FEED ----------
+function renderFeed(){
+  const initial = getInitial(S.pageName);
+  const domain = extractDomain(S.linkUrl);
+  const imgHTML = S.imageData
+    ? `<img src="${S.imageData}" alt="Ad">`
+    : `<div class="placeholder"><svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+
+  return `
+  <div class="fb-feed">
+    <div class="fb-feed-header">
+      <div class="fb-feed-avatar">${initial}</div>
+      <div class="fb-feed-meta">
+        <div class="fb-feed-name">${esc(S.pageName || 'Page Name')}</div>
+        <div class="fb-feed-sponsored">
+          Sponsored <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="8" opacity=".15"/><path d="M8 3a5 5 0 1 0 0 10A5 5 0 0 0 8 3zm0 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8z" opacity=".3"/></svg>
+        </div>
+      </div>
+      <div class="fb-feed-dots">&#8943;</div>
+    </div>
+    <div class="fb-feed-body">${esc(S.primaryText)}</div>
+    <div class="fb-feed-image">${imgHTML}</div>
+    <div class="fb-feed-link-bar">
+      <div class="fb-feed-link-bottom">
+        <div class="fb-feed-link-text">
+          <div class="fb-feed-link-domain">${esc(domain)}</div>
+          <div class="fb-feed-link-headline">${esc(S.headline || 'Headline')}</div>
+          <div class="fb-feed-link-desc">${esc(S.description)}</div>
+        </div>
+        <button class="fb-feed-cta">${esc(S.cta)}</button>
+      </div>
+    </div>
+    <div class="fb-feed-actions">
+      <div class="fb-feed-action">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-6 0v4"/><path d="M4 9h16l-1.5 10.5a2 2 0 0 1-2 1.5H7.5a2 2 0 0 1-2-1.5L4 9z" fill="none"/><path d="M7 11l.5 6m9-6-.5 6M12 11v6"/></svg>
+        Like
+      </div>
+      <div class="fb-feed-action">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Comment
+      </div>
+      <div class="fb-feed-action">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        Share
+      </div>
+    </div>
+  </div>`;
+}
+
+// ---------- STORIES ----------
+function renderStories(){
+  const initial = getInitial(S.pageName);
+  const bgHTML = S.imageData
+    ? `<img src="${S.imageData}" alt="Ad">`
+    : `<div class="gradient-bg"></div>`;
+
+  const displayText = S.headline || S.primaryText.slice(0, 60);
+
+  return `
+  <div class="stories-preview">
+    <div class="stories-bg">${bgHTML}</div>
+    <div class="stories-overlay">
+      <div class="stories-top">
+        <div class="stories-progress">
+          <div class="stories-progress-bar filled"></div>
+          <div class="stories-progress-bar"></div>
+          <div class="stories-progress-bar"></div>
+        </div>
+        <div class="stories-header">
+          <div class="stories-avatar">${initial}</div>
+          <div>
+            <div class="stories-name">${esc(S.pageName || 'Page Name')}</div>
+            <div class="stories-sponsored-tag">Sponsored</div>
+          </div>
+        </div>
+      </div>
+      <div class="stories-bottom">
+        <div class="stories-text">${esc(displayText)}</div>
+        <div class="stories-cta-btn">${esc(S.cta)}</div>
+        <div class="stories-swipe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ---------- REELS ----------
+function renderReels(){
+  const initial = getInitial(S.pageName);
+  const bgHTML = S.imageData
+    ? `<img src="${S.imageData}" alt="Ad">`
+    : `<div class="gradient-bg"></div>`;
+
+  const captionText = S.primaryText.length > 80
+    ? S.primaryText.slice(0, 80) + '...'
+    : S.primaryText;
+
+  return `
+  <div class="reels-preview">
+    <div class="reels-bg">${bgHTML}</div>
+    <div class="reels-overlay">
+      <div class="reels-content">
+        <div class="reels-sponsor">
+          <div class="reels-sponsor-avatar">${initial}</div>
+          <span class="reels-sponsor-name">${esc(S.pageName || 'Page Name')}</span>
+          <span class="reels-sponsor-tag">Sponsored</span>
+          <span class="reels-follow">Follow</span>
+        </div>
+        <div class="reels-caption">${esc(captionText)}</div>
+        <div class="reels-cta-bar">
+          <div class="reels-cta-text">
+            <div class="reels-cta-headline">${esc(S.headline || 'Headline')}</div>
+            <div class="reels-cta-desc">${esc(S.description || S.linkUrl)}</div>
+          </div>
+          <div class="reels-cta-btn">${esc(S.cta)}</div>
+        </div>
+      </div>
+      <div class="reels-sidebar">
+        <div class="reels-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09A6.04 6.04 0 0 1 16.5 3C19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          <span>4.2K</span>
+        </div>
+        <div class="reels-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z"/></svg>
+          <span>238</span>
+        </div>
+        <div class="reels-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+          <span>Share</span>
+        </div>
+        <div class="reels-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+        </div>
+      </div>
+      <div class="reels-music"><div class="reels-music-inner"></div></div>
+    </div>
+  </div>`;
+}
+
+// ---------- RIGHT COLUMN ----------
+function renderRightCol(){
+  const imgHTML = S.imageData
+    ? `<img src="${S.imageData}" alt="Ad">`
+    : `<div class="placeholder"><svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+
+  return `
+  <div class="right-col">
+    <div class="right-col-image">${imgHTML}</div>
+    <div class="right-col-body">
+      <div class="right-col-headline">${esc(S.headline || 'Headline')}</div>
+      <div class="right-col-desc">${esc(S.description)}</div>
+      <div class="right-col-sponsor">
+        <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="8" opacity=".2"/></svg>
+        ${esc(S.pageName || 'Page Name')} &middot; Sponsored
+      </div>
+    </div>
+  </div>`;
+}
+
+// ---------- INSTAGRAM FEED ----------
+function renderInstagram(){
+  const initial = getInitial(S.pageName);
+  const imgHTML = S.imageData
+    ? `<img src="${S.imageData}" alt="Ad">`
+    : `<div class="placeholder"><svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+
+  const captionText = S.primaryText.length > 120
+    ? S.primaryText.slice(0, 120) + '... more'
+    : S.primaryText;
+
+  return `
+  <div class="ig-feed">
+    <div class="ig-feed-header">
+      <div class="ig-feed-avatar">
+        <div class="ig-feed-avatar-inner">${initial}</div>
+      </div>
+      <div class="ig-feed-meta">
+        <div class="ig-feed-name">${esc(S.pageName || 'Page Name')}</div>
+        <div class="ig-feed-sponsored">Sponsored</div>
+      </div>
+      <div class="ig-feed-dots">&#8943;</div>
+    </div>
+    <div class="ig-feed-image">${imgHTML}</div>
+    <div class="ig-feed-actions-row">
+      <!-- Like -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <!-- Comment -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      <!-- Share -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      <div class="spacer"></div>
+      <!-- Save -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+    </div>
+    <div class="ig-feed-likes">1,247 likes</div>
+    <div class="ig-feed-caption-area">
+      <div class="ig-feed-caption"><strong>${esc(S.pageName || 'pagename')}</strong> ${esc(captionText)}</div>
+    </div>
+    <button class="ig-feed-cta">${esc(S.cta)}</button>
+  </div>`;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildControls();
+buildTabs();
+render();
+
+// Preserve cursor position on rebuild for text inputs
+let activeId = null;
+let cursorPos = null;
+document.addEventListener('focusin', e => {
+  if(e.target.matches('input[type=text], textarea')){
+    activeId = e.target.id;
+  }
+});
+document.addEventListener('selectionchange', () => {
+  const el = document.activeElement;
+  if(el && el.matches && el.matches('input[type=text], textarea')){
+    cursorPos = el.selectionStart;
+  }
+});
+
+const origBuildControls = buildControls;
+buildControls = function(){
+  origBuildControls();
+  if(activeId){
+    const el = document.getElementById(activeId);
+    if(el){
+      el.focus();
+      if(cursorPos != null){
+        try{ el.setSelectionRange(cursorPos, cursorPos); }catch(e){}
+      }
+    }
+  }
+};
+</script>
+</body>
+</html>

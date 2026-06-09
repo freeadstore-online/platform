@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carousel Ad Builder - FreeAdStore</title>
+<meta name="description" content="Build carousel ads for Meta and LinkedIn. Preview cards, drag to reorder, export as PNGs or copy all text. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:rgba(239,68,68,.08);--accent-hover:#dc2626;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#22c55e;--yellow:#eab308;--red:#ef4444}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:600;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+a.back span{font-weight:400;color:var(--muted)}
+
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 20px 20px}
+.sidebar-head{padding:16px 20px 0;flex-shrink:0}
+.sidebar-head h1{font-family:'Fraunces',serif;font-size:1.35rem;font-weight:700;margin-bottom:2px;color:var(--text)}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:14px;line-height:1.4}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--bg)}
+.main-header{padding:16px 24px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.main-header h2{font-size:.85rem;font-weight:700;color:var(--text)}
+.main-scroll{flex:1;overflow-y:auto;padding:16px 24px 24px}
+
+.panel{margin-bottom:16px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 4px;font-weight:500}
+input[type=text],input[type=url],textarea,select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;transition:border-color .15s}
+input[type=text]:focus,input[type=url]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:60px}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+
+.pill-row{display:flex;gap:5px;flex-wrap:wrap}
+.pill{padding:5px 12px;border:1px solid var(--line);border-radius:8px;font-size:.72rem;font-weight:600;cursor:pointer;background:var(--panel);font-family:inherit;transition:all .12s;color:var(--text)}
+.pill:hover{border-color:var(--accent);color:var(--accent)}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.btn{padding:10px 20px;border-radius:var(--radius);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff;width:100%}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(239,68,68,.3)}
+.btn-primary:active{transform:translateY(0)}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line);padding:7px 14px;font-size:.75rem;font-weight:600}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:6px 12px;font-size:.72rem}
+
+input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;height:6px;-webkit-appearance:none;background:var(--line);border-radius:3px;outline:none;margin:8px 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.range-label{display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:var(--muted)}
+.range-label .range-val{font-weight:700;color:var(--accent);font-size:.82rem}
+
+.sep{height:1px;background:var(--line);margin:16px 0}
+
+/* CAROUSEL PREVIEW */
+.carousel-wrap{margin-bottom:20px}
+.carousel-primary{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.carousel-primary .meta-author{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.carousel-primary .meta-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.75rem}
+.carousel-primary .meta-name{font-size:.8rem;font-weight:700}
+.carousel-primary .meta-sponsor{font-size:.65rem;color:var(--muted)}
+.carousel-primary .primary-text{font-size:.82rem;line-height:1.5;margin-bottom:4px;white-space:pre-wrap}
+
+.carousel-track{display:flex;gap:12px;overflow-x:auto;padding:4px 0 16px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.carousel-track::-webkit-scrollbar{height:6px}
+.carousel-track::-webkit-scrollbar-track{background:var(--line);border-radius:3px}
+.carousel-track::-webkit-scrollbar-thumb{background:var(--muted);border-radius:3px}
+
+.c-card{flex:0 0 280px;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;scroll-snap-align:start;cursor:pointer;transition:all .2s;position:relative}
+.c-card:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.c-card.selected{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light)}
+.c-card.dragging{opacity:.4}
+.c-card.drag-over{border-color:var(--accent);border-style:dashed}
+.c-card-img{width:100%;height:280px;background:var(--bg);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.c-card-img img{width:100%;height:100%;object-fit:cover}
+.c-card-img .placeholder{color:var(--muted);font-size:.72rem;text-align:center;padding:20px}
+.c-card-img .placeholder svg{display:block;margin:0 auto 8px;width:32px;height:32px;opacity:.4}
+.c-card-img .upload-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.75rem;font-weight:700;opacity:0;transition:opacity .15s;cursor:pointer}
+.c-card-img:hover .upload-overlay{opacity:1}
+.c-card-body{padding:12px 14px}
+.c-card-headline{font-size:.82rem;font-weight:700;margin-bottom:4px;min-height:1.2em}
+.c-card-desc{font-size:.72rem;color:var(--muted);margin-bottom:8px;min-height:1em}
+.c-card-cta{display:inline-block;padding:5px 14px;border-radius:6px;font-size:.7rem;font-weight:700;background:var(--accent);color:#fff;cursor:default}
+.c-card-num{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800}
+
+/* LINKEDIN STYLE */
+.linkedin-style .c-card-cta{background:#0a66c2;border-radius:20px}
+.linkedin-style .carousel-primary .meta-avatar{background:#0a66c2}
+
+/* CARD EDITOR */
+.card-editor{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:16px}
+.card-editor h3{font-size:.82rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.card-editor h3 span{color:var(--accent)}
+.editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.editor-grid .full{grid-column:1/-1}
+.char-hint{font-size:.62rem;color:var(--muted);margin-top:2px;text-align:right}
+.char-warn{color:var(--red)}
+
+/* EMPTY STATE */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:400px;text-align:center;padding:40px}
+.empty-icon{width:80px;height:80px;border-radius:20px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.empty-icon svg{width:36px;height:36px;color:var(--accent)}
+.empty-state h3{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;margin-bottom:6px}
+.empty-state p{font-size:.82rem;color:var(--muted);max-width:320px;line-height:1.5}
+
+.export-bar{padding:12px 24px;border-top:1px solid var(--line);background:var(--panel);display:flex;gap:8px;flex-shrink:0;align-items:center;justify-content:flex-end}
+.export-bar .count{font-size:.72rem;color:var(--muted);margin-right:auto}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;padding:10px 20px;border-radius:10px;font-size:.78rem;font-weight:600;opacity:0;transition:all .3s ease;z-index:1000;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:none}
+  .main{min-height:60vh}
+  .c-card{flex:0 0 240px}
+  .c-card-img{height:240px}
+  .editor-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/"><span>&larr;</span> FreeAdStore</a>
+      <h1>Carousel Ad Builder</h1>
+      <p>Build carousel ads for Meta and LinkedIn. Preview, reorder, export.</p>
+    </div>
+    <div class="sidebar-scroll" id="controls"></div>
+  </div>
+  <div class="main">
+    <div class="main-header" id="mainHeader" style="display:none">
+      <h2 id="resultsTitle">Carousel Preview</h2>
+      <div style="display:flex;gap:6px">
+        <button class="btn-outline btn-sm" id="btnTogglePlatform">Switch to LinkedIn</button>
+      </div>
+    </div>
+    <div class="main-scroll" id="mainContent">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20"/><path d="M17 2v20"/></svg>
+        </div>
+        <h3>Ready to build</h3>
+        <p>Set your brand name, pick a platform and number of cards, then click "Build Carousel" to start designing.</p>
+      </div>
+      <div id="carouselArea" style="display:none"></div>
+    </div>
+    <div class="export-bar" id="exportBar" style="display:none">
+      <span class="count" id="exportCount"></span>
+      <button class="btn-outline btn-sm" id="btnCopyAll">Copy All Text</button>
+      <button class="btn-outline btn-sm" id="btnExportPngs">Export PNGs</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInput" accept="image/*" style="display:none">
+
+<script>
+const CTA_OPTIONS = ['Learn More','Shop Now','Sign Up','Book Now','Download','Get Offer','Subscribe','Apply Now','Contact Us','Watch More'];
+
+let S = {
+  brand: '',
+  platform: 'meta',
+  numCards: 3,
+  primaryText: '',
+  landingUrl: '',
+  cards: [],
+  selectedCard: 0,
+  previewPlatform: 'meta',
+  dragIdx: -1,
+};
+
+function buildControls() {
+  const c = document.getElementById('controls');
+  c.innerHTML = `
+  <div class="panel">
+    <div class="panel-title">Brand</div>
+    <label>Brand / Company Name</label>
+    <input type="text" id="inpBrand" value="${esc(S.brand)}" placeholder="e.g. Acme, Nike, Stripe">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Carousel Settings</div>
+    <label>Platform</label>
+    <div class="pill-row" id="platRow">
+      <button class="pill${S.platform==='meta'?' active':''}" data-plat="meta">Meta / Facebook</button>
+      <button class="pill${S.platform==='linkedin'?' active':''}" data-plat="linkedin">LinkedIn</button>
+    </div>
+    <label>Number of Cards</label>
+    <div class="range-label"><span>2</span><span class="range-val" id="numCardsVal">${S.numCards}</span><span>10</span></div>
+    <input type="range" id="rangeCards" min="2" max="10" value="${S.numCards}">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Overall Copy</div>
+    <label>Primary Text (above carousel)</label>
+    <textarea id="inpPrimary" placeholder="Main post text that appears above the carousel..." oninput="S.primaryText=this.value;updatePreview()">${esc(S.primaryText)}</textarea>
+    <label>Landing URL</label>
+    <input type="url" id="inpUrl" value="${esc(S.landingUrl)}" placeholder="https://example.com" oninput="S.landingUrl=this.value">
+  </div>
+
+  <div class="sep"></div>
+
+  <button class="btn btn-primary" id="btnBuild">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20"/><path d="M17 2v20"/></svg>
+    Build Carousel
+  </button>
+  `;
+  bindControls();
+}
+
+function esc(s) { return s.replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+function escHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+function bindControls() {
+  const $ = id => document.getElementById(id);
+  $('inpBrand').oninput = e => { S.brand = e.target.value; if (S.cards.length) updatePreview(); };
+  $('rangeCards').oninput = e => {
+    S.numCards = +e.target.value;
+    $('numCardsVal').textContent = S.numCards;
+  };
+  $('platRow').onclick = e => {
+    const el = e.target.closest('[data-plat]');
+    if (!el) return;
+    S.platform = el.dataset.plat;
+    document.querySelectorAll('#platRow .pill').forEach(p => p.classList.toggle('active', p.dataset.plat === S.platform));
+  };
+  $('btnBuild').onclick = buildCarousel;
+}
+
+function buildCarousel() {
+  S.previewPlatform = S.platform;
+  // Preserve existing cards if resizing
+  while (S.cards.length < S.numCards) {
+    S.cards.push({headline:'',desc:'',cta:'Learn More',imgData:null});
+  }
+  S.cards = S.cards.slice(0, S.numCards);
+  S.selectedCard = 0;
+  showCarousel();
+}
+
+function showCarousel() {
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('carouselArea').style.display = 'block';
+  document.getElementById('mainHeader').style.display = 'flex';
+  document.getElementById('exportBar').style.display = 'flex';
+  updatePreview();
+}
+
+function updatePreview() {
+  const brand = S.brand.trim() || 'Brand';
+  const initial = brand.charAt(0).toUpperCase();
+  const isLinkedin = S.previewPlatform === 'linkedin';
+  const platClass = isLinkedin ? 'linkedin-style' : '';
+
+  document.getElementById('resultsTitle').textContent = `${brand} - ${isLinkedin ? 'LinkedIn' : 'Meta'} Carousel`;
+  document.getElementById('exportCount').textContent = `${S.cards.length} cards`;
+  document.getElementById('btnTogglePlatform').textContent = isLinkedin ? 'Switch to Meta' : 'Switch to LinkedIn';
+  document.getElementById('btnTogglePlatform').onclick = () => {
+    S.previewPlatform = S.previewPlatform === 'meta' ? 'linkedin' : 'meta';
+    updatePreview();
+  };
+
+  const area = document.getElementById('carouselArea');
+  area.innerHTML = `
+    <div class="carousel-wrap ${platClass}">
+      <div class="carousel-primary">
+        <div class="meta-author">
+          <div class="meta-avatar">${initial}</div>
+          <div>
+            <div class="meta-name">${escHtml(brand)}</div>
+            <div class="meta-sponsor">Sponsored</div>
+          </div>
+        </div>
+        <div class="primary-text">${escHtml(S.primaryText || 'Your primary text appears here...')}</div>
+      </div>
+      <div class="carousel-track" id="carouselTrack">
+        ${S.cards.map((card, i) => `
+          <div class="c-card${i===S.selectedCard?' selected':''}" data-idx="${i}" draggable="true">
+            <div class="c-card-img" data-idx="${i}">
+              <div class="c-card-num">${i+1}</div>
+              ${card.imgData
+                ? `<img src="${card.imgData}" alt="Card ${i+1}">`
+                : `<div class="placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>1080 x 1080<br>Click to upload</div>`
+              }
+              <div class="upload-overlay">Upload Image</div>
+            </div>
+            <div class="c-card-body">
+              <div class="c-card-headline">${escHtml(card.headline || `Card ${i+1} headline`)}</div>
+              <div class="c-card-desc">${escHtml(card.desc || isLinkedin ? 'Description text' : brand.toLowerCase() + '.com')}</div>
+              <div class="c-card-cta">${escHtml(card.cta || 'Learn More')}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="card-editor" id="cardEditor">
+      <h3><span>Card ${S.selectedCard + 1}</span> of ${S.cards.length} - Edit</h3>
+      <div class="editor-grid">
+        <div>
+          <label>Headline</label>
+          <input type="text" id="edHeadline" maxlength="40" value="${esc(S.cards[S.selectedCard].headline)}" placeholder="Card headline..." oninput="updCard('headline',this.value)">
+          <div class="char-hint${S.cards[S.selectedCard].headline.length>40?' char-warn':''}">${S.cards[S.selectedCard].headline.length}/40</div>
+        </div>
+        <div>
+          <label>CTA Button</label>
+          <select id="edCta" onchange="updCard('cta',this.value)">
+            ${CTA_OPTIONS.map(c => `<option${c===S.cards[S.selectedCard].cta?' selected':''}>${c}</option>`).join('')}
+          </select>
+        </div>
+        <div class="full">
+          <label>Description</label>
+          <input type="text" id="edDesc" value="${esc(S.cards[S.selectedCard].desc)}" placeholder="Short description or display URL..." oninput="updCard('desc',this.value)">
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Bind card selection & drag
+  const track = document.getElementById('carouselTrack');
+  track.querySelectorAll('.c-card').forEach(card => {
+    card.addEventListener('click', e => {
+      if (e.target.closest('.upload-overlay') || e.target.closest('.c-card-img')) {
+        triggerUpload(+card.dataset.idx);
+        return;
+      }
+      S.selectedCard = +card.dataset.idx;
+      updatePreview();
+    });
+    card.addEventListener('dragstart', e => {
+      S.dragIdx = +card.dataset.idx;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      track.querySelectorAll('.c-card').forEach(c => c.classList.remove('drag-over'));
+      S.dragIdx = -1;
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      card.classList.add('drag-over');
+    });
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      const to = +card.dataset.idx;
+      if (S.dragIdx !== -1 && S.dragIdx !== to) {
+        const [moved] = S.cards.splice(S.dragIdx, 1);
+        S.cards.splice(to, 0, moved);
+        if (S.selectedCard === S.dragIdx) S.selectedCard = to;
+        updatePreview();
+      }
+    });
+  });
+
+  // Bind image upload on img area click
+  track.querySelectorAll('.c-card-img').forEach(img => {
+    img.addEventListener('click', e => {
+      e.stopPropagation();
+      triggerUpload(+img.dataset.idx);
+    });
+  });
+
+  // Bind export
+  document.getElementById('btnCopyAll').onclick = copyAll;
+  document.getElementById('btnExportPngs').onclick = exportPngs;
+}
+
+function triggerUpload(idx) {
+  const fi = document.getElementById('fileInput');
+  fi.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      S.cards[idx].imgData = ev.target.result;
+      updatePreview();
+    };
+    reader.readAsDataURL(file);
+    fi.value = '';
+  };
+  fi.click();
+}
+
+function updCard(key, val) {
+  S.cards[S.selectedCard][key] = val;
+  updatePreview();
+}
+
+function copyAll() {
+  const brand = S.brand.trim() || 'Brand';
+  const lines = [
+    `CAROUSEL AD - ${brand}`,
+    `Platform: ${S.previewPlatform === 'linkedin' ? 'LinkedIn' : 'Meta'}`,
+    `Cards: ${S.cards.length}`,
+    `Landing URL: ${S.landingUrl || '(not set)'}`,
+    '',
+    `Primary Text:`,
+    S.primaryText || '(empty)',
+    '',
+  ];
+  S.cards.forEach((c, i) => {
+    lines.push(`--- Card ${i+1} ---`);
+    lines.push(`Headline: ${c.headline || '(empty)'}`);
+    lines.push(`Description: ${c.desc || '(empty)'}`);
+    lines.push(`CTA: ${c.cta}`);
+    lines.push(`Image: ${c.imgData ? 'Uploaded' : 'None'}`);
+    lines.push('');
+  });
+  navigator.clipboard.writeText(lines.join('\n')).then(() => showToast('All card text copied'));
+}
+
+function exportPngs() {
+  S.cards.forEach((card, i) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080;
+    canvas.height = 1080;
+    const ctx = canvas.getContext('2d');
+
+    // Background
+    ctx.fillStyle = '#f3f4f6';
+    ctx.fillRect(0, 0, 1080, 1080);
+
+    const render = () => {
+      // Headline area at bottom
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 880, 1080, 200);
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(0, 880, 1080, 200);
+
+      // Headline
+      ctx.fillStyle = '#1a1a1a';
+      ctx.font = 'bold 36px Manrope, sans-serif';
+      ctx.fillText(card.headline || `Card ${i+1}`, 40, 935);
+
+      // Description
+      ctx.fillStyle = '#6b7280';
+      ctx.font = '28px Manrope, sans-serif';
+      ctx.fillText(card.desc || '', 40, 980);
+
+      // CTA button
+      const ctaText = card.cta || 'Learn More';
+      ctx.font = 'bold 26px Manrope, sans-serif';
+      const ctaW = ctx.measureText(ctaText).width + 60;
+      ctx.fillStyle = S.previewPlatform === 'linkedin' ? '#0a66c2' : '#ef4444';
+      const bx = 40, by = 1005, bh = 50;
+      ctx.beginPath();
+      ctx.roundRect(bx, by, ctaW, bh, 10);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(ctaText, bx + 30, by + 35);
+
+      // Card number
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.beginPath();
+      ctx.arc(60, 60, 28, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 28px Manrope, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(String(i + 1), 60, 70);
+      ctx.textAlign = 'left';
+
+      // Download
+      canvas.toBlob(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `carousel-card-${i + 1}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    };
+
+    if (card.imgData) {
+      const img = new Image();
+      img.onload = () => {
+        // Draw image filling 1080x880
+        const ar = img.width / img.height;
+        let dw = 1080, dh = 880;
+        if (ar > 1080/880) { dh = 1080 / ar; } else { dw = 880 * ar; }
+        const dx = (1080 - dw) / 2, dy = (880 - dh) / 2;
+        ctx.drawImage(img, dx, dy, dw, dh);
+        render();
+      };
+      img.src = card.imgData;
+    } else {
+      // Placeholder
+      ctx.fillStyle = '#e5e7eb';
+      ctx.fillRect(0, 0, 1080, 880);
+      ctx.fillStyle = '#9ca3af';
+      ctx.font = '32px Manrope, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('1080 x 1080', 540, 440);
+      ctx.textAlign = 'left';
+      render();
+    }
+  });
+  showToast(`Exporting ${S.cards.length} PNGs...`);
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+buildControls();
+</script>
+</body>
+</html>

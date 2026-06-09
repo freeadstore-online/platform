@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ad Copy Generator - FreeAdStore</title>
+<meta name="description" content="Write platform-specific ad copy for Google, Meta, LinkedIn, TikTok, X, and YouTube. 5 variants per click. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:rgba(239,68,68,.08);--accent-hover:#dc2626;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#22c55e;--yellow:#eab308;--red:#ef4444}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:600;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+a.back span{font-weight:400;color:var(--muted)}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 20px 20px}
+.sidebar-head{padding:16px 20px 0;flex-shrink:0}
+.sidebar-head h1{font-family:'Fraunces',serif;font-size:1.35rem;font-weight:700;margin-bottom:2px;color:var(--text)}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:14px;line-height:1.4}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--bg)}
+.main-header{padding:16px 24px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.main-header h2{font-size:.85rem;font-weight:700;color:var(--text)}
+.main-scroll{flex:1;overflow-y:auto;padding:16px 24px 24px}
+
+/* PANELS */
+.panel{margin-bottom:16px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 4px;font-weight:500}
+input[type=text],textarea,select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;transition:border-color .15s}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:60px}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+
+/* PILLS */
+.pill-row{display:flex;gap:5px;flex-wrap:wrap}
+.pill{padding:5px 12px;border:1px solid var(--line);border-radius:8px;font-size:.72rem;font-weight:600;cursor:pointer;background:var(--panel);font-family:inherit;transition:all .12s;color:var(--text)}
+.pill:hover{border-color:var(--accent);color:var(--accent)}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* BUTTONS */
+.btn{padding:10px 20px;border-radius:var(--radius);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff;width:100%}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(239,68,68,.3)}
+.btn-primary:active{transform:translateY(0)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line);padding:7px 14px;font-size:.75rem;font-weight:600}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:6px 12px;font-size:.72rem}
+
+/* CARD GRID */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.ad-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:all .2s}
+.ad-card:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.card-header{padding:14px 16px 10px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.card-angle{font-size:.72rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.03em;display:flex;align-items:center;gap:5px}
+.card-angle-icon{width:16px;height:16px;border-radius:4px;background:var(--accent-light);display:flex;align-items:center;justify-content:center}
+.card-angle-icon svg{width:10px;height:10px;color:var(--accent)}
+.card-copy-btn{background:none;border:1px solid var(--line);border-radius:6px;padding:4px 10px;font-size:.68rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--muted);transition:all .12s;display:flex;align-items:center;gap:4px}
+.card-copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+.card-copy-btn.copied{border-color:var(--green);color:var(--green);background:rgba(34,197,94,.06)}
+.card-body{padding:16px}
+.ad-field{margin-bottom:12px}
+.ad-field:last-child{margin-bottom:0}
+.ad-field-label{font-size:.65rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;display:flex;justify-content:space-between;align-items:center}
+.ad-field-text{font-size:.88rem;line-height:1.45;color:var(--text);word-break:break-word}
+.char-count{font-size:.62rem;font-weight:600;font-variant-numeric:tabular-nums;padding:1px 5px;border-radius:4px}
+.char-green{color:var(--green);background:rgba(34,197,94,.08)}
+.char-yellow{color:#ca8a04;background:rgba(234,179,8,.1)}
+.char-red{color:var(--red);background:rgba(239,68,68,.08)}
+.card-footer{padding:10px 16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.card-platform{font-size:.65rem;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:4px}
+.card-platform svg{width:12px;height:12px;opacity:.6}
+
+/* EMPTY STATE */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:400px;text-align:center;padding:40px}
+.empty-icon{width:80px;height:80px;border-radius:20px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.empty-icon svg{width:36px;height:36px;color:var(--accent)}
+.empty-state h3{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;margin-bottom:6px}
+.empty-state p{font-size:.82rem;color:var(--muted);max-width:320px;line-height:1.5}
+
+/* EXPORT BAR */
+.export-bar{padding:12px 24px;border-top:1px solid var(--line);background:var(--panel);display:flex;gap:8px;flex-shrink:0;align-items:center;justify-content:flex-end}
+.export-bar .count{font-size:.72rem;color:var(--muted);margin-right:auto}
+
+/* PLATFORM LIMITS INFO */
+.limits-box{margin-top:12px;background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;font-size:.7rem;color:var(--muted);line-height:1.6}
+.limits-box strong{color:var(--text);font-weight:600}
+.limits-row{display:flex;justify-content:space-between;padding:2px 0}
+.limits-row span:last-child{font-variant-numeric:tabular-nums;color:var(--text);font-weight:600}
+
+/* SEPARATOR */
+.sep{height:1px;background:var(--line);margin:16px 0}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;padding:10px 20px;border-radius:10px;font-size:.78rem;font-weight:600;opacity:0;transition:all .3s ease;z-index:1000;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:none}
+  .main{min-height:60vh}
+  .card-grid{grid-template-columns:1fr}
+}
+@media(max-width:500px){
+  .card-grid{grid-template-columns:1fr}
+  .sidebar{min-width:0}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Controls -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/"><span>&larr;</span> FreeAdStore</a>
+      <h1>Ad Copy Generator</h1>
+      <p>Write platform-specific ad copy. 5 variants, one click.</p>
+    </div>
+    <div class="sidebar-scroll" id="controls"></div>
+  </div>
+  <!-- RIGHT: Results -->
+  <div class="main">
+    <div class="main-header" id="mainHeader" style="display:none">
+      <h2 id="resultsTitle">5 variants generated</h2>
+      <div style="display:flex;gap:6px">
+        <button class="btn-outline btn-sm" id="btnRegenerate" title="Regenerate variants">Regenerate</button>
+      </div>
+    </div>
+    <div class="main-scroll" id="mainContent">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <h3>Ready to write ads</h3>
+        <p>Enter a brand name and what they're advertising, pick a platform, and hit Generate to get 5 ad copy variants.</p>
+      </div>
+      <div class="card-grid" id="cardGrid" style="display:none"></div>
+    </div>
+    <div class="export-bar" id="exportBar" style="display:none">
+      <span class="count" id="exportCount">5 variants</span>
+      <button class="btn-outline btn-sm" id="btnCopyAll">Copy All</button>
+      <button class="btn-outline btn-sm" id="btnExport">Export .txt</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// PLATFORM SPECS
+// ============================================================
+const PLATFORMS = {
+  google: {
+    name: 'Google Search',
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>',
+    fields: [
+      { key: 'headline1', label: 'Headline 1', limit: 30 },
+      { key: 'headline2', label: 'Headline 2', limit: 30 },
+      { key: 'headline3', label: 'Headline 3', limit: 30 },
+      { key: 'description1', label: 'Description 1', limit: 90 },
+      { key: 'description2', label: 'Description 2', limit: 90 },
+    ]
+  },
+  meta: {
+    name: 'Meta / Facebook',
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>',
+    fields: [
+      { key: 'primary_text', label: 'Primary Text', limit: 125 },
+      { key: 'headline', label: 'Headline', limit: 40 },
+      { key: 'description', label: 'Description', limit: 30 },
+      { key: 'cta_link', label: 'Link Description', limit: 25 },
+    ]
+  },
+  linkedin: {
+    name: 'LinkedIn',
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>',
+    fields: [
+      { key: 'intro_text', label: 'Intro Text', limit: 150 },
+      { key: 'headline', label: 'Headline', limit: 70 },
+      { key: 'description', label: 'Description', limit: 100 },
+    ]
+  },
+  tiktok: {
+    name: 'TikTok',
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>',
+    fields: [
+      { key: 'ad_text', label: 'Ad Text', limit: 100 },
+      { key: 'caption', label: 'Video Caption', limit: 150 },
+    ]
+  },
+  twitter: {
+    name: 'X / Twitter',
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>',
+    fields: [
+      { key: 'tweet_text', label: 'Tweet / Post Text', limit: 280 },
+      { key: 'card_title', label: 'Card Title', limit: 70 },
+      { key: 'card_description', label: 'Card Description', limit: 200 },
+    ]
+  },
+  youtube: {
+    name: 'YouTube',
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>',
+    fields: [
+      { key: 'headline', label: 'Headline', limit: 30 },
+      { key: 'long_headline', label: 'Long Headline', limit: 90 },
+      { key: 'description', label: 'Description', limit: 90 },
+      { key: 'companion_title', label: 'Companion Banner Title', limit: 25 },
+    ]
+  }
+};
+
+// ============================================================
+// AD COPY TEMPLATES
+// ============================================================
+const ANGLES = [
+  { id: 'benefit', label: 'Benefit-Focused', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>' },
+  { id: 'problem', label: 'Problem-Solution', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' },
+  { id: 'social', label: 'Social Proof', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
+  { id: 'urgency', label: 'Urgency', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' },
+  { id: 'curiosity', label: 'Curiosity', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' },
+];
+
+const CTA_OPTIONS = [
+  'Learn More', 'Shop Now', 'Sign Up', 'Get Started',
+  'Book Now', 'Download', 'Try Free', 'Contact Us'
+];
+
+const TONES = [
+  'professional', 'casual', 'urgent', 'playful', 'authoritative', 'emotional'
+];
+
+// Template banks per angle
+const TEMPLATES = {
+  benefit: {
+    headlines: [
+      '{product} That Actually {verb}',
+      'Better {category} Start Here',
+      'Unlock {benefit} with {brand}',
+      '{benefit} Made Simple',
+      'The {product} You Deserve',
+      'Finally, {category} That {verb}',
+      '{brand}: {benefit} Guaranteed',
+      'Get More {benefit} Today',
+      'Smarter {category} by {brand}',
+      '{product} Built for Results',
+    ],
+    descriptions: [
+      'Discover {product} by {brand} designed to {verb}. {benefit_sentence} {cta} today.',
+      '{brand} brings you {product} that delivers real {benefit}. See why {audience} choose us. {cta}.',
+      'Experience {product} engineered for {benefit}. {brand} helps you {verb} without the hassle. {cta}.',
+      'Looking for {category} that {verb}? {brand}\'s {product} gives you {benefit} from day one. {cta}.',
+      'Stop settling for less. {brand}\'s {product} is built to {verb} and deliver {benefit} you can measure. {cta}.',
+    ],
+    primary_texts: [
+      '{brand}\'s {product} helps you {verb}. {benefit_sentence} See why {audience} are making the switch. {cta}.',
+      'Imagine {category} that actually delivers {benefit}. That\'s what {brand} built. {product} is designed for people who demand results. {cta}.',
+      'What if your {category} could {verb}? With {brand}\'s {product}, it can. {benefit_sentence} {cta} and see the difference.',
+    ],
+  },
+  problem: {
+    headlines: [
+      'Tired of {pain_point}?',
+      'Stop {pain_verb}ing Your Time',
+      '{pain_point}? Not Anymore.',
+      'End {pain_point} for Good',
+      'Say Goodbye to {pain_point}',
+      '{pain_point} Is Over',
+      'No More {pain_point}',
+      'Fix {pain_point} in Minutes',
+      'Done with {pain_point}?',
+      'Frustrated by {pain_point}?',
+    ],
+    descriptions: [
+      'Tired of {pain_point}? {brand}\'s {product} {solves_it}. {cta} and see the difference for yourself.',
+      '{pain_point} costs you {cost}. {brand}\'s {product} eliminates it. {cta} and start {benefit_verb}ing today.',
+      'Most {category} leaves you dealing with {pain_point}. {brand} built {product} to change that. {cta}.',
+      'You shouldn\'t have to deal with {pain_point}. {brand} fixed it with {product}. {benefit_sentence} {cta} now.',
+      'If {pain_point} is holding you back, {brand}\'s {product} is your solution. {solves_it_sentence} {cta}.',
+    ],
+    primary_texts: [
+      'We get it. {pain_point} is frustrating. That\'s exactly why {brand} created {product}. No more {pain_verb}ing around. {solves_it_sentence} {cta} today.',
+      'Every day, {audience} lose {cost} to {pain_point}. {brand}\'s {product} was built to end that cycle. {benefit_sentence} {cta}.',
+      'Here\'s the truth: {pain_point} shouldn\'t be your problem. {brand}\'s {product} {solves_it} so you can focus on what matters. {cta}.',
+    ],
+  },
+  social: {
+    headlines: [
+      'Join {number}+ {audience}',
+      'Trusted by {number}+ {audience}',
+      '{number}+ {audience} Can\'t Be Wrong',
+      'See Why {audience} Choose Us',
+      '#1 Rated {category}',
+      '{audience} Love {brand}',
+      'The {audience}\'s Choice',
+      'Rated {rating} by {audience}',
+      '{number}+ {audience} Agree',
+      'Award-Winning {category}',
+    ],
+    descriptions: [
+      'Join {number}+ {audience} who {verb} with {brand}\'s {product}. {social_proof_sentence} {cta}.',
+      '{number}+ {audience} trust {brand} for their {category} needs. See why {product} is the top choice. {cta}.',
+      'Rated {rating} by {audience}. {brand}\'s {product} delivers {benefit} that keeps people coming back. {cta}.',
+      'Don\'t take our word for it. {number}+ {audience} rely on {brand}\'s {product} every day. {cta} and join them.',
+      'The verdict is in: {audience} rate {brand}\'s {product} {rating}. {benefit_sentence} {cta}.',
+    ],
+    primary_texts: [
+      'Over {number} {audience} have already discovered {brand}\'s {product}. Here\'s what they love: {benefit}. {social_proof_sentence} Ready to join them? {cta}.',
+      '"This changed everything." That\'s what {audience} keep telling us about {brand}\'s {product}. {number}+ users and counting. {cta}.',
+      '{number}+ {audience}. {rating} rating. One product: {brand}\'s {product}. {benefit_sentence} See what the buzz is about. {cta}.',
+    ],
+  },
+  urgency: {
+    headlines: [
+      'Limited Time: {offer}',
+      '{offer} Ends Soon',
+      'Last Chance: {product}',
+      'Don\'t Miss {offer}',
+      'Act Now: {offer}',
+      'Today Only: {product}',
+      '{hours}H Left: {offer}',
+      'Hurry: {offer} Ending',
+      'Flash Deal on {product}',
+      'Final Hours: {offer}',
+    ],
+    descriptions: [
+      '{time_limit}. Get {product} by {brand} {offer_details}. {audience} are already {benefit_verb}ing. {cta} before it\'s gone.',
+      'This won\'t last. {brand}\'s {product} {offer_details} for a limited time. {benefit_sentence} {cta} now.',
+      'Clock is ticking. {brand} is offering {product} {offer_details}. {number}+ {audience} have already claimed theirs. {cta}.',
+      '{time_limit}. {brand}\'s {product} {offer_details}. Don\'t let {pain_point} cost you another day. {cta}.',
+      'Spots are filling fast. Get {brand}\'s {product} {offer_details} while you can. {benefit_sentence} {cta} today.',
+    ],
+    primary_texts: [
+      'This is your window. {brand}\'s {product} is {offer_details} but only for {time_limit}. {benefit_sentence} Once this deal is gone, it\'s gone. {cta} now.',
+      'We rarely do this. {brand}\'s {product} {offer_details}. {number}+ {audience} are already taking advantage. {time_limit}. {cta}.',
+      'Fair warning: this offer on {brand}\'s {product} won\'t last. {offer_details}. {benefit_sentence} {cta} before time runs out.',
+    ],
+  },
+  curiosity: {
+    headlines: [
+      'What If {aspiration}?',
+      'The Secret to {benefit}',
+      '{product}: A New Approach',
+      'Rethink Your {category}',
+      'This Changes {category}',
+      'The {category} Revolution',
+      'Beyond Ordinary {category}',
+      'Imagine {aspiration}',
+      '{product} Reimagined',
+      'The Future of {category}',
+    ],
+    descriptions: [
+      'What if {product} could {aspiration}? {brand} made it real. {benefit_sentence} {cta} and discover the difference.',
+      'Most {audience} don\'t know this about {category}. {brand}\'s {product} reveals {benefit}. {cta} to find out.',
+      'There\'s a better way to {verb}. {brand}\'s {product} is changing how {audience} think about {category}. {cta}.',
+      'What {number}+ {audience} discovered about {category} will surprise you. {brand}\'s {product} delivers {benefit}. {cta}.',
+      'The {category} industry doesn\'t want you to know this. {brand}\'s {product} {aspiration_verb}s everything. {cta} to learn more.',
+    ],
+    primary_texts: [
+      'Here\'s a question: what if your {category} could {aspiration}? That\'s not a dream. It\'s what {brand} built with {product}. {benefit_sentence} {cta} and prepare to be surprised.',
+      'Most {audience} accept {pain_point} as normal. {brand} didn\'t. {product} was created to {aspiration}. And it\'s working. {cta}.',
+      'We asked one question when building {brand}\'s {product}: what if {aspiration}? The answer changed everything. {benefit_sentence} {cta}.',
+    ],
+  },
+};
+
+// Smart placeholder banks
+const SMART_DATA = {
+  benefits: ['faster results', 'better performance', 'peace of mind', 'more free time', 'higher ROI', 'total control', 'instant access', 'real savings', 'effortless management', 'measurable growth'],
+  benefit_sentences: [
+    'Save time and get better results from day one.',
+    'Built to deliver measurable improvements fast.',
+    'Designed for people who value their time.',
+    'Performance you can actually see and measure.',
+    'The results speak for themselves.',
+    'Finally, something that works as promised.',
+  ],
+  pain_points: ['wasted time', 'rising costs', 'poor results', 'manual work', 'complexity', 'unreliable tools', 'slow performance', 'outdated solutions', 'hidden fees', 'steep learning curves'],
+  pain_verbs: ['wast', 'los', 'spend', 'struggl', 'fight', 'juggl'],
+  verbs: ['works', 'delivers', 'performs', 'transforms', 'simplifies', 'accelerates', 'empowers', 'scales'],
+  audiences: ['professionals', 'businesses', 'teams', 'creators', 'founders', 'marketers', 'customers', 'users'],
+  numbers: ['10,000', '50,000', '100,000', '250,000', '500,000', '1M'],
+  ratings: ['4.8/5', '4.9/5', '5 stars', '4.7/5'],
+  offers: ['50% Off', '30% Off', 'Free Trial', 'Free Setup', 'First Month Free', 'Early Bird Pricing', 'Launch Special'],
+  offer_details: ['at 50% off', 'with a free trial', 'with no setup fees', 'at early-bird pricing', 'with a 30-day guarantee', 'free for your first month'],
+  time_limits: ['Offer ends Friday', '48 hours left', 'This week only', 'Limited spots available', 'Sale ends midnight', 'Ends this weekend'],
+  hours: ['24', '48', '72', '12'],
+  costs: ['hours every week', 'money every month', 'valuable opportunities', 'potential customers', 'competitive advantage'],
+  aspirations: ['your results doubled overnight', 'you never worried about it again', 'everything just worked', 'growth happened automatically', 'you could focus on what matters'],
+  aspiration_verbs: ['change', 'transform', 'reimagine', 'redefine', 'simplify'],
+  solves_it: ['eliminates it completely', 'makes it a thing of the past', 'handles it automatically', 'solves it once and for all', 'takes care of it for you'],
+  solves_it_sentences: [
+    'Our solution handles the hard parts so you don\'t have to.',
+    'Built from the ground up to eliminate this exact problem.',
+    'No workarounds. No compromises. Just results.',
+  ],
+  social_proof_sentences: [
+    'The reviews speak for themselves.',
+    'See why the community keeps growing.',
+    'People are switching and not looking back.',
+    'Word of mouth is our best marketing.',
+  ],
+  categories_map: {
+    'software': 'software', 'app': 'app', 'tool': 'tool', 'platform': 'platform',
+    'service': 'service', 'product': 'product', 'solution': 'solution',
+  }
+};
+
+// Tone modifiers
+const TONE_MODIFIERS = {
+  professional: { prefix: '', suffix: '', style: 'formal' },
+  casual: { prefix: '', suffix: '', style: 'friendly' },
+  urgent: { prefix: '', suffix: '', style: 'pressing' },
+  playful: { prefix: '', suffix: '', style: 'fun' },
+  authoritative: { prefix: '', suffix: '', style: 'commanding' },
+  emotional: { prefix: '', suffix: '', style: 'heartfelt' },
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let S = {
+  brand: '',
+  product: '',
+  platform: 'google',
+  tone: 'professional',
+  cta: 'Learn More',
+  variants: [],
+  seed: 0,
+};
+
+// ============================================================
+// BUILD CONTROLS
+// ============================================================
+function buildControls() {
+  const c = document.getElementById('controls');
+  const plat = PLATFORMS[S.platform];
+  c.innerHTML = `
+  <div class="panel">
+    <div class="panel-title">Brand & Product</div>
+    <label>Company / Brand Name</label>
+    <input type="text" id="inpBrand" value="${esc(S.brand)}" placeholder="e.g. Acme, Nike, Stripe">
+    <label>Product / Service Being Advertised</label>
+    <input type="text" id="inpProduct" value="${esc(S.product)}" placeholder="e.g. Cloud hosting, Running shoes, CRM software">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Ad Platform</div>
+    <select id="selPlatform">
+      ${Object.entries(PLATFORMS).map(([k,v]) => `<option value="${k}"${k===S.platform?' selected':''}>${v.name}</option>`).join('')}
+    </select>
+    <div class="limits-box" id="limitsBox">
+      <strong>${plat.name} character limits:</strong>
+      ${plat.fields.map(f => `<div class="limits-row"><span>${f.label}</span><span>${f.limit} chars</span></div>`).join('')}
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Tone</div>
+    <div class="pill-row" id="toneRow">
+      ${TONES.map(t => `<button class="pill${S.tone===t?' active':''}" data-tone="${t}">${t[0].toUpperCase()+t.slice(1)}</button>`).join('')}
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Call to Action</div>
+    <div class="pill-row" id="ctaRow">
+      ${CTA_OPTIONS.map(c => `<button class="pill${S.cta===c?' active':''}" data-cta="${c}">${c}</button>`).join('')}
+    </div>
+  </div>
+
+  <div class="sep"></div>
+
+  <button class="btn btn-primary" id="btnGenerate" ${!S.brand.trim()||!S.product.trim()?'disabled':''}>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Generate 5 Variants
+  </button>
+  `;
+  bindControls();
+}
+
+function esc(s) { return s.replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+
+// ============================================================
+// BIND EVENTS
+// ============================================================
+function bindControls() {
+  const $ = id => document.getElementById(id);
+
+  $('inpBrand').oninput = e => {
+    S.brand = e.target.value;
+    updateGenerateBtn();
+  };
+  $('inpProduct').oninput = e => {
+    S.product = e.target.value;
+    updateGenerateBtn();
+  };
+  $('selPlatform').onchange = e => {
+    S.platform = e.target.value;
+    buildControls();
+  };
+
+  $('toneRow').onclick = e => {
+    const el = e.target.closest('[data-tone]');
+    if (!el) return;
+    S.tone = el.dataset.tone;
+    document.querySelectorAll('#toneRow .pill').forEach(p => p.classList.toggle('active', p.dataset.tone === S.tone));
+  };
+
+  $('ctaRow').onclick = e => {
+    const el = e.target.closest('[data-cta]');
+    if (!el) return;
+    S.cta = el.dataset.cta;
+    document.querySelectorAll('#ctaRow .pill').forEach(p => p.classList.toggle('active', p.dataset.cta === S.cta));
+  };
+
+  $('btnGenerate').onclick = generate;
+}
+
+function updateGenerateBtn() {
+  const btn = document.getElementById('btnGenerate');
+  if (btn) btn.disabled = !S.brand.trim() || !S.product.trim();
+}
+
+// ============================================================
+// GENERATION ENGINE
+// ============================================================
+function pick(arr, seed) {
+  return arr[Math.abs(seed) % arr.length];
+}
+
+function seededRandom(seed) {
+  let s = seed;
+  return function() {
+    s = (s * 1664525 + 1013904223) & 0x7fffffff;
+    return s / 0x7fffffff;
+  };
+}
+
+function shuffleWithSeed(arr, seed) {
+  const result = [...arr];
+  const rng = seededRandom(seed);
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+function inferCategory(product) {
+  const lower = product.toLowerCase();
+  const keywords = {
+    'software': ['software', 'app', 'platform', 'tool', 'saas', 'dashboard'],
+    'service': ['service', 'consulting', 'agency', 'management', 'support'],
+    'courses': ['course', 'training', 'class', 'lesson', 'workshop', 'bootcamp'],
+    'gear': ['shoe', 'wear', 'clothing', 'gear', 'equipment', 'apparel'],
+    'food': ['food', 'meal', 'recipe', 'snack', 'drink', 'coffee', 'tea'],
+    'fitness': ['fitness', 'gym', 'workout', 'exercise', 'health', 'wellness'],
+    'finance': ['finance', 'banking', 'investment', 'insurance', 'credit', 'loan'],
+    'hosting': ['hosting', 'cloud', 'server', 'infrastructure', 'deploy'],
+    'marketing': ['marketing', 'seo', 'advertising', 'email', 'social media'],
+    'design': ['design', 'creative', 'graphic', 'ui', 'ux', 'branding'],
+  };
+  for (const [cat, words] of Object.entries(keywords)) {
+    if (words.some(w => lower.includes(w))) return cat;
+  }
+  return 'solution';
+}
+
+function fillTemplate(template, vars) {
+  let result = template;
+  for (const [key, value] of Object.entries(vars)) {
+    result = result.replace(new RegExp('\\{' + key + '\\}', 'g'), value);
+  }
+  return result;
+}
+
+function truncateToLimit(text, limit) {
+  if (text.length <= limit) return text;
+  // Try to truncate at a word boundary
+  let truncated = text.substring(0, limit);
+  const lastSpace = truncated.lastIndexOf(' ');
+  if (lastSpace > limit * 0.6) {
+    truncated = truncated.substring(0, lastSpace);
+  }
+  // Remove trailing punctuation that looks incomplete
+  truncated = truncated.replace(/[,;:\s]+$/, '');
+  // Add period if missing
+  if (!/[.!?]$/.test(truncated)) {
+    if (truncated.length < limit) {
+      truncated += '.';
+    }
+  }
+  return truncated;
+}
+
+function applyTone(text, tone) {
+  switch (tone) {
+    case 'casual':
+      return text.replace(/Discover /g, 'Check out ').replace(/utilizing/g, 'using').replace(/Furthermore/g, 'Plus');
+    case 'urgent':
+      return text.replace(/today\./gi, 'right now!').replace(/\. (?=[A-Z])/g, '! ');
+    case 'playful':
+      return text.replace(/Get /g, 'Grab ').replace(/amazing/g, 'awesome');
+    case 'authoritative':
+      return text.replace(/We think/g, 'The data shows').replace(/you might/g, 'you should');
+    case 'emotional':
+      return text.replace(/\bGet\b/g, 'Experience').replace(/\bUse\b/g, 'Embrace');
+    default:
+      return text;
+  }
+}
+
+function generateVariantForAngle(angle, platform, vars, seed) {
+  const rng = seededRandom(seed);
+  const templates = TEMPLATES[angle.id];
+  const platFields = PLATFORMS[platform].fields;
+  const result = {};
+
+  for (const field of platFields) {
+    const limit = field.limit;
+    let template;
+
+    // Pick appropriate template type based on field characteristics
+    if (limit <= 30) {
+      // Short field = headline
+      const headlinePool = shuffleWithSeed(templates.headlines, seed + field.key.length);
+      template = headlinePool[0];
+    } else if (limit <= 40) {
+      // Medium-short = headline variant
+      const headlinePool = shuffleWithSeed(templates.headlines, seed + field.key.length * 3);
+      template = headlinePool[1 % headlinePool.length];
+    } else if (limit >= 125) {
+      // Long field = primary text
+      const textPool = shuffleWithSeed(templates.primary_texts, seed + field.key.length * 2);
+      template = textPool[0];
+    } else {
+      // Medium = description
+      const descPool = shuffleWithSeed(templates.descriptions, seed + field.key.length * 5);
+      template = descPool[0];
+    }
+
+    let text = fillTemplate(template, vars);
+    text = applyTone(text, S.tone);
+    text = truncateToLimit(text, limit);
+    result[field.key] = text;
+    seed += 7; // Advance seed for next field
+  }
+
+  return result;
+}
+
+function generate() {
+  if (!S.brand.trim() || !S.product.trim()) return;
+
+  S.seed = Date.now();
+  generateWithSeed(S.seed);
+}
+
+function regenerate() {
+  S.seed = Date.now();
+  generateWithSeed(S.seed);
+}
+
+function generateWithSeed(baseSeed) {
+  const brand = S.brand.trim();
+  const product = S.product.trim();
+  const category = inferCategory(product);
+
+  S.variants = ANGLES.map((angle, i) => {
+    const seed = baseSeed + i * 1337;
+    const rng = seededRandom(seed);
+    const rngIdx = () => Math.floor(rng() * 1000);
+
+    const vars = {
+      brand,
+      product,
+      category,
+      cta: S.cta,
+      benefit: pick(SMART_DATA.benefits, rngIdx()),
+      benefit_sentence: pick(SMART_DATA.benefit_sentences, rngIdx()),
+      benefit_verb: pick(SMART_DATA.verbs, rngIdx()).replace(/s$/, ''),
+      pain_point: pick(SMART_DATA.pain_points, rngIdx()),
+      pain_verb: pick(SMART_DATA.pain_verbs, rngIdx()),
+      verb: pick(SMART_DATA.verbs, rngIdx()),
+      audience: pick(SMART_DATA.audiences, rngIdx()),
+      number: pick(SMART_DATA.numbers, rngIdx()),
+      rating: pick(SMART_DATA.ratings, rngIdx()),
+      offer: pick(SMART_DATA.offers, rngIdx()),
+      offer_details: pick(SMART_DATA.offer_details, rngIdx()),
+      time_limit: pick(SMART_DATA.time_limits, rngIdx()),
+      hours: pick(SMART_DATA.hours, rngIdx()),
+      cost: pick(SMART_DATA.costs, rngIdx()),
+      aspiration: pick(SMART_DATA.aspirations, rngIdx()),
+      aspiration_verb: pick(SMART_DATA.aspiration_verbs, rngIdx()),
+      solves_it: pick(SMART_DATA.solves_it, rngIdx()),
+      solves_it_sentence: pick(SMART_DATA.solves_it_sentences, rngIdx()),
+      social_proof_sentence: pick(SMART_DATA.social_proof_sentences, rngIdx()),
+    };
+
+    const fields = generateVariantForAngle(angle, S.platform, vars, seed);
+    return { angle, fields };
+  });
+
+  renderVariants();
+}
+
+// ============================================================
+// RENDER VARIANTS
+// ============================================================
+function renderVariants() {
+  const grid = document.getElementById('cardGrid');
+  const empty = document.getElementById('emptyState');
+  const header = document.getElementById('mainHeader');
+  const exportBar = document.getElementById('exportBar');
+  const plat = PLATFORMS[S.platform];
+
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+  header.style.display = 'flex';
+  exportBar.style.display = 'flex';
+
+  document.getElementById('resultsTitle').textContent = `${S.variants.length} variants for ${plat.name}`;
+  document.getElementById('exportCount').textContent = `${S.variants.length} variants`;
+
+  grid.innerHTML = S.variants.map((variant, vi) => {
+    const angle = variant.angle;
+    const fieldsHtml = plat.fields.map(f => {
+      const text = variant.fields[f.key] || '';
+      const len = text.length;
+      const limit = f.limit;
+      const pct = len / limit;
+      const colorClass = pct > 1 ? 'char-red' : pct > 0.85 ? 'char-yellow' : 'char-green';
+      return `
+        <div class="ad-field">
+          <div class="ad-field-label">
+            <span>${f.label}</span>
+            <span class="char-count ${colorClass}">${len} / ${limit}</span>
+          </div>
+          <div class="ad-field-text">${escHtml(text)}</div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="ad-card" data-variant="${vi}">
+        <div class="card-header">
+          <div class="card-angle">
+            <div class="card-angle-icon">${angle.icon}</div>
+            ${angle.label}
+          </div>
+          <button class="card-copy-btn" data-copy="${vi}" title="Copy this variant">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy
+          </button>
+        </div>
+        <div class="card-body">
+          ${fieldsHtml}
+        </div>
+        <div class="card-footer">
+          <div class="card-platform">${plat.icon} ${plat.name}</div>
+          <span style="font-size:.62rem;color:var(--muted)">Variant ${vi + 1} of ${S.variants.length}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Bind copy buttons
+  grid.querySelectorAll('[data-copy]').forEach(btn => {
+    btn.onclick = e => {
+      e.stopPropagation();
+      const vi = +btn.dataset.copy;
+      copyVariant(vi, btn);
+    };
+  });
+
+  // Bind regenerate
+  document.getElementById('btnRegenerate').onclick = regenerate;
+
+  // Bind export buttons
+  document.getElementById('btnCopyAll').onclick = copyAll;
+  document.getElementById('btnExport').onclick = exportTxt;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ============================================================
+// COPY & EXPORT
+// ============================================================
+function variantToText(variant, index) {
+  const plat = PLATFORMS[S.platform];
+  const lines = [`--- Variant ${index + 1}: ${variant.angle.label} ---`];
+  for (const f of plat.fields) {
+    const text = variant.fields[f.key] || '';
+    lines.push(`${f.label}: ${text}`);
+  }
+  return lines.join('\n');
+}
+
+function copyVariant(vi, btnEl) {
+  const variant = S.variants[vi];
+  const text = variantToText(variant, vi);
+  navigator.clipboard.writeText(text).then(() => {
+    btnEl.classList.add('copied');
+    btnEl.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copied`;
+    setTimeout(() => {
+      btnEl.classList.remove('copied');
+      btnEl.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy`;
+    }, 2000);
+  });
+}
+
+function copyAll() {
+  const plat = PLATFORMS[S.platform];
+  const header = `Ad Copy for ${S.brand} - ${S.product}\nPlatform: ${plat.name} | Tone: ${S.tone} | CTA: ${S.cta}\nGenerated: ${new Date().toLocaleDateString()}\n`;
+  const body = S.variants.map((v, i) => variantToText(v, i)).join('\n\n');
+  const fullText = header + '\n' + body;
+  navigator.clipboard.writeText(fullText).then(() => {
+    showToast('All variants copied to clipboard');
+  });
+}
+
+function exportTxt() {
+  const plat = PLATFORMS[S.platform];
+  const header = `Ad Copy for ${S.brand} - ${S.product}\nPlatform: ${plat.name}\nTone: ${S.tone}\nCTA: ${S.cta}\nGenerated: ${new Date().toLocaleString()}\n${'='.repeat(50)}`;
+  const body = S.variants.map((v, i) => {
+    const lines = [`\n[Variant ${i + 1}: ${v.angle.label}]`];
+    for (const f of plat.fields) {
+      const text = v.fields[f.key] || '';
+      lines.push(`${f.label} (${text.length}/${f.limit}): ${text}`);
+    }
+    return lines.join('\n');
+  }).join('\n');
+  const fullText = header + '\n' + body + '\n';
+
+  const blob = new Blob([fullText], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${S.brand.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${S.platform}-ad-copy.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Exported as text file');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildControls();
+</script>
+</body>
+</html>

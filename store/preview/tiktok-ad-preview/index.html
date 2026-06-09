@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TikTok Ad Preview - FreeAdStore</title>
+<meta name="description" content="Preview how your ad will look on TikTok In-Feed, TopView, and Spark Ads. Pixel-accurate TikTok ad mockups, free.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--panel:#ffffff;--line:#e5e7eb;--radius:10px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 24px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px;font-family:'Fraunces',serif}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:#111}
+
+/* TABS */
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--line);background:var(--panel);flex-shrink:0;padding:0 20px}
+.tab{padding:12px 18px;font-size:.78rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);font-family:inherit;background:none;border-top:none;border-left:none;border-right:none;transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* PREVIEW AREA */
+.preview-area{flex:1;overflow-y:auto;display:flex;align-items:center;justify-content:center;padding:24px;background:#1a1a1a}
+
+/* PANELS */
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.03em}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 3px;font-weight:500}
+input[type=text],textarea,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;resize:none}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{min-height:60px;line-height:1.4}
+.char-count{font-size:.65rem;color:var(--muted);text-align:right;margin-top:2px;font-variant-numeric:tabular-nums}
+.char-count.over{color:var(--accent)}
+
+/* IMAGE UPLOAD */
+.drop-zone{border:2px dashed var(--line);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg);position:relative}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:#fef2f2}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop-zone-text{font-size:.75rem;color:var(--muted)}
+.drop-zone-text strong{color:var(--text)}
+.image-preview-wrap{position:relative;border-radius:var(--radius);overflow:hidden;margin-top:6px}
+.image-preview-wrap img{width:100%;display:block;border-radius:var(--radius)}
+.image-preview-wrap .remove-img{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+
+/* ============================================================
+   TIKTOK PHONE FRAME
+   ============================================================ */
+.phone-frame{width:340px;height:680px;border-radius:36px;overflow:hidden;position:relative;background:#000;box-shadow:0 0 0 3px #333,0 8px 40px rgba(0,0,0,.5);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif}
+.phone-inner{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden}
+
+/* Full-screen bg */
+.tt-bg{position:absolute;inset:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.tt-bg img{width:100%;height:100%;object-fit:cover}
+.tt-bg .gradient-bg{position:absolute;inset:0;background:linear-gradient(135deg,#fe2c55 0%,#25f4ee 50%,#000 100%)}
+
+/* Status bar */
+.tt-status{position:relative;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:8px 16px 0;font-size:11px;font-weight:600;color:#fff}
+.tt-status-time{font-weight:700}
+.tt-status-icons{display:flex;align-items:center;gap:4px}
+.tt-status-icons svg{width:14px;height:14px}
+
+/* Top nav: For You / Following */
+.tt-topnav{position:relative;z-index:5;display:flex;align-items:center;justify-content:center;gap:16px;padding:10px 0 8px}
+.tt-topnav-item{font-size:15px;color:rgba(255,255,255,.55);font-weight:600;cursor:default;position:relative;padding-bottom:4px}
+.tt-topnav-item.active{color:#fff}
+.tt-topnav-item.active::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:28px;height:3px;background:#fff;border-radius:2px}
+
+/* Overlay content */
+.tt-overlay{position:absolute;inset:0;z-index:3;display:flex;pointer-events:none}
+
+/* Right sidebar icons */
+.tt-right{position:absolute;right:8px;bottom:100px;display:flex;flex-direction:column;align-items:center;gap:16px;z-index:5}
+.tt-icon-wrap{display:flex;flex-direction:column;align-items:center;gap:2px}
+.tt-icon-wrap svg{width:30px;height:30px;color:#fff;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))}
+.tt-icon-wrap span{font-size:11px;color:#fff;font-weight:500;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.tt-avatar-wrap{position:relative;margin-bottom:6px}
+.tt-avatar{width:42px;height:42px;border-radius:50%;background:#fe2c55;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:17px;border:2px solid #fff}
+.tt-avatar-plus{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:18px;height:18px;border-radius:50%;background:#fe2c55;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:700}
+.tt-music-disc{width:40px;height:40px;border-radius:50%;background:#333;border:8px solid #222;display:flex;align-items:center;justify-content:center;animation:spin 3s linear infinite;margin-top:4px}
+.tt-music-disc-inner{width:12px;height:12px;border-radius:50%;background:#888}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Bottom content */
+.tt-bottom{position:absolute;bottom:60px;left:12px;right:64px;z-index:5;display:flex;flex-direction:column;gap:6px}
+.tt-brand{font-size:15px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6);display:flex;align-items:center;gap:6px}
+.tt-sponsored{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:rgba(255,255,255,.85);background:rgba(255,255,255,.15);padding:2px 8px;border-radius:4px;font-weight:500;margin-bottom:2px;width:fit-content}
+.tt-caption{font-size:13px;color:#fff;line-height:1.4;text-shadow:0 1px 3px rgba(0,0,0,.5);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tt-music-bar{display:flex;align-items:center;gap:6px;font-size:12px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5);overflow:hidden}
+.tt-music-bar svg{width:14px;height:14px;flex-shrink:0}
+.tt-music-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* CTA button */
+.tt-cta{position:absolute;bottom:16px;left:12px;right:12px;z-index:5;display:flex}
+.tt-cta-btn{flex:1;background:#fe2c55;color:#fff;border:none;padding:10px 0;border-radius:4px;font-size:14px;font-weight:600;cursor:default;font-family:inherit;text-align:center}
+
+/* Bottom nav bar */
+.tt-navbar{position:absolute;bottom:0;left:0;right:0;z-index:6;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:space-around;padding:6px 0 14px;backdrop-filter:blur(10px)}
+.tt-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:9px;color:rgba(255,255,255,.5);font-weight:500}
+.tt-nav-item.active{color:#fff}
+.tt-nav-item svg{width:22px;height:22px}
+.tt-nav-create{width:38px;height:26px;border-radius:6px;background:linear-gradient(90deg,#25f4ee,#fe2c55);display:flex;align-items:center;justify-content:center;position:relative}
+.tt-nav-create-inner{width:30px;height:22px;border-radius:4px;background:#fff;display:flex;align-items:center;justify-content:center}
+.tt-nav-create-inner svg{width:16px;height:16px;color:#000}
+
+/* TOPVIEW variant */
+.topview .tt-topnav{display:none}
+.topview .tt-cta-btn{background:#fff;color:#000}
+
+/* SPARK AD variant */
+.spark .tt-cta{display:none}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .preview-area{min-height:700px}
+  .phone-frame{width:280px;height:560px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Controls -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&larr; FreeAdStore</a>
+      <h1>TikTok Ad Preview</h1>
+      <p>See how your ad looks on TikTok before you publish.</p>
+    </div>
+    <div class="sidebar-scroll" id="controls"></div>
+  </div>
+  <!-- RIGHT: Preview -->
+  <div class="main">
+    <div class="tab-bar" id="tabBar"></div>
+    <div class="preview-area" id="previewArea"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  brandName: 'GlowSkin Beauty',
+  adText: 'Your skin deserves the best. Try our viral serum that 2M+ people love.',
+  cta: 'Shop Now',
+  musicLabel: 'Original Sound - GlowSkin Beauty',
+  imageData: null,
+  activeTab: 'infeed'
+};
+
+const CTA_OPTIONS = ['Shop Now','Learn More','Download','Sign Up','Book Now','Contact Us','Get Offer','Apply Now'];
+const TABS = [
+  {id:'infeed', label:'In-Feed'},
+  {id:'topview', label:'TopView'},
+  {id:'spark', label:'Spark Ad'}
+];
+
+// ============================================================
+// HELPERS
+// ============================================================
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function getInitial(name){ return (name || 'G').trim().charAt(0).toUpperCase(); }
+function charCountHTML(current, max){
+  const cls = current > max ? 'char-count over' : 'char-count';
+  return `<div class="${cls}">${current} / ${max}</div>`;
+}
+
+// ============================================================
+// BUILD CONTROLS
+// ============================================================
+function buildControls(){
+  const c = document.getElementById('controls');
+  c.innerHTML = `
+  <div class="panel">
+    <div class="panel-title">Brand</div>
+    <label>Brand Name</label>
+    <input type="text" id="inpBrand" value="${esc(S.brandName)}" placeholder="Your brand name">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Ad Copy</div>
+    <label>Ad Text</label>
+    <textarea id="inpAdText" maxlength="150" placeholder="Short punchy ad text">${esc(S.adText)}</textarea>
+    ${charCountHTML(S.adText.length, 100)}
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Call to Action</div>
+    <select id="selCta">
+      ${CTA_OPTIONS.map(o => `<option value="${o}"${o===S.cta?' selected':''}>${o}</option>`).join('')}
+    </select>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Music</div>
+    <label>Music Label</label>
+    <input type="text" id="inpMusic" value="${esc(S.musicLabel)}" placeholder="Original Sound - Brand">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Image / Video Thumbnail</div>
+    <div class="drop-zone" id="dropZone">
+      <input type="file" accept="image/*" id="fileInput">
+      <div class="drop-zone-text">
+        <strong>Drop image here</strong> or click to upload<br>
+        <span style="font-size:.65rem;color:var(--muted)">Recommended: 1080x1920 (9:16)</span>
+      </div>
+    </div>
+    ${S.imageData ? `<div class="image-preview-wrap"><img src="${S.imageData}" alt="Ad image"><button class="remove-img" id="removeImg">&times;</button></div>` : ''}
+  </div>
+  `;
+  bindControls();
+}
+
+// ============================================================
+// BIND CONTROLS
+// ============================================================
+function bindControls(){
+  const $ = id => document.getElementById(id);
+
+  $('inpBrand').oninput = e => { S.brandName = e.target.value; render(); };
+  $('inpAdText').oninput = e => { S.adText = e.target.value; buildControls(); render(); };
+  $('selCta').onchange = e => { S.cta = e.target.value; render(); };
+  $('inpMusic').oninput = e => { S.musicLabel = e.target.value; render(); };
+
+  const dropZone = $('dropZone');
+  const fileInput = $('fileInput');
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if(file && file.type.startsWith('image/')) loadImage(file);
+  });
+  fileInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if(file) loadImage(file);
+  });
+
+  const removeBtn = $('removeImg');
+  if(removeBtn){
+    removeBtn.onclick = () => { S.imageData = null; buildControls(); render(); };
+  }
+}
+
+function loadImage(file){
+  const reader = new FileReader();
+  reader.onload = e => { S.imageData = e.target.result; buildControls(); render(); };
+  reader.readAsDataURL(file);
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function buildTabs(){
+  document.getElementById('tabBar').innerHTML = TABS.map(t =>
+    `<button class="tab${t.id===S.activeTab?' active':''}" data-tab="${t.id}">${t.label}</button>`
+  ).join('');
+
+  document.getElementById('tabBar').onclick = e => {
+    const tab = e.target.closest('[data-tab]');
+    if(!tab) return;
+    S.activeTab = tab.dataset.tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === S.activeTab));
+    render();
+  };
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render(){
+  const area = document.getElementById('previewArea');
+  area.innerHTML = renderPhone();
+}
+
+function renderPhone(){
+  const initial = getInitial(S.brandName);
+  const handle = '@' + (S.brandName || 'brand').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const isTopView = S.activeTab === 'topview';
+  const isSpark = S.activeTab === 'spark';
+  const extraClass = isTopView ? ' topview' : isSpark ? ' spark' : '';
+
+  const bgHTML = S.imageData
+    ? `<img src="${S.imageData}" alt="Ad">`
+    : `<div class="gradient-bg"></div>`;
+
+  return `
+  <div class="phone-frame${extraClass}">
+    <div class="phone-inner">
+      <!-- Status bar -->
+      <div class="tt-status">
+        <span class="tt-status-time">9:41</span>
+        <div class="tt-status-icons">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.24 4.24 0 00-6 0zm-4-4l2 2a7.07 7.07 0 0110 0l2-2C15.68 9.68 8.32 9.68 5 13z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.34C7 21.4 7.6 22 8.33 22h7.34c.73 0 1.33-.6 1.33-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+        </div>
+      </div>
+
+      <!-- Top nav -->
+      <div class="tt-topnav">
+        <div class="tt-topnav-item">Following</div>
+        <div class="tt-topnav-item active">For You</div>
+      </div>
+
+      <!-- Full-screen background -->
+      <div class="tt-bg">${bgHTML}</div>
+
+      <!-- Right side icons -->
+      <div class="tt-right">
+        <div class="tt-avatar-wrap">
+          <div class="tt-avatar">${initial}</div>
+          <div class="tt-avatar-plus">+</div>
+        </div>
+        <div class="tt-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09A6.04 6.04 0 0116.5 3C19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          <span>24.5K</span>
+        </div>
+        <div class="tt-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"/></svg>
+          <span>1,832</span>
+        </div>
+        <div class="tt-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+          <span>Share</span>
+        </div>
+        <div class="tt-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+          <span>Save</span>
+        </div>
+        <div class="tt-music-disc"><div class="tt-music-disc-inner"></div></div>
+      </div>
+
+      <!-- Bottom content -->
+      <div class="tt-bottom">
+        <div class="tt-sponsored">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15l-4-4 1.41-1.41L11 14.17l6.59-6.59L19 9l-8 8z"/></svg>
+          Sponsored
+        </div>
+        <div class="tt-brand">${esc(handle)}${isSpark ? '' : ''}</div>
+        <div class="tt-caption">${esc(S.adText)}</div>
+        <div class="tt-music-bar">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+          <span class="tt-music-text">${esc(S.musicLabel)}</span>
+        </div>
+      </div>
+
+      <!-- CTA button -->
+      <div class="tt-cta">
+        <button class="tt-cta-btn">${esc(S.cta)}</button>
+      </div>
+
+      <!-- Bottom nav bar -->
+      <div class="tt-navbar">
+        <div class="tt-nav-item active">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          Home
+        </div>
+        <div class="tt-nav-item">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 5 1.49-1.49-5-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          Discover
+        </div>
+        <div class="tt-nav-item">
+          <div class="tt-nav-create"><div class="tt-nav-create-inner"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div></div>
+        </div>
+        <div class="tt-nav-item">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg>
+          Inbox
+        </div>
+        <div class="tt-nav-item">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          Me
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildControls();
+buildTabs();
+render();
+
+// Preserve cursor position
+let activeId = null;
+let cursorPos = null;
+document.addEventListener('focusin', e => {
+  if(e.target.matches('input[type=text], textarea')) activeId = e.target.id;
+});
+document.addEventListener('selectionchange', () => {
+  const el = document.activeElement;
+  if(el && el.matches && el.matches('input[type=text], textarea')) cursorPos = el.selectionStart;
+});
+const origBuildControls = buildControls;
+buildControls = function(){
+  origBuildControls();
+  if(activeId){
+    const el = document.getElementById(activeId);
+    if(el){
+      el.focus();
+      if(cursorPos != null){ try{ el.setSelectionRange(cursorPos, cursorPos); }catch(e){} }
+    }
+  }
+};
+</script>
+</body>
+</html>

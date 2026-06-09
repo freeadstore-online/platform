@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X Ad Preview - FreeAdStore</title>
+<meta name="description" content="Preview how your promoted post will look on X (Twitter). Pixel-accurate X ad mockups for Promoted Tweets with text, images, and video, free.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--panel:#ffffff;--line:#e5e7eb;--radius:10px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 24px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px;font-family:'Fraunces',serif}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.main.light-mode{background:#fff}
+.main.dark-mode{background:#000}
+
+/* TABS */
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--line);background:var(--panel);flex-shrink:0;padding:0 20px}
+.tab{padding:12px 18px;font-size:.78rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);font-family:inherit;background:none;border-top:none;border-left:none;border-right:none;transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* PREVIEW AREA */
+.preview-area{flex:1;overflow-y:auto;display:flex;align-items:flex-start;justify-content:center;padding:24px}
+
+/* PANELS */
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.03em}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 3px;font-weight:500}
+input[type=text],textarea,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;resize:none}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{min-height:80px;line-height:1.4}
+.char-count{font-size:.65rem;color:var(--muted);text-align:right;margin-top:2px;font-variant-numeric:tabular-nums}
+.char-count.over{color:var(--accent)}
+
+/* IMAGE UPLOAD */
+.drop-zone{border:2px dashed var(--line);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg);position:relative}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:#fef2f2}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop-zone-text{font-size:.75rem;color:var(--muted)}
+.drop-zone-text strong{color:var(--text)}
+.image-preview-wrap{position:relative;border-radius:var(--radius);overflow:hidden;margin-top:6px}
+.image-preview-wrap img{width:100%;display:block;border-radius:var(--radius)}
+.image-preview-wrap .remove-img{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;gap:10px;margin-top:6px}
+.toggle-label{font-size:.75rem;color:var(--muted);font-weight:500}
+.toggle{position:relative;width:40px;height:22px;background:#d1d5db;border-radius:11px;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.on::after{transform:translateX(18px)}
+
+/* ============================================================
+   X TWEET CARD — LIGHT
+   ============================================================ */
+.x-card{width:560px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;border-bottom:1px solid #eff3f4}
+
+/* Light theme */
+.x-light{background:#fff;color:#0f1419}
+.x-light .x-secondary{color:#536471}
+.x-light .x-border{border-color:#eff3f4}
+.x-light .x-img-card{border:1px solid #eff3f4}
+.x-light .x-cta-btn{background:#0f1419;color:#fff}
+.x-light .x-action svg{color:#536471}
+.x-light .x-action:hover svg{color:#1d9bf0}
+.x-light .x-promoted{color:#536471}
+.x-light .x-video-placeholder{background:#eff3f4}
+
+/* Dark theme */
+.x-dark{background:#000;color:#e7e9ea}
+.x-dark .x-secondary{color:#71767b}
+.x-dark .x-border{border-color:#2f3336}
+.x-dark .x-img-card{border:1px solid #2f3336}
+.x-dark .x-cta-btn{background:#eff3f4;color:#0f1419}
+.x-dark .x-action svg{color:#71767b}
+.x-dark .x-action:hover svg{color:#1d9bf0}
+.x-dark .x-promoted{color:#71767b}
+.x-dark .x-video-placeholder{background:#16181c}
+
+/* Tweet structure */
+.x-tweet{display:flex;gap:12px;padding:12px 16px}
+.x-avatar{width:40px;height:40px;border-radius:50%;background:#1d9bf0;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:17px;flex-shrink:0}
+.x-content{flex:1;min-width:0}
+
+/* Header row */
+.x-header{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:2px}
+.x-display-name{font-size:15px;font-weight:700;line-height:1.2}
+.x-verified{width:18px;height:18px;color:#1d9bf0;flex-shrink:0}
+.x-handle{font-size:15px;line-height:1.2}
+.x-dot{font-size:15px}
+.x-promoted-label{font-size:13px;display:flex;align-items:center;gap:3px}
+
+/* Body */
+.x-body{font-size:15px;line-height:1.35;white-space:pre-wrap;word-break:break-word;margin-bottom:10px}
+
+/* Image card */
+.x-img-card{border-radius:16px;overflow:hidden;margin-bottom:10px}
+.x-img-card img{width:100%;display:block;aspect-ratio:16/9;object-fit:cover}
+.x-img-placeholder{width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center}
+.x-img-placeholder svg{width:48px;height:48px;opacity:.3}
+
+/* Video placeholder */
+.x-video-placeholder{border-radius:16px;overflow:hidden;margin-bottom:10px;width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;position:relative}
+.x-video-play{width:54px;height:54px;border-radius:50%;background:rgba(29,155,240,.9);display:flex;align-items:center;justify-content:center}
+.x-video-play svg{width:24px;height:24px;color:#fff;margin-left:3px}
+.x-video-label{position:absolute;bottom:12px;left:12px;font-size:12px;padding:2px 8px;border-radius:4px;background:rgba(0,0,0,.7);color:#fff;font-weight:500}
+
+/* CTA */
+.x-cta-wrap{margin-bottom:10px}
+.x-cta-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:9999px;font-size:14px;font-weight:700;cursor:default;border:none;font-family:inherit}
+
+/* Actions row */
+.x-actions{display:flex;align-items:center;justify-content:space-between;max-width:420px;padding:4px 0 2px}
+.x-action{display:flex;align-items:center;gap:6px;cursor:default;padding:4px;border-radius:50%;transition:color .15s}
+.x-action svg{width:18px;height:18px;transition:color .15s}
+.x-action-count{font-size:13px}
+
+/* Promoted footer */
+.x-promoted-footer{display:flex;align-items:center;gap:4px;padding:6px 16px 10px 68px;font-size:13px}
+.x-promoted-footer svg{width:14px;height:14px}
+
+/* More dots */
+.x-more{margin-left:auto;padding:4px;cursor:default;flex-shrink:0}
+.x-more svg{width:18px;height:18px}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .preview-area{min-height:500px}
+  .x-card{width:100%;max-width:560px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Controls -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&larr; FreeAdStore</a>
+      <h1>X Ad Preview</h1>
+      <p>See how your promoted post looks on X (Twitter) before you publish.</p>
+    </div>
+    <div class="sidebar-scroll" id="controls"></div>
+  </div>
+  <!-- RIGHT: Preview -->
+  <div class="main light-mode" id="mainPanel">
+    <div class="tab-bar" id="tabBar"></div>
+    <div class="preview-area" id="previewArea"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  displayName: 'Brew & Bean',
+  handle: 'brewandbean',
+  tweetText: 'Start your morning right. Our single-origin beans are hand-roasted in small batches for the perfect cup.\n\nOrder now and get free shipping on your first bag.',
+  imageData: null,
+  cta: 'Learn More',
+  darkMode: false,
+  activeTab: 'text'
+};
+
+const CTA_OPTIONS = ['None','Learn More','Shop','Install','Book','Subscribe','Contact Us','Download','Sign Up','Apply Now','Get Quote','Order Now'];
+const TABS = [
+  {id:'text', label:'Promoted Tweet'},
+  {id:'image', label:'Promoted with Image'},
+  {id:'video', label:'Promoted with Video'}
+];
+
+// ============================================================
+// HELPERS
+// ============================================================
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function getInitial(name){ return (name || 'B').trim().charAt(0).toUpperCase(); }
+function charCountHTML(current, max){
+  const cls = current > max ? 'char-count over' : 'char-count';
+  return `<div class="${cls}">${current} / ${max}</div>`;
+}
+
+// ============================================================
+// BUILD CONTROLS
+// ============================================================
+function buildControls(){
+  const c = document.getElementById('controls');
+  c.innerHTML = `
+  <div class="panel">
+    <div class="panel-title">Profile</div>
+    <label>Display Name</label>
+    <input type="text" id="inpName" value="${esc(S.displayName)}" placeholder="Your brand name">
+    <label>@Handle</label>
+    <input type="text" id="inpHandle" value="${esc(S.handle)}" placeholder="username (without @)">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Tweet Text</div>
+    <textarea id="inpTweet" placeholder="What's happening?">${esc(S.tweetText)}</textarea>
+    ${charCountHTML(S.tweetText.length, 280)}
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Image</div>
+    <div class="drop-zone" id="dropZone">
+      <input type="file" accept="image/*" id="fileInput">
+      <div class="drop-zone-text">
+        <strong>Drop image here</strong> or click to upload<br>
+        <span style="font-size:.65rem;color:var(--muted)">Recommended: 1200x675 (16:9)</span>
+      </div>
+    </div>
+    ${S.imageData ? `<div class="image-preview-wrap"><img src="${S.imageData}" alt="Ad image"><button class="remove-img" id="removeImg">&times;</button></div>` : ''}
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Call to Action</div>
+    <select id="selCta">
+      ${CTA_OPTIONS.map(o => `<option value="${o}"${o===S.cta?' selected':''}>${o}</option>`).join('')}
+    </select>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Appearance</div>
+    <div class="toggle-row">
+      <div class="toggle${S.darkMode ? ' on' : ''}" id="toggleDark"></div>
+      <span class="toggle-label">Dark mode</span>
+    </div>
+  </div>
+  `;
+  bindControls();
+}
+
+// ============================================================
+// BIND CONTROLS
+// ============================================================
+function bindControls(){
+  const $ = id => document.getElementById(id);
+
+  $('inpName').oninput = e => { S.displayName = e.target.value; render(); };
+  $('inpHandle').oninput = e => { S.handle = e.target.value.replace(/^@/,''); render(); };
+  $('inpTweet').oninput = e => { S.tweetText = e.target.value; buildControls(); render(); };
+  $('selCta').onchange = e => { S.cta = e.target.value; render(); };
+
+  $('toggleDark').onclick = () => {
+    S.darkMode = !S.darkMode;
+    applyTheme();
+    buildControls();
+    render();
+  };
+
+  const dropZone = $('dropZone');
+  const fileInput = $('fileInput');
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if(file && file.type.startsWith('image/')) loadImage(file);
+  });
+  fileInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if(file) loadImage(file);
+  });
+
+  const removeBtn = $('removeImg');
+  if(removeBtn){
+    removeBtn.onclick = () => { S.imageData = null; buildControls(); render(); };
+  }
+}
+
+function loadImage(file){
+  const reader = new FileReader();
+  reader.onload = e => { S.imageData = e.target.result; buildControls(); render(); };
+  reader.readAsDataURL(file);
+}
+
+function applyTheme(){
+  const main = document.getElementById('mainPanel');
+  main.classList.toggle('light-mode', !S.darkMode);
+  main.classList.toggle('dark-mode', S.darkMode);
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function buildTabs(){
+  document.getElementById('tabBar').innerHTML = TABS.map(t =>
+    `<button class="tab${t.id===S.activeTab?' active':''}" data-tab="${t.id}">${t.label}</button>`
+  ).join('');
+
+  document.getElementById('tabBar').onclick = e => {
+    const tab = e.target.closest('[data-tab]');
+    if(!tab) return;
+    S.activeTab = tab.dataset.tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === S.activeTab));
+    render();
+  };
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render(){
+  const area = document.getElementById('previewArea');
+  area.innerHTML = renderTweet();
+}
+
+function renderTweet(){
+  const theme = S.darkMode ? 'x-dark' : 'x-light';
+  const initial = getInitial(S.displayName);
+  const handle = '@' + (S.handle || 'handle');
+  const showImage = S.activeTab === 'image';
+  const showVideo = S.activeTab === 'video';
+  const showCta = S.cta !== 'None';
+
+  // Image card
+  let mediaHTML = '';
+  if(showImage){
+    if(S.imageData){
+      mediaHTML = `<div class="x-img-card x-border"><img src="${S.imageData}" alt="Ad"></div>`;
+    } else {
+      mediaHTML = `<div class="x-img-card x-border"><div class="x-img-placeholder x-video-placeholder"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" opacity=".15"/><circle cx="8.5" cy="8.5" r="1.5" opacity=".3"/><path d="m21 15-5-5L5 21" opacity=".3"/></svg></div></div>`;
+    }
+  }
+  if(showVideo){
+    const bgStyle = S.imageData
+      ? `background-image:url('${S.imageData}');background-size:cover;background-position:center;`
+      : '';
+    mediaHTML = `
+    <div class="x-video-placeholder x-border" style="border-radius:16px;${bgStyle}">
+      <div class="x-video-play">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </div>
+      <div class="x-video-label">0:30</div>
+    </div>`;
+  }
+
+  // CTA
+  const ctaHTML = showCta
+    ? `<div class="x-cta-wrap"><button class="x-cta-btn">${esc(S.cta)}</button></div>`
+    : '';
+
+  return `
+  <div class="x-card ${theme}">
+    <div class="x-tweet">
+      <div class="x-avatar">${initial}</div>
+      <div class="x-content">
+        <!-- Header -->
+        <div class="x-header">
+          <span class="x-display-name">${esc(S.displayName || 'Display Name')}</span>
+          <svg class="x-verified" viewBox="0 0 24 24" fill="currentColor"><path d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.34 2.19c-1.39-.46-2.9-.2-3.91.81s-1.27 2.52-.81 3.91C2.63 9.33 1.75 10.57 1.75 12s.88 2.67 2.19 3.34c-.46 1.39-.2 2.9.81 3.91s2.52 1.27 3.91.81c.66 1.31 1.91 2.19 3.34 2.19s2.67-.88 3.34-2.19c1.39.46 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34zm-11.07 4.73l-3.82-3.82 1.41-1.41 2.41 2.41 5.07-5.07 1.41 1.41-6.48 6.48z"/></svg>
+          <span class="x-handle x-secondary">${esc(handle)}</span>
+          <span class="x-dot x-secondary">&middot;</span>
+          <span class="x-promoted-label x-secondary">Promoted</span>
+          <div class="x-more x-secondary">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div class="x-body">${esc(S.tweetText)}</div>
+
+        <!-- Media -->
+        ${mediaHTML}
+
+        <!-- CTA -->
+        ${ctaHTML}
+
+        <!-- Actions -->
+        <div class="x-actions">
+          <div class="x-action">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+            <span class="x-action-count x-secondary">48</span>
+          </div>
+          <div class="x-action">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+            <span class="x-action-count x-secondary">217</span>
+          </div>
+          <div class="x-action">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            <span class="x-action-count x-secondary">1.2K</span>
+          </div>
+          <div class="x-action">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span class="x-action-count x-secondary">84K</span>
+          </div>
+          <div class="x-action">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </div>
+          <div class="x-action">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Promoted footer -->
+    <div class="x-promoted-footer x-promoted">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/><path d="M12 15l1.57-3.43L17 10l-3.43-1.57L12 5l-1.57 3.43L7 10l3.43 1.57z"/></svg>
+      Promoted
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildControls();
+buildTabs();
+render();
+
+// Preserve cursor position
+let activeId = null;
+let cursorPos = null;
+document.addEventListener('focusin', e => {
+  if(e.target.matches('input[type=text], textarea')) activeId = e.target.id;
+});
+document.addEventListener('selectionchange', () => {
+  const el = document.activeElement;
+  if(el && el.matches && el.matches('input[type=text], textarea')) cursorPos = el.selectionStart;
+});
+const origBuildControls = buildControls;
+buildControls = function(){
+  origBuildControls();
+  if(activeId){
+    const el = document.getElementById(activeId);
+    if(el){
+      el.focus();
+      if(cursorPos != null){ try{ el.setSelectionRange(cursorPos, cursorPos); }catch(e){} }
+    }
+  }
+};
+</script>
+</body>
+</html>

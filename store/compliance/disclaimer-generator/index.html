@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Disclaimer Generator - FreeAdStore</title>
+<meta name="description" content="Generate legally required ad disclaimers for finance, healthcare, alcohol, political, gambling, crypto, and more. Platform-specific. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#ef4444;--accent-light:#fef2f2;--accent-dark:#dc2626;--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--panel:#ffffff;--line:#e5e7eb;--green:#10b981;--yellow:#f59e0b;--blue:#3b82f6;--purple:#8b5cf6}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+/* Header */
+.top-bar{display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+.back{font-size:13px;font-weight:500;color:var(--accent);white-space:nowrap}
+.back:hover{text-decoration:underline}
+.top-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:700;flex:1}
+.top-title span{color:var(--accent)}
+
+/* Layout */
+.layout{display:flex;height:calc(100vh - 45px);overflow:hidden}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);overflow-y:auto;display:flex;flex-direction:column}
+.main{flex:1;overflow-y:auto;padding:24px 32px;background:var(--bg)}
+
+/* Sidebar sections */
+.sidebar-header{padding:16px 16px 0;border-bottom:1px solid var(--line);padding-bottom:12px}
+.sidebar-header h2{font-size:15px;font-weight:800;margin-bottom:4px}
+.sidebar-header p{font-size:11px;color:var(--muted);line-height:1.4}
+.sidebar-content{padding:16px;flex:1;overflow-y:auto}
+
+/* Section */
+.section{margin-bottom:20px}
+.section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.section-title::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px}
+
+/* Form elements */
+.field{margin-bottom:12px}
+.field-label{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;display:block}
+.text-input{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg)}
+.text-input:focus{outline:none;border-color:var(--accent)}
+.select{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg);color:var(--text);cursor:pointer}
+.select:focus{outline:none;border-color:var(--accent)}
+
+/* Industry radio buttons styled as list */
+.industry-list{display:flex;flex-direction:column;gap:3px}
+.industry-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;border:1px solid var(--line);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;background:var(--panel);color:var(--muted);user-select:none}
+.industry-item:hover{border-color:var(--accent);color:var(--text)}
+.industry-item.active{background:var(--accent-light);border-color:var(--accent);color:var(--accent);font-weight:700}
+.industry-item input{display:none}
+.industry-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--line);flex-shrink:0;transition:all .15s}
+.industry-item.active .industry-dot{border-color:var(--accent);background:var(--accent)}
+
+/* Platform tabs */
+.platform-tabs{display:flex;gap:0;background:var(--bg);border-radius:8px;padding:3px}
+.platform-tab{flex:1;text-align:center;padding:6px 4px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;border:none;background:transparent;color:var(--muted);font-family:inherit}
+.platform-tab:hover{color:var(--text)}
+.platform-tab.active{background:var(--accent);color:white;box-shadow:0 1px 3px rgba(239,68,68,.3)}
+
+/* Generate button */
+.gen-btn{width:100%;padding:10px;border-radius:8px;background:var(--accent);color:white;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .15s;margin-top:8px}
+.gen-btn:hover{background:var(--accent-dark)}
+
+/* === MAIN AREA === */
+
+.empty-state{text-align:center;padding:80px 32px;color:var(--muted)}
+.empty-state h3{font-family:'Fraunces',serif;font-size:1.5rem;color:var(--text);margin-bottom:8px}
+.empty-state p{font-size:13px;line-height:1.5}
+
+/* Disclaimer block */
+.disclaimer-block{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.disclaimer-block h3{font-size:14px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.disclaimer-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 8px;border-radius:99px;flex-shrink:0}
+.tag-required{background:#fef2f2;color:#dc2626}
+.tag-recommended{background:#fef3c7;color:#d97706}
+.disclaimer-why{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:12px;padding:8px 10px;background:var(--bg);border-radius:6px;border-left:3px solid var(--accent)}
+.disclaimer-text{font-size:12px;line-height:1.6;color:var(--text);padding:12px;background:var(--bg);border-radius:6px;border:1px solid var(--line);white-space:pre-wrap;margin-bottom:10px;font-family:'Manrope',system-ui,sans-serif}
+.copy-btn{padding:6px 14px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--text);font-family:inherit;transition:all .15s}
+.copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+.copy-btn.copied{background:var(--green);border-color:var(--green);color:white}
+
+/* Summary header */
+.summary-header{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.summary-header h2{font-family:'Fraunces',serif;font-size:1.3rem;margin-bottom:6px}
+.summary-meta{display:flex;flex-wrap:wrap;gap:8px}
+.meta-pill{font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
+
+/* Toast */
+.copied-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:white;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transition:all .3s ease;z-index:999;pointer-events:none}
+.copied-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* Responsive */
+@media(max-width:768px){
+  .layout{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;max-height:50vh;border-right:none;border-bottom:1px solid var(--line)}
+  .main{padding:16px}
+  .platform-tabs{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a class="back" href="/">&larr; FreeAdStore</a>
+  <div class="top-title">Disclaimer <span>Generator</span></div>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>Configure Disclaimers</h2>
+      <p>Select your industry, platform, and region to generate legally required disclaimer text.</p>
+    </div>
+
+    <div class="sidebar-content">
+      <!-- Industry -->
+      <div class="section">
+        <div class="section-title">Industry</div>
+        <div class="industry-list" id="industryList">
+          <label class="industry-item active" data-industry="finance"><input type="radio" name="industry" value="finance" checked><span class="industry-dot"></span>Finance</label>
+          <label class="industry-item" data-industry="healthcare"><input type="radio" name="industry" value="healthcare"><span class="industry-dot"></span>Healthcare / Pharma</label>
+          <label class="industry-item" data-industry="alcohol"><input type="radio" name="industry" value="alcohol"><span class="industry-dot"></span>Alcohol</label>
+          <label class="industry-item" data-industry="political"><input type="radio" name="industry" value="political"><span class="industry-dot"></span>Political</label>
+          <label class="industry-item" data-industry="gambling"><input type="radio" name="industry" value="gambling"><span class="industry-dot"></span>Gambling</label>
+          <label class="industry-item" data-industry="supplements"><input type="radio" name="industry" value="supplements"><span class="industry-dot"></span>Weight Loss / Supplements</label>
+          <label class="industry-item" data-industry="realestate"><input type="radio" name="industry" value="realestate"><span class="industry-dot"></span>Real Estate</label>
+          <label class="industry-item" data-industry="legal"><input type="radio" name="industry" value="legal"><span class="industry-dot"></span>Legal</label>
+          <label class="industry-item" data-industry="insurance"><input type="radio" name="industry" value="insurance"><span class="industry-dot"></span>Insurance</label>
+          <label class="industry-item" data-industry="crypto"><input type="radio" name="industry" value="crypto"><span class="industry-dot"></span>Crypto</label>
+          <label class="industry-item" data-industry="general"><input type="radio" name="industry" value="general"><span class="industry-dot"></span>General</label>
+        </div>
+      </div>
+
+      <!-- Platform -->
+      <div class="section">
+        <div class="section-title">Ad Platform</div>
+        <div class="platform-tabs" id="platformTabs">
+          <button class="platform-tab active" data-platform="all">All</button>
+          <button class="platform-tab" data-platform="meta">Meta</button>
+          <button class="platform-tab" data-platform="google">Google</button>
+          <button class="platform-tab" data-platform="linkedin">LinkedIn</button>
+          <button class="platform-tab" data-platform="tiktok">TikTok</button>
+        </div>
+      </div>
+
+      <!-- Company Info -->
+      <div class="section">
+        <div class="section-title">Company Details</div>
+        <div class="field">
+          <div class="field-label">Company Name</div>
+          <input type="text" class="text-input" id="companyName" placeholder="e.g. Acme Corp">
+        </div>
+        <div class="field">
+          <div class="field-label">Product / Service Name</div>
+          <input type="text" class="text-input" id="productName" placeholder="e.g. Acme Investment Fund">
+        </div>
+      </div>
+
+      <!-- Region -->
+      <div class="section">
+        <div class="section-title">Country / Region</div>
+        <select class="select" id="regionSelect">
+          <option value="us">United States</option>
+          <option value="eu">European Union</option>
+          <option value="uk">United Kingdom</option>
+          <option value="ca">Canada</option>
+          <option value="au">Australia</option>
+        </select>
+      </div>
+
+      <button class="gen-btn" onclick="generate()">Generate Disclaimers</button>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="main" id="mainArea">
+    <div class="empty-state" id="emptyState">
+      <h3>Select an industry to begin</h3>
+      <p>Configure your industry, platform, and region in the sidebar, then click "Generate Disclaimers" to create legally required text blocks for your ads and landing pages.</p>
+    </div>
+    <div id="resultsArea" style="display:none"></div>
+  </div>
+</div>
+
+<div class="copied-toast" id="toast">Copied to clipboard</div>
+
+<script>
+(function(){
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+
+  // ── Industry radio selection ──
+  document.querySelectorAll('.industry-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.industry-item').forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+      this.querySelector('input').checked = true;
+    });
+  });
+
+  // ── Platform tabs ──
+  let activePlatform = 'all';
+  document.querySelectorAll('.platform-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activePlatform = tab.dataset.platform;
+    });
+  });
+
+  // ── Industry disclaimer data ──
+  const DISCLAIMERS = {
+    finance: {
+      label: 'Finance',
+      ad: {
+        required: true,
+        why: 'Financial advertising is regulated by the SEC (US), FCA (UK), ESMA (EU), and ASIC (AU). All financial ads must include risk warnings. Failure to include disclaimers can result in ad rejection, fines, or legal action.',
+        text: 'Investment involves risk. Past performance is not indicative of future results. The value of investments and income from them can go down as well as up, and you may not get back the amount originally invested. {company} does not provide personal financial advice. Please consult a qualified financial advisor before making investment decisions.'
+      },
+      landing: {
+        required: true,
+        why: 'Landing pages for financial products must clearly disclose risks, fees, and regulatory status. This is required by financial regulators in all major jurisdictions.',
+        text: 'IMPORTANT RISK DISCLOSURE: All investments carry risk. {product} is not guaranteed to produce positive returns. Past performance does not guarantee future results. You should not invest money you cannot afford to lose. {company} is not a registered investment advisor. The information provided on this page is for informational purposes only and does not constitute financial, investment, or legal advice. Please consult with a licensed financial professional before making any investment decisions.\n\nFees and charges may apply. Full fee schedule available upon request.'
+      },
+      terms: {
+        required: true,
+        why: 'Terms & conditions must outline the nature of the financial product, associated risks, and limitation of liability. Required by consumer protection and financial services regulations.',
+        text: 'TERMS & CONDITIONS EXCERPT - FINANCIAL SERVICES\n\n1. Risk Warning: {product} involves the risk of loss. The value of your investment may go down as well as up. You may lose some or all of your invested capital.\n\n2. No Guarantee: {company} makes no guarantee regarding the performance of any financial product or service.\n\n3. Not Personal Advice: Nothing on this site constitutes personal financial advice. All content is for informational purposes only.\n\n4. Regulatory Status: {company} is not a registered broker-dealer, investment advisor, or financial planner.\n\n5. Limitation of Liability: {company} shall not be liable for any losses arising from reliance on information provided.'
+      },
+      privacy: {
+        required: true,
+        why: 'Financial services collect sensitive data (income, assets, identity). Privacy disclosures must be specific about what financial data is collected and how it is used. Required under GLBA (US), GDPR (EU), and DPA (UK).',
+        text: 'PRIVACY NOTICE - FINANCIAL DATA\n\n{company} collects and processes the following data in connection with {product}:\n- Personal identification information (name, email, phone)\n- Financial information (income range, investment goals)\n- Transaction data and account activity\n\nYour financial data is encrypted in transit and at rest. We do not sell your personal or financial information to third parties. Data is shared only with regulated service providers necessary to deliver our services.\n\nYou have the right to access, correct, or delete your personal data. Contact us at [privacy contact] for data requests.'
+      }
+    },
+    healthcare: {
+      label: 'Healthcare / Pharma',
+      ad: {
+        required: true,
+        why: 'Healthcare advertising is regulated by the FDA (US), MHRA (UK), and EMA (EU). Ads must not make unsubstantiated health claims. Medical product ads require fair balance of benefits and risks.',
+        text: 'This is not medical advice. Consult your healthcare provider before starting any new treatment, medication, or health program. {product} is not intended to diagnose, treat, cure, or prevent any disease. Individual results may vary. If you experience adverse effects, discontinue use and consult a medical professional immediately.'
+      },
+      landing: {
+        required: true,
+        why: 'Landing pages for health products must include full risk/benefit information, contraindications, and a clear statement that the content does not replace professional medical advice.',
+        text: 'MEDICAL DISCLAIMER: The information on this page about {product} is for educational and informational purposes only and is not intended as a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.\n\nDo not disregard professional medical advice or delay seeking it because of information presented by {company}. If you think you may have a medical emergency, call your doctor or emergency services immediately.\n\n{company} does not recommend or endorse any specific tests, physicians, products, procedures, or opinions mentioned on this site.'
+      },
+      terms: {
+        required: true,
+        why: 'Health product terms must limit liability for health outcomes and clarify that the product is not a medical device or pharmaceutical (if applicable).',
+        text: 'TERMS & CONDITIONS EXCERPT - HEALTH PRODUCTS\n\n1. Not Medical Advice: {product} and all content provided by {company} are for informational purposes only and do not constitute medical advice.\n\n2. No Doctor-Patient Relationship: Use of {product} does not create a doctor-patient or therapist-patient relationship.\n\n3. Individual Results: Results described are not guaranteed. Individual outcomes may vary based on personal health conditions and factors.\n\n4. Contraindications: Consult your physician before use if you are pregnant, nursing, taking medication, or have a pre-existing medical condition.\n\n5. Limitation of Liability: {company} is not liable for any health outcomes resulting from use of {product}.'
+      },
+      privacy: {
+        required: true,
+        why: 'Health data is classified as sensitive/special category data under GDPR and is protected by HIPAA (US). Stricter consent and security requirements apply.',
+        text: 'PRIVACY NOTICE - HEALTH DATA\n\n{company} takes the protection of your health information seriously. In connection with {product}, we may collect:\n- General health and wellness information you voluntarily provide\n- Usage data related to health tracking features\n\nHealth data is classified as sensitive personal data. We process it only with your explicit consent. Your health information is never sold to third parties or used for advertising purposes.\n\nIn the US, applicable HIPAA protections apply. In the EU/UK, health data is processed under GDPR Article 9. You may withdraw consent at any time.'
+      }
+    },
+    alcohol: {
+      label: 'Alcohol',
+      ad: {
+        required: true,
+        why: 'Alcohol advertising is regulated by the TTB (US), ASA (UK), and similar bodies. Ads must include age restrictions and responsible drinking messages. Most platforms require age-gating.',
+        text: 'Must be 21+ to purchase (US) / 18+ (EU, UK, AU, CA). Drink responsibly. Do not drink and drive. {product} by {company}. Please enjoy our products responsibly. Not for sale to persons under the legal drinking age.'
+      },
+      landing: {
+        required: true,
+        why: 'Alcohol landing pages must include an age gate and responsible consumption messaging. Required by advertising standards authorities and platform policies.',
+        text: 'AGE VERIFICATION REQUIRED: You must be of legal drinking age in your jurisdiction to access this content and purchase {product}.\n\nUnited States: 21+\nCanada, United Kingdom, European Union, Australia: 18+\n\n{company} promotes responsible drinking. Excessive alcohol consumption is harmful to your health. Do not operate vehicles or machinery after consuming alcohol.\n\nIf you or someone you know has a drinking problem, please contact the SAMHSA helpline at 1-800-662-4357 (US) or your local support service.'
+      },
+      terms: {
+        required: true,
+        why: 'Alcohol product terms must address age verification, shipping restrictions, and consumption liability.',
+        text: 'TERMS & CONDITIONS EXCERPT - ALCOHOL PRODUCTS\n\n1. Age Requirement: You must be of legal drinking age in your jurisdiction to purchase {product}. By placing an order, you confirm that you meet this requirement.\n\n2. Age Verification: {company} reserves the right to verify age at point of delivery. Orders may be refused if valid ID cannot be provided.\n\n3. Shipping Restrictions: {product} cannot be shipped to jurisdictions where sale or delivery of alcohol is prohibited.\n\n4. Responsible Use: {company} encourages responsible consumption. We are not liable for misuse of our products.\n\n5. Health Warning: Consumption of alcohol impairs your ability to drive or operate machinery. Alcohol should not be consumed during pregnancy.'
+      },
+      privacy: {
+        required: false,
+        why: 'Standard privacy notice applies, but must mention age verification data collection and any loyalty program data.',
+        text: 'PRIVACY NOTICE - ALCOHOL PRODUCTS\n\n{company} collects the following data in connection with {product}:\n- Age verification data (date of birth)\n- Purchase history and delivery address\n- Loyalty program participation data (if applicable)\n\nAge verification data is used solely to confirm legal drinking age and is not shared with third parties for marketing purposes. We comply with all applicable data protection laws in your jurisdiction.'
+      }
+    },
+    political: {
+      label: 'Political',
+      ad: {
+        required: true,
+        why: 'Political advertising requires "paid for by" disclosures in the US (FEC), UK (Electoral Commission), and EU (DSA). Meta, Google, and other platforms have additional transparency requirements including advertiser identity verification.',
+        text: 'Paid for by {company}. Not authorized by any candidate or candidate\'s committee. {company} is solely responsible for the content of this advertisement.'
+      },
+      landing: {
+        required: true,
+        why: 'Political campaign landing pages must clearly identify the sponsoring organization and include a disclaimer that the content represents the views of the sponsor, not any endorsed candidate.',
+        text: 'POLITICAL ADVERTISEMENT DISCLOSURE\n\nThis content is paid for by {company}. This communication is not authorized by any candidate or candidate\'s committee.\n\nThe views and opinions expressed on this page are those of {company} and do not necessarily represent the official position of any political party, candidate, or government entity.\n\n{company} is responsible for the content of this message. For more information about our organization and funding, visit [organization website].'
+      },
+      terms: {
+        required: true,
+        why: 'Political campaign terms must address disclaimers about endorsement, donation handling, and data use for political purposes.',
+        text: 'TERMS & CONDITIONS EXCERPT - POLITICAL CONTENT\n\n1. Sponsorship: All content on this site is paid for by {company}.\n\n2. No Endorsement: Unless explicitly stated, this content does not represent the official position of any candidate, political party, or government body.\n\n3. Donations: Any donations made through this site go to {company}. Contribution limits and reporting requirements apply per FEC/local election law. Corporate and foreign national contributions may be prohibited.\n\n4. Accuracy: While {company} strives for accuracy, political content reflects the views of the sponsor. Voters are encouraged to verify claims independently.\n\n5. Data Use: Information collected may be used for political outreach and advocacy purposes. See our privacy notice for details.'
+      },
+      privacy: {
+        required: true,
+        why: 'Political organizations must disclose how supporter data is used, especially for fundraising, voter outreach, and sharing with affiliated groups. Strict rules apply under GDPR for EU political data.',
+        text: 'PRIVACY NOTICE - POLITICAL DATA\n\n{company} collects data for political advocacy and outreach purposes, including:\n- Contact information (name, email, phone, address)\n- Donation history and amounts\n- Communication preferences\n- Publicly available voter registration data\n\nYour data may be used for political communications, fundraising appeals, and voter mobilization. We may share data with affiliated political organizations as permitted by law.\n\nYour political opinions and affiliations are sensitive data under GDPR (EU/UK). We process this data based on your explicit consent. You may opt out of political communications at any time.'
+      }
+    },
+    gambling: {
+      label: 'Gambling',
+      ad: {
+        required: true,
+        why: 'Gambling ads are heavily regulated in all jurisdictions. Required disclaimers include age restrictions, responsible gambling messaging, and helpline numbers. Many platforms restrict gambling ads to licensed operators only.',
+        text: 'Gambling can be addictive. Please play responsibly. 18+ (21+ where required by law). {product} by {company}. If you or someone you know has a gambling problem, call 1-800-GAMBLER (US) or visit www.begambleaware.org (UK).'
+      },
+      landing: {
+        required: true,
+        why: 'Gambling landing pages must include prominent responsible gambling messaging, self-exclusion options, and links to problem gambling resources. Required by gambling commissions and platform policies.',
+        text: 'RESPONSIBLE GAMBLING NOTICE\n\nYou must be 18 years or older (21+ in some jurisdictions) to use {product}. {company} is committed to responsible gambling.\n\nPlease gamble responsibly. Set deposit limits, take breaks, and never chase losses. Gambling should be entertainment, not a source of income.\n\nSelf-exclusion options are available in your account settings. You can set deposit limits, loss limits, and session time limits at any time.\n\nIf you need help:\n- US: National Council on Problem Gambling - 1-800-522-4700\n- UK: GambleAware - 0808-8020-133 / www.begambleaware.org\n- EU: Check your national gambling authority\n- AU: Gambling Help Online - 1800-858-858\n- CA: ConnexOntario - 1-866-531-2600\n\nUnderage gambling is a criminal offense. {company} verifies the age and identity of all users.'
+      },
+      terms: {
+        required: true,
+        why: 'Gambling terms must cover licensing, age verification, responsible gambling tools, and jurisdictional restrictions.',
+        text: 'TERMS & CONDITIONS EXCERPT - GAMBLING\n\n1. Age Requirement: You must be at least 18 years old (21 in applicable jurisdictions) to use {product}. Identity and age verification is mandatory.\n\n2. Licensing: {company} operates under license from [licensing authority]. License number: [number].\n\n3. Jurisdictional Restrictions: {product} is not available in jurisdictions where online gambling is prohibited. It is your responsibility to ensure compliance with local laws.\n\n4. Responsible Gambling: {company} provides deposit limits, loss limits, session limits, and self-exclusion tools. These are accessible from your account settings at any time.\n\n5. No Guaranteed Winnings: Gambling outcomes are based on chance. {company} makes no guarantees of winning. Only gamble with money you can afford to lose.'
+      },
+      privacy: {
+        required: true,
+        why: 'Gambling operators must disclose data collection for regulatory compliance (KYC/AML), age verification, and responsible gambling monitoring.',
+        text: 'PRIVACY NOTICE - GAMBLING DATA\n\n{company} collects and processes the following data for {product}:\n- Identity verification (name, date of birth, government ID)\n- Financial information for deposits and withdrawals\n- Gambling activity and transaction history\n- Responsible gambling interaction data\n\nThis data is collected as required by gambling regulations for Know Your Customer (KYC) and Anti-Money Laundering (AML) compliance. We are legally required to retain gambling transaction records for the period specified by our licensing authority.\n\nGambling activity data may be used to identify problem gambling patterns and trigger responsible gambling interventions. We do not sell your personal data.'
+      }
+    },
+    supplements: {
+      label: 'Weight Loss / Supplements',
+      ad: {
+        required: true,
+        why: 'Supplement and weight loss ads are heavily scrutinized by the FTC (US), ASA (UK), and platform policies. Unsubstantiated claims can lead to ad rejection, account bans, and FTC enforcement actions. The FDA requires specific disclaimer language for supplements.',
+        text: 'Results may vary. {product} is not intended to diagnose, treat, cure, or prevent any disease. These statements have not been evaluated by the Food and Drug Administration. Consult your physician before starting any supplement or weight loss program. Individual results depend on many factors including diet, exercise, and overall health.'
+      },
+      landing: {
+        required: true,
+        why: 'The FTC requires that weight loss and supplement landing pages include clear disclaimers about typical results, and that any testimonials represent typical outcomes or are clearly marked as atypical.',
+        text: 'FDA DISCLAIMER: {product} is a dietary supplement. These statements have not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease.\n\nRESULTS DISCLAIMER: Results described on this page are not typical and may vary from person to person. Individual results depend on many factors including but not limited to: starting weight, diet, exercise habits, metabolism, age, and overall health.\n\nAny testimonials or reviews shown represent the experiences of individual users and do not constitute a guarantee of results. Before using {product} or starting any weight loss program, consult your physician, especially if you have any pre-existing medical conditions, are pregnant or nursing, or are taking medication.\n\n{company} makes no medical claims about {product}.'
+      },
+      terms: {
+        required: true,
+        why: 'Supplement terms must disclaim medical claims, address the FTC "typical results" requirement, and limit liability for health outcomes.',
+        text: 'TERMS & CONDITIONS EXCERPT - SUPPLEMENTS\n\n1. Not a Drug: {product} is a dietary supplement, not a pharmaceutical drug. It has not been evaluated or approved by the FDA or any equivalent authority.\n\n2. No Medical Claims: {company} does not claim that {product} can diagnose, treat, cure, or prevent any medical condition.\n\n3. Typical Results: Results vary. Any results shared in testimonials or marketing materials may not be typical. Individual outcomes depend on numerous personal factors.\n\n4. Consult Your Doctor: Consult a healthcare provider before using {product} if you have any medical condition, take medication, are pregnant, or are nursing.\n\n5. Allergens & Ingredients: Review the full ingredient list before use. {company} is not liable for allergic reactions or interactions with medications.'
+      },
+      privacy: {
+        required: false,
+        why: 'Standard e-commerce privacy notice applies, but should mention health-related data if any wellness tracking features are included.',
+        text: 'PRIVACY NOTICE\n\n{company} collects standard e-commerce data in connection with {product}:\n- Contact and shipping information\n- Payment details (processed securely via third-party payment processor)\n- Purchase history\n\nIf you use any wellness tracking features, health-related data you provide is treated as sensitive information and is never shared with third parties for marketing. You may delete your wellness data at any time from your account settings.'
+      }
+    },
+    realestate: {
+      label: 'Real Estate',
+      ad: {
+        required: true,
+        why: 'Real estate advertising is regulated by the Fair Housing Act (US), which prohibits discrimination. Google and Meta have special ad categories for housing that restrict targeting. TILA requires disclosure of financial terms in mortgage-related ads.',
+        text: 'Equal Housing Opportunity. {company} does not discriminate on the basis of race, color, religion, sex, national origin, disability, or familial status. All properties are subject to prior sale, change, or withdrawal. Pricing and availability are not guaranteed.'
+      },
+      landing: {
+        required: true,
+        why: 'Real estate landing pages must include Equal Housing Opportunity statements and, if advertising mortgage terms, full TILA-required disclosures.',
+        text: 'REAL ESTATE DISCLAIMER\n\nEqual Housing Opportunity. {company} fully complies with the Fair Housing Act and does not discriminate on the basis of race, color, religion, sex, handicap, familial status, or national origin.\n\nAll information about {product} is believed to be accurate but is not guaranteed. Prospective buyers should independently verify all information. Prices, specifications, availability, and terms are subject to change without notice.\n\nPhotographs, renderings, and floor plans are for illustration purposes only and may not represent the actual property. Square footage is approximate.\n\n{company} is a licensed real estate [brokerage/agency] in [state/jurisdiction]. License #[number].'
+      },
+      terms: {
+        required: true,
+        why: 'Real estate terms must address listing accuracy, brokerage disclosure, and Fair Housing compliance.',
+        text: 'TERMS & CONDITIONS EXCERPT - REAL ESTATE\n\n1. No Guaranteed Availability: Properties listed by {company} are subject to prior sale, withdrawal, or change without notice.\n\n2. Accuracy: While {company} strives for accuracy, all listing information including price, size, and features should be independently verified by prospective buyers.\n\n3. Fair Housing: {company} complies with all federal, state, and local fair housing laws. Discrimination is strictly prohibited.\n\n4. Brokerage Disclosure: {company} operates as [seller\'s agent / buyer\'s agent / dual agent] unless otherwise disclosed.\n\n5. Not Financial Advice: Any mortgage or financing information provided is for informational purposes only. Consult a licensed mortgage professional for specific financing options.'
+      },
+      privacy: {
+        required: false,
+        why: 'Standard privacy notice with additional attention to lead generation data and fair housing compliance in data handling.',
+        text: 'PRIVACY NOTICE - REAL ESTATE\n\n{company} collects data in connection with {product} including:\n- Contact information from property inquiries\n- Property search preferences and browsing history\n- Pre-qualification or financing inquiry data\n\nIn compliance with Fair Housing regulations, we do not use protected characteristics (race, religion, familial status, etc.) for any marketing, targeting, or decision-making purposes. Lead data is shared with listing agents and partnered lenders only with your consent.'
+      }
+    },
+    legal: {
+      label: 'Legal Services',
+      ad: {
+        required: true,
+        why: 'Legal advertising is regulated by state bar associations (US) and the SRA (UK). Ads must not guarantee outcomes or create unjustified expectations. Many jurisdictions require specific disclaimers and attorney advertising labels.',
+        text: 'ATTORNEY ADVERTISING. Prior results do not guarantee a similar outcome. {company} provides legal information, not legal advice. No attorney-client relationship is formed by viewing this advertisement. {company} is responsible for the content of this message.'
+      },
+      landing: {
+        required: true,
+        why: 'Legal services landing pages must clarify that no attorney-client relationship is created by visiting the site, and that results vary by case. Required by state bar rules on attorney advertising.',
+        text: 'LEGAL DISCLAIMER\n\nATTORNEY ADVERTISING. This page is for informational purposes only and does not constitute legal advice. No attorney-client relationship is created by visiting this site or contacting {company}.\n\nPrior results achieved by {company} for other clients do not guarantee a similar outcome in your matter. Every legal situation is unique and outcomes depend on the specific facts and circumstances of each case.\n\nIf you need legal advice, please consult with a licensed attorney in your jurisdiction. {company} is licensed to practice in [jurisdictions].\n\nFree consultations, if offered, do not create an attorney-client relationship until a formal engagement agreement is signed.'
+      },
+      terms: {
+        required: true,
+        why: 'Legal services terms must address the nature of the attorney-client relationship, confidentiality limitations on website communications, and jurisdictional scope.',
+        text: 'TERMS & CONDITIONS EXCERPT - LEGAL SERVICES\n\n1. No Attorney-Client Relationship: Browsing this site or contacting {company} does not create an attorney-client relationship. Such a relationship is formed only through a signed engagement letter.\n\n2. No Guaranteed Outcomes: {company} does not guarantee any specific legal outcome. All legal matters involve risk and uncertainty.\n\n3. Confidentiality: Information submitted through this website may not be protected by attorney-client privilege until a formal relationship is established. Do not send sensitive information until an engagement is confirmed.\n\n4. Jurisdictional Scope: {company} is licensed in [jurisdictions]. Information on this site may not apply to your jurisdiction.\n\n5. Attorney Advertising: This site constitutes attorney advertising under applicable bar rules.'
+      },
+      privacy: {
+        required: true,
+        why: 'Legal services handle highly sensitive client data. Privacy notices must address confidentiality obligations and the distinction between website visitor data and client data.',
+        text: 'PRIVACY NOTICE - LEGAL SERVICES\n\n{company} collects the following data:\n- Contact information from consultation requests\n- Case details voluntarily provided via forms\n- Website browsing data (cookies, analytics)\n\nIMPORTANT: Information submitted through this website is NOT protected by attorney-client privilege unless and until a formal attorney-client relationship is established through a signed engagement agreement.\n\nClient data (post-engagement) is handled in accordance with professional responsibility rules and attorney-client confidentiality obligations. We do not sell or share client data with third parties except as required by law or authorized by the client.'
+      }
+    },
+    insurance: {
+      label: 'Insurance',
+      ad: {
+        required: true,
+        why: 'Insurance advertising is regulated by state insurance departments (US), the FCA (UK), and PRA. Ads must not misrepresent coverage, guarantee claims approval, or omit material limitations.',
+        text: 'Coverage subject to terms, conditions, and exclusions. Not all applicants will qualify. Premium rates vary based on individual factors. {product} is underwritten by [underwriter]. {company} is a licensed insurance [broker/agent]. This is a solicitation for insurance.'
+      },
+      landing: {
+        required: true,
+        why: 'Insurance landing pages must disclose material limitations, the difference between quotes and actual premiums, and the licensed status of the entity selling insurance.',
+        text: 'INSURANCE DISCLAIMER\n\n{product} is an insurance product provided through {company}. This page is a solicitation for insurance.\n\nQuotes provided are estimates only and are not binding. Actual premiums may vary based on underwriting factors including age, health, location, claims history, and coverage selections.\n\nAll coverage is subject to the terms, conditions, and exclusions of the issued policy. Not all coverage options are available in all states. Some applicants may not qualify for coverage.\n\n{company} is a licensed insurance [broker/agent] in [states/jurisdictions]. License #[number]. Policies are underwritten by [underwriter], which is solely responsible for claims.'
+      },
+      terms: {
+        required: true,
+        why: 'Insurance terms must address the nature of quotes vs. policies, underwriting disclosures, and claims procedures.',
+        text: 'TERMS & CONDITIONS EXCERPT - INSURANCE\n\n1. Quotes vs. Policies: Quotes provided through {company} are estimates. Actual premiums, terms, and coverage are determined by the underwriting carrier upon application.\n\n2. Underwriting: All policies are subject to underwriting approval. {company} does not guarantee coverage approval.\n\n3. Policy Terms Control: In the event of any conflict between marketing materials and the insurance policy, the policy terms control.\n\n4. Claims: All claims are handled by the underwriting carrier, not {company}. Contact your carrier directly for claims.\n\n5. Licensing: {company} holds insurance licenses in the jurisdictions where it operates. License details available upon request.'
+      },
+      privacy: {
+        required: true,
+        why: 'Insurance applications collect sensitive health and financial data. Privacy notices must address data sharing with underwriters and comply with state insurance privacy laws.',
+        text: 'PRIVACY NOTICE - INSURANCE\n\n{company} collects personal data in connection with {product} including:\n- Personal identification and contact information\n- Health information (for health/life insurance)\n- Financial information (income, assets)\n- Driving records (for auto insurance)\n- Property information (for home insurance)\n\nYour information is shared with underwriting carriers for the purpose of providing insurance quotes and processing applications. We may also share data with third-party verification services as required by the underwriting process.\n\nWe comply with state insurance privacy laws, including providing required notices under the Gramm-Leach-Bliley Act (US). You have the right to opt out of certain data sharing.'
+      }
+    },
+    crypto: {
+      label: 'Crypto',
+      ad: {
+        required: true,
+        why: 'Crypto advertising is restricted or banned on many platforms. Google and Meta require verification and licensing. The FTC, SEC, and CFTC (US) and FCA (UK) actively enforce against misleading crypto promotions. The UK requires all crypto ads include risk warnings.',
+        text: 'Cryptocurrency is volatile and unregulated in most jurisdictions. Do not invest unless you are prepared to lose all the money you invest. This is a high-risk investment and you should not expect to be protected if something goes wrong. {product} by {company}.'
+      },
+      landing: {
+        required: true,
+        why: 'Crypto landing pages require prominent risk warnings. The UK FCA mandates specific warning language. The SEC and CFTC scrutinize crypto promotions for unregistered securities offerings.',
+        text: 'HIGH-RISK INVESTMENT WARNING\n\nCryptocurrency investments are high-risk and highly volatile. The value of {product} and other crypto assets can fall rapidly and you may lose all of your investment.\n\nDon\'t invest unless you\'re prepared to lose all the money you invest. This is a high-risk investment and you should not expect to be protected if something goes wrong.\n\nCrypto assets are largely unregulated. There may be no consumer protection if the platform fails or is hacked. Crypto assets are not covered by deposit protection schemes.\n\n{company} does not provide investment advice. This content is for informational purposes only. You should do your own research and consider seeking independent financial advice before investing.\n\nTax obligations may apply to crypto transactions. Consult a tax professional regarding your specific situation.'
+      },
+      terms: {
+        required: true,
+        why: 'Crypto terms must address volatility, regulatory status, security risks, and the experimental nature of blockchain technology.',
+        text: 'TERMS & CONDITIONS EXCERPT - CRYPTOCURRENCY\n\n1. High Risk: Cryptocurrency is a high-risk, speculative investment. Prices can and do fluctuate dramatically. You may lose your entire investment.\n\n2. No Regulation: {product} and other crypto assets are not regulated as securities, currencies, or financial instruments in most jurisdictions. There may be no recourse if something goes wrong.\n\n3. No Guarantee: {company} makes no guarantees about the future value, liquidity, or availability of any cryptocurrency.\n\n4. Security Risks: Despite security measures, cryptocurrency platforms are subject to hacking, fraud, and technical failures. {company} is not liable for losses resulting from security breaches.\n\n5. Tax Liability: Users are solely responsible for determining and fulfilling their tax obligations related to cryptocurrency transactions.'
+      },
+      privacy: {
+        required: true,
+        why: 'Crypto platforms must collect extensive KYC data for AML compliance. Privacy notices must explain identity verification, transaction monitoring, and potential data sharing with regulators.',
+        text: 'PRIVACY NOTICE - CRYPTOCURRENCY\n\n{company} collects the following data for {product}:\n- Identity verification (KYC): name, date of birth, government-issued ID, proof of address\n- Financial data: bank account details, transaction history\n- Wallet addresses and blockchain transaction data\n\nThis data is collected to comply with Anti-Money Laundering (AML) and Know Your Customer (KYC) regulations. We are required to share data with regulators and law enforcement when legally compelled.\n\nBlockchain transactions are public by nature. {company} cannot control the visibility of on-chain transaction data. We store off-chain personal data securely and do not sell it to third parties.'
+      }
+    },
+    general: {
+      label: 'General',
+      ad: {
+        required: false,
+        why: 'Even general advertising should include basic disclaimers about accuracy and applicability. While not legally mandated for most products, disclaimers reduce legal exposure and build trust.',
+        text: 'Offer by {company}. Terms and conditions apply. See website for details. Prices and availability subject to change without notice. Product images are for illustration purposes only and may differ from actual product.'
+      },
+      landing: {
+        required: false,
+        why: 'General landing pages benefit from a standard disclaimer limiting liability and setting user expectations. Recommended by legal best practices even when not strictly required.',
+        text: 'DISCLAIMER: The information on this page about {product} is provided by {company} for general informational purposes. While we strive for accuracy, we make no warranties about the completeness, reliability, or accuracy of this information.\n\nAny action you take based on the information on this site is at your own risk. {company} is not liable for any losses or damages in connection with the use of this site.\n\nProduct specifications, pricing, and availability are subject to change without notice. Images and descriptions may not exactly match the actual product.'
+      },
+      terms: {
+        required: false,
+        why: 'Basic terms help protect your business from liability and set clear expectations for customers, even for general products and services.',
+        text: 'TERMS & CONDITIONS EXCERPT\n\n1. Acceptance: By accessing this site and purchasing {product}, you agree to these terms.\n\n2. Accuracy: {company} strives for accuracy in product descriptions and pricing but does not warrant that content is error-free.\n\n3. Limitation of Liability: {company} shall not be liable for indirect, incidental, or consequential damages arising from use of {product} or this website.\n\n4. Intellectual Property: All content on this site is owned by or licensed to {company} and is protected by applicable intellectual property laws.\n\n5. Governing Law: These terms are governed by the laws of [jurisdiction].'
+      },
+      privacy: {
+        required: false,
+        why: 'Privacy notices are legally required in most jurisdictions (GDPR, CCPA, PIPEDA) for any site that collects personal data, including email addresses, cookies, or analytics.',
+        text: 'PRIVACY NOTICE\n\n{company} collects the following data:\n- Information you provide (name, email, phone)\n- Automatic data (IP address, browser type, cookies)\n- Purchase and transaction data\n\nWe use this data to provide {product}, improve our services, and communicate with you. We do not sell your personal information.\n\nYou have the right to access, correct, or delete your data. Contact [email] for data requests. We retain data only as long as necessary for the purposes described.'
+      }
+    }
+  };
+
+  // ── Platform-specific additions ──
+  const PLATFORM_NOTES = {
+    meta: {
+      finance: 'Meta requires Special Ad Category designation for credit/financial services. Targeting is restricted (no age, gender, or zip code targeting).',
+      healthcare: 'Meta restricts health-related ad targeting. No targeting based on health conditions. Requires advertiser verification for pharma.',
+      alcohol: 'Meta requires age-gating (21+ US, 18+ elsewhere). Alcohol ads must comply with local laws. Age and country targeting is mandatory.',
+      political: 'Meta requires "Paid for by" label and advertiser identity verification. Political ads are stored in Meta Ad Library for 7 years.',
+      gambling: 'Meta requires prior written permission for gambling ads. Only licensed operators. Must target legal-age users in permitted jurisdictions.',
+      supplements: 'Meta prohibits "before/after" images and claims of specific weight loss amounts. No deceptive health claims.',
+      realestate: 'Meta requires Special Ad Category for housing. No age, gender, or zip code targeting allowed.',
+      crypto: 'Meta requires prior written approval for crypto ads. Only licensed exchanges and wallets. No ICO/token sale ads.',
+      general: 'Standard Meta advertising policies apply. Review Meta Advertising Standards before publishing.',
+      legal: 'Meta has no special category for legal ads, but ads must comply with local bar association rules on attorney advertising.',
+      insurance: 'Meta requires Special Ad Category for insurance (classified under credit). Targeting restrictions apply.'
+    },
+    google: {
+      finance: 'Google requires advertiser verification for financial services. Restricted Financial Products policy applies. Must include regulatory disclosures.',
+      healthcare: 'Google restricts healthcare ads. Pharma ads require Google certification. No ads for unapproved treatments or misleading health claims.',
+      alcohol: 'Google allows alcohol ads in permitted countries only. Must comply with local laws. No ads targeting minors or promoting excessive consumption.',
+      political: 'Google requires identity verification for election ads. Election ads include "Paid for by" disclosure and appear in Google Transparency Report.',
+      gambling: 'Google requires certification for gambling ads. Only licensed operators in approved countries. Must include responsible gambling messaging.',
+      supplements: 'Google restricts weight loss supplement ads. No deceptive claims, fake testimonials, or before/after images that misrepresent results.',
+      realestate: 'Google Personalized Advertising policy restricts housing ad targeting. No targeting based on protected characteristics.',
+      crypto: 'Google allows crypto exchange and wallet ads from certified advertisers only. No ICO, DeFi protocols, or celebrity endorsement crypto ads.',
+      general: 'Standard Google Ads policies apply. Review Google Advertising Policies before publishing.',
+      legal: 'Google allows attorney advertising. Must comply with local bar association rules. Lawyer referral services require certification in some jurisdictions.',
+      insurance: 'Google requires advertiser verification for insurance products. Comparison sites may need additional certification.'
+    },
+    linkedin: {
+      finance: 'LinkedIn allows financial services ads with appropriate disclaimers. B2B financial products have fewer restrictions than consumer finance.',
+      healthcare: 'LinkedIn allows healthcare advertising with disclaimers. Pharma ads must comply with platform policies and local regulations.',
+      alcohol: 'LinkedIn generally allows alcohol brand advertising for B2B purposes (e.g., distributor recruitment) but restricts consumer alcohol promotion.',
+      political: 'LinkedIn prohibits political ads in many countries. Check LinkedIn\'s current policy for your target market before running political campaigns.',
+      gambling: 'LinkedIn restricts gambling ads. Generally not a primary platform for gambling promotion. Check current policies before advertising.',
+      supplements: 'LinkedIn allows supplement advertising for B2B purposes. Consumer-facing supplement ads should include standard disclaimers.',
+      realestate: 'LinkedIn allows real estate ads. No special category restrictions but fair housing disclaimers are still legally required.',
+      crypto: 'LinkedIn allows crypto ads from verified, regulated entities. Must comply with LinkedIn\'s financial products policy.',
+      general: 'Standard LinkedIn advertising policies apply.',
+      legal: 'LinkedIn is a strong platform for legal services. Attorney advertising rules still apply per jurisdiction.',
+      insurance: 'LinkedIn allows insurance advertising. B2B insurance products face fewer restrictions than consumer insurance.'
+    },
+    tiktok: {
+      finance: 'TikTok restricts financial services ads. Requires landing page disclaimers. No ads for unregulated financial products.',
+      healthcare: 'TikTok restricts health-related ads. No prescription drug ads. OTC and wellness products allowed with disclaimers.',
+      alcohol: 'TikTok prohibits alcohol ads in most markets. Some exceptions for branded content in permitted jurisdictions with 21+ targeting.',
+      political: 'TikTok prohibits paid political ads globally. No political advertising is permitted on the platform.',
+      gambling: 'TikTok restricts gambling ads to licensed operators in approved jurisdictions. Strict age-gating required.',
+      supplements: 'TikTok restricts supplement ads. No miracle cure claims. Must include appropriate disclaimers and avoid exaggerated results.',
+      realestate: 'TikTok allows real estate ads. Fair housing disclaimers are still legally required.',
+      crypto: 'TikTok restricts crypto ads. Policies vary by region. Generally only licensed exchanges with prior approval.',
+      general: 'Standard TikTok advertising policies apply. Review TikTok Advertising Guidelines before publishing.',
+      legal: 'TikTok allows attorney advertising. Must comply with local bar rules. Content should match TikTok\'s informal format.',
+      insurance: 'TikTok allows insurance ads with appropriate disclaimers. Must target appropriate age demographics.'
+    },
+    all: {}
+  };
+
+  // ── Region-specific additions ──
+  const REGION_NOTES = {
+    us: {
+      label: 'United States',
+      general: 'FTC Act Section 5 prohibits unfair or deceptive advertising. CAN-SPAM Act requires opt-out in commercial emails. CCPA/CPRA gives California residents data rights.',
+      finance: 'SEC, FINRA, and CFTC regulate financial advertising. Regulation D and S limit securities offering ads. TILA requires APR disclosure in credit ads.',
+      healthcare: 'FDA regulates pharma/supplement advertising. FTC enforces against deceptive health claims. HIPAA protects patient health information.',
+      gambling: 'State-by-state regulation. Online gambling legal in NJ, PA, MI, WV, CT, and others. Age requirement is 21 in most states.',
+      crypto: 'SEC treats many tokens as securities. CFTC regulates crypto derivatives. State money transmitter laws may apply.',
+      political: 'FEC requires "Paid for by" disclosures. State campaign finance laws vary. No foreign spending on elections.'
+    },
+    eu: {
+      label: 'European Union',
+      general: 'GDPR applies to all data processing. Unfair Commercial Practices Directive regulates advertising. Cookie consent (ePrivacy Directive) is mandatory.',
+      finance: 'MiFID II governs investment product advertising. ESMA restricts CFD/binary options marketing. PRIIPs requires Key Information Documents.',
+      healthcare: 'EU Directive 2001/83/EC prohibits direct-to-consumer prescription drug advertising. Medical device advertising regulated by MDR.',
+      gambling: 'Regulated per member state. Some countries (e.g., Netherlands, Italy) have strict licensing. EU-wide gambling regulation does not exist.',
+      crypto: 'MiCA (Markets in Crypto-Assets) regulation requires risk warnings. Crypto-asset service providers must be authorized.',
+      political: 'Digital Services Act (DSA) requires transparency for political ads. GDPR Article 9 protects political opinion data.'
+    },
+    uk: {
+      label: 'United Kingdom',
+      general: 'ASA/CAP Code regulates advertising. Consumer Protection from Unfair Trading Regulations 2008. UK GDPR and DPA 2018 for data protection.',
+      finance: 'FCA regulates all financial promotions. FSMA Section 21 restricts unapproved financial ads. Consumer Duty requires fair communication.',
+      healthcare: 'MHRA regulates pharma advertising. ASA/CAP Code restricts health claims. Prescription drug DTC advertising is banned.',
+      gambling: 'UK Gambling Commission licenses all operators. Strict ad rules: no appeal to under-18s, mandatory "18+" labels, GambleAware messaging required.',
+      crypto: 'FCA regulates crypto promotions since Oct 2023. All crypto ads must include specific risk warnings. Only FCA-registered firms can promote crypto.',
+      political: 'Electoral Commission oversees political advertising. Imprint requirements for digital campaign materials. Online Safety Act affects platform obligations.'
+    },
+    ca: {
+      label: 'Canada',
+      general: 'Competition Act prohibits false or misleading advertising. CASL regulates commercial electronic messages. PIPEDA/provincial laws govern privacy.',
+      finance: 'Provincial securities commissions regulate financial ads. IIROC rules for investment dealer advertising. OSFI guidelines for bank advertising.',
+      healthcare: 'Health Canada regulates drug/NHP advertising. Direct-to-consumer prescription drug advertising is restricted (reminder and help-seeking ads only).',
+      gambling: 'Provincial regulation. Ontario (iGO/AGCO) legalized single-event sports betting in 2022. Age requirement is 19 in most provinces (18 in AB, MB, QC).',
+      crypto: 'CSA regulates crypto trading platforms as securities dealers. OSC has taken enforcement actions against unregistered crypto platforms.',
+      political: 'Elections Canada regulates federal political ads. Provincial election acts govern local campaigns. Third-party spending limits apply.'
+    },
+    au: {
+      label: 'Australia',
+      general: 'ACCC enforces Australian Consumer Law. Misleading conduct provisions. Privacy Act 1988 and Australian Privacy Principles for data protection.',
+      finance: 'ASIC regulates financial services advertising. AFS license required. Design and Distribution Obligations (DDO) apply to financial products.',
+      healthcare: 'TGA regulates therapeutic goods advertising. Therapeutic Goods Advertising Code 2021. No DTC prescription drug advertising.',
+      gambling: 'ACMA enforces online gambling restrictions. Interactive Gambling Act 2001. State/territory licenses required. No inducements to gamble allowed in most states.',
+      crypto: 'ASIC regulates crypto assets that qualify as financial products. Stricter enforcement of misleading crypto promotions underway.',
+      political: 'AEC regulates federal political advertising. Electoral Act requires authorization statements. State electoral commissions govern local campaigns.'
+    }
+  };
+
+  // ── Generate disclaimers ──
+  window.generate = function() {
+    const industry = document.querySelector('.industry-item.active')?.dataset.industry || 'general';
+    const platform = activePlatform;
+    const companyName = $('companyName').value.trim() || '[Company Name]';
+    const productName = $('productName').value.trim() || '[Product/Service Name]';
+    const region = $('regionSelect').value;
+
+    const data = DISCLAIMERS[industry];
+    if (!data) return;
+
+    const sub = text => text.replace(/\{company\}/g, companyName).replace(/\{product\}/g, productName);
+
+    let html = '';
+
+    // Summary header
+    const regionInfo = REGION_NOTES[region];
+    html += '<div class="summary-header">';
+    html += '<h2>Disclaimers for ' + escapeHtml(data.label) + '</h2>';
+    html += '<div class="summary-meta">';
+    html += '<span class="meta-pill">' + escapeHtml(data.label) + '</span>';
+    html += '<span class="meta-pill">' + (platform === 'all' ? 'All Platforms' : escapeHtml(platform.charAt(0).toUpperCase() + platform.slice(1))) + '</span>';
+    html += '<span class="meta-pill">' + escapeHtml(regionInfo.label) + '</span>';
+    html += '<span class="meta-pill">' + escapeHtml(companyName) + '</span>';
+    html += '</div>';
+    html += '</div>';
+
+    // Platform-specific note
+    if (platform !== 'all' && PLATFORM_NOTES[platform] && PLATFORM_NOTES[platform][industry]) {
+      html += '<div class="disclaimer-block">';
+      html += '<h3>Platform Note: ' + escapeHtml(platform.charAt(0).toUpperCase() + platform.slice(1)) + '</h3>';
+      html += '<div class="disclaimer-why">' + escapeHtml(PLATFORM_NOTES[platform][industry]) + '</div>';
+      html += '</div>';
+    }
+
+    // Region-specific note
+    const regionKey = industry === 'supplements' || industry === 'realestate' || industry === 'legal' || industry === 'insurance' ? 'general' : industry;
+    if (regionInfo[regionKey]) {
+      html += '<div class="disclaimer-block">';
+      html += '<h3>Regional Requirements: ' + escapeHtml(regionInfo.label) + '</h3>';
+      html += '<div class="disclaimer-why">' + escapeHtml(regionInfo[regionKey]) + '</div>';
+      html += '</div>';
+    }
+
+    // Disclaimer blocks
+    const blocks = [
+      { key: 'ad', title: 'Ad Disclaimer', desc: 'Include this text in your ad creative or as a footnote.' },
+      { key: 'landing', title: 'Landing Page Disclaimer', desc: 'Place this prominently on your landing page, typically near the footer or before the CTA.' },
+      { key: 'terms', title: 'Terms & Conditions Snippet', desc: 'Add this to your terms and conditions page.' },
+      { key: 'privacy', title: 'Privacy Notice Snippet', desc: 'Include this in your privacy policy page.' }
+    ];
+
+    blocks.forEach(b => {
+      const block = data[b.key];
+      if (!block) return;
+      const tag = block.required ? '<span class="disclaimer-tag tag-required">Required</span>' : '<span class="disclaimer-tag tag-recommended">Recommended</span>';
+      const id = 'block-' + b.key;
+      html += '<div class="disclaimer-block">';
+      html += '<h3>' + escapeHtml(b.title) + ' ' + tag + '</h3>';
+      html += '<p style="font-size:11px;color:var(--muted);margin-bottom:8px">' + escapeHtml(b.desc) + '</p>';
+      html += '<div class="disclaimer-why">' + escapeHtml(block.why) + '</div>';
+      html += '<div class="disclaimer-text" id="' + id + '">' + escapeHtml(sub(block.text)) + '</div>';
+      html += '<button class="copy-btn" onclick="copyBlock(\'' + id + '\', this)">Copy</button>';
+      html += '</div>';
+    });
+
+    $('emptyState').style.display = 'none';
+    $('resultsArea').style.display = 'block';
+    $('resultsArea').innerHTML = html;
+
+    // Scroll main to top
+    $('mainArea').scrollTop = 0;
+  };
+
+  // ── Copy block ──
+  window.copyBlock = function(id, btn) {
+    const text = $(id)?.textContent || '';
+    navigator.clipboard.writeText(text).then(() => {
+      btn.classList.add('copied');
+      btn.textContent = 'Copied';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.textContent = 'Copy';
+      }, 2000);
+      showToast('Copied to clipboard');
+    });
+  };
+
+  // ── Helpers ──
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function showToast(msg) {
+    const toast = $('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+})();
+</script>
+</body>
+</html>

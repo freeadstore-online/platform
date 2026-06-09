@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amazon Sponsored Ad Preview - FreeAdStore</title>
+<meta name="description" content="Preview how your Amazon Sponsored Products, Sponsored Brands, and Sponsored Display ads appear in Amazon search results. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--panel:#ffffff;--line:#e5e7eb;--radius:10px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 24px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px;font-family:'Fraunces',serif}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:#eaeded}
+
+/* TABS */
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--line);background:var(--panel);flex-shrink:0;padding:0 20px}
+.tab{padding:12px 18px;font-size:.78rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);font-family:inherit;background:none;border-top:none;border-left:none;border-right:none;transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* PREVIEW AREA */
+.preview-area{flex:1;overflow-y:auto;padding:0}
+
+/* PANELS */
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.03em}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 3px;font-weight:500}
+input[type=text],input[type=number],textarea,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;resize:none}
+input[type=text]:focus,input[type=number]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{min-height:50px;line-height:1.4}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0}
+.toggle-row span{font-size:.78rem;color:var(--text);font-weight:500}
+.toggle{width:40px;height:22px;border-radius:11px;background:#d1d5db;position:relative;cursor:pointer;transition:background .2s}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.on::after{transform:translateX(18px)}
+
+/* IMAGE UPLOAD */
+.drop-zone{border:2px dashed var(--line);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg);position:relative}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:#fef2f2}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop-zone-text{font-size:.75rem;color:var(--muted)}
+.drop-zone-text strong{color:var(--text)}
+.image-preview-wrap{position:relative;border-radius:var(--radius);overflow:hidden;margin-top:6px}
+.image-preview-wrap img{width:100%;display:block;border-radius:var(--radius)}
+.image-preview-wrap .remove-img{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+
+/* Rating input */
+.rating-row{display:flex;gap:8px;align-items:center}
+.rating-row input[type=number]{width:70px}
+.rating-row .review-input{flex:1}
+
+/* ============================================================
+   AMAZON PAGE CHROME
+   ============================================================ */
+.amz{font-family:'Amazon Ember',Arial,sans-serif;background:#fff;min-height:100%}
+.amz *{font-family:inherit}
+
+/* Amazon header */
+.amz-header{background:#131921;padding:8px 16px;display:flex;align-items:center;gap:12px}
+.amz-logo{display:flex;align-items:center;gap:2px}
+.amz-logo svg{width:80px;height:24px}
+.amz-logo .logo-text{font-size:18px;font-weight:700;color:#fff;letter-spacing:-.5px}
+.amz-logo .logo-smile{color:#FF9900;font-size:12px}
+.amz-search{flex:1;display:flex;height:36px;border-radius:6px;overflow:hidden}
+.amz-search select{padding:0 8px;border:none;background:#e6e6e6;font-size:12px;color:#555;outline:none;border-right:1px solid #cdcdcd;font-family:inherit}
+.amz-search input{flex:1;padding:0 10px;border:none;font-size:14px;outline:none;font-family:inherit}
+.amz-search button{padding:0 12px;background:#FEBD69;border:none;cursor:default}
+.amz-search button svg{width:18px;height:18px;color:#131921}
+.amz-subnav{background:#232F3E;padding:6px 16px;display:flex;gap:14px;align-items:center}
+.amz-subnav span{font-size:13px;color:#fff;cursor:default;white-space:nowrap}
+
+/* Amazon results header */
+.amz-results-bar{padding:10px 16px;font-size:13px;color:#565959;border-bottom:1px solid #e7e7e7;background:#fff}
+.amz-results-bar strong{color:#c45500}
+
+/* ============================================================
+   SPONSORED PRODUCTS
+   ============================================================ */
+.amz-sp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:0 8px}
+.amz-sp-card{padding:10px;border:1px solid transparent;position:relative;display:flex;flex-direction:column}
+.amz-sp-card:hover{border-color:#e7e7e7}
+.amz-sp-label{font-size:10px;color:#565959;margin-bottom:4px}
+.amz-sp-image{width:100%;aspect-ratio:1;background:#f7f7f7;border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:8px}
+.amz-sp-image img{width:100%;height:100%;object-fit:contain}
+.amz-sp-image .placeholder{color:#d5d9d9;font-size:32px}
+.amz-sp-title{font-size:13px;color:#0F1111;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:4px;cursor:pointer}
+.amz-sp-title:hover{color:#c45500}
+.amz-sp-rating{display:flex;align-items:center;gap:4px;margin-bottom:2px}
+.amz-sp-stars{display:flex;gap:0}
+.amz-sp-stars svg{width:14px;height:14px}
+.amz-sp-reviews{font-size:12px;color:#007185;cursor:pointer}
+.amz-sp-reviews:hover{color:#c45500}
+.amz-sp-price{margin-bottom:2px}
+.amz-sp-price .price-symbol{font-size:12px;color:#0F1111;vertical-align:top}
+.amz-sp-price .price-whole{font-size:22px;color:#0F1111;font-weight:400;line-height:1}
+.amz-sp-price .price-fraction{font-size:12px;color:#0F1111;vertical-align:top}
+.amz-sp-prime{display:flex;align-items:center;gap:4px;font-size:12px;color:#0F1111}
+.amz-sp-prime svg{width:50px;height:16px}
+.amz-sp-prime .prime-text{font-size:11px;font-weight:700;color:#0F1111;background:linear-gradient(90deg,#232F3E,#232F3E);-webkit-background-clip:text;letter-spacing:.3px}
+.amz-sp-delivery{font-size:12px;color:#565959;margin-top:2px}
+.amz-sp-deal{display:inline-block;padding:2px 6px;border-radius:3px;font-size:11px;font-weight:700;color:#fff;margin-bottom:4px}
+.amz-sp-deal.dotd{background:#CC0C39}
+.amz-sp-deal.lightning{background:#E47911}
+
+/* Faded organic */
+.amz-sp-card.organic{opacity:.45;filter:blur(.3px)}
+
+/* ============================================================
+   SPONSORED BRANDS
+   ============================================================ */
+.amz-sb-banner{background:#fff;border:1px solid #e7e7e7;border-radius:4px;margin:12px 16px;padding:16px;display:flex;align-items:center;gap:20px}
+.amz-sb-left{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:140px;max-width:200px}
+.amz-sb-logo{width:60px;height:60px;border-radius:8px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:10px;color:#565959}
+.amz-sb-logo img{width:100%;height:100%;object-fit:contain}
+.amz-sb-headline{font-size:14px;color:#0F1111;font-weight:400;line-height:1.3}
+.amz-sb-cta{padding:5px 12px;border-radius:8px;background:linear-gradient(to bottom,#f7dfa5,#f0c14b);border:1px solid #a88734;font-size:12px;color:#111;cursor:default;font-family:inherit}
+.amz-sb-label{font-size:10px;color:#565959;margin-bottom:6px}
+.amz-sb-products{display:flex;gap:16px;flex:1;overflow-x:auto}
+.amz-sb-product{width:120px;flex-shrink:0;text-align:center}
+.amz-sb-product-image{width:120px;height:120px;background:#f7f7f7;border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:4px}
+.amz-sb-product-image img{width:100%;height:100%;object-fit:contain}
+.amz-sb-product-image .placeholder{color:#d5d9d9;font-size:24px}
+.amz-sb-product-price{font-size:13px;color:#0F1111}
+.amz-sb-product-rating{display:flex;align-items:center;justify-content:center;gap:2px;margin-top:2px}
+.amz-sb-product-rating svg{width:12px;height:12px}
+.amz-sb-product-reviews{font-size:11px;color:#007185}
+
+/* ============================================================
+   SPONSORED DISPLAY
+   ============================================================ */
+.amz-sd-wrap{padding:12px 16px}
+.amz-sd-card{width:260px;background:#fff;border:1px solid #e7e7e7;border-radius:4px;overflow:hidden}
+.amz-sd-label{font-size:10px;color:#565959;padding:6px 10px 0}
+.amz-sd-image{width:100%;aspect-ratio:1;background:#f7f7f7;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.amz-sd-image img{width:100%;height:100%;object-fit:contain}
+.amz-sd-image .placeholder{color:#d5d9d9;font-size:40px}
+.amz-sd-body{padding:10px}
+.amz-sd-title{font-size:13px;color:#0F1111;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:4px}
+.amz-sd-rating{display:flex;align-items:center;gap:4px;margin-bottom:2px}
+.amz-sd-stars{display:flex;gap:0}
+.amz-sd-stars svg{width:12px;height:12px}
+.amz-sd-reviews{font-size:11px;color:#007185}
+.amz-sd-price{font-size:18px;color:#0F1111;margin-bottom:2px}
+.amz-sd-prime{display:flex;align-items:center;gap:4px;font-size:12px;color:#0F1111}
+.amz-sd-prime .prime-text{font-size:11px;font-weight:700;letter-spacing:.3px}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .preview-area{min-height:500px}
+  .amz-sp-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Controls -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&larr; FreeAdStore</a>
+      <h1>Amazon Sponsored Ad Preview</h1>
+      <p>See how your product appears as a Sponsored ad on Amazon.</p>
+    </div>
+    <div class="sidebar-scroll" id="controls"></div>
+  </div>
+  <!-- RIGHT: Preview -->
+  <div class="main">
+    <div class="tab-bar" id="tabBar"></div>
+    <div class="preview-area" id="previewArea"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  title: 'Premium Wireless Noise-Cancelling Headphones - 40hr Battery, Hi-Res Audio',
+  price: '79.99',
+  imageData: null,
+  rating: 4.5,
+  reviewCount: 2847,
+  brand: 'SoundPeak',
+  prime: true,
+  deal: 'none',
+  headline: 'Top-rated audio gear by SoundPeak',
+  activeTab: 'products'
+};
+
+const TABS = [
+  {id:'products', label:'Sponsored Products'},
+  {id:'brands', label:'Sponsored Brands'},
+  {id:'display', label:'Sponsored Display'}
+];
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function formatCount(n){
+  if(n >= 1000000) return (n/1000000).toFixed(1).replace(/\.0$/,'') + 'M';
+  if(n >= 1000) return (n/1000).toFixed(0) + ',000+'.slice(0,1);
+  return String(n);
+}
+
+function formatReviews(n){
+  if(n >= 1000) return Math.floor(n/1000) + ',' + String(n%1000).padStart(3,'0');
+  return String(n);
+}
+
+function renderStars(rating){
+  const fill = '#DE7921';
+  const empty = '#e7e7e7';
+  let html = '';
+  for(let i = 0; i < 5; i++){
+    const pct = Math.min(1, Math.max(0, rating - i)) * 100;
+    if(pct >= 90) html += `<svg viewBox="0 0 24 24" fill="${fill}"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
+    else if(pct >= 25) html += `<svg viewBox="0 0 24 24"><defs><linearGradient id="amzh${i}"><stop offset="${pct}%" stop-color="${fill}"/><stop offset="${pct}%" stop-color="${empty}"/></linearGradient></defs><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="url(#amzh${i})"/></svg>`;
+    else html += `<svg viewBox="0 0 24 24" fill="${empty}"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
+  }
+  return html;
+}
+
+// ============================================================
+// BUILD CONTROLS
+// ============================================================
+function buildControls(){
+  const c = document.getElementById('controls');
+  c.innerHTML = `
+  <div class="panel">
+    <div class="panel-title">Product Details</div>
+    <label>Product Title</label>
+    <textarea id="inpTitle" rows="2">${esc(S.title)}</textarea>
+    <label>Price ($)</label>
+    <input type="text" id="inpPrice" value="${esc(S.price)}" placeholder="29.99">
+    <label>Brand Name</label>
+    <input type="text" id="inpBrand" value="${esc(S.brand)}" placeholder="Your brand">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Product Image</div>
+    <div class="drop-zone" id="dropZone">
+      <input type="file" accept="image/*" id="fileInput">
+      <div class="drop-zone-text">
+        <strong>Drop image here</strong> or click to upload<br>
+        <span style="font-size:.65rem;color:var(--muted)">Square recommended (1000x1000)</span>
+      </div>
+    </div>
+    ${S.imageData ? `<div class="image-preview-wrap"><img src="${S.imageData}" alt="Product"><button class="remove-img" id="removeImg">&times;</button></div>` : ''}
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Rating</div>
+    <div class="rating-row">
+      <input type="number" id="inpRating" value="${S.rating}" min="1" max="5" step="0.1" style="width:70px">
+      <div class="review-input">
+        <input type="number" id="inpReviews" value="${S.reviewCount}" min="0" step="1" placeholder="Review count">
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Badges</div>
+    <div class="toggle-row">
+      <span>Prime Badge</span>
+      <div class="toggle${S.prime?' on':''}" id="togglePrime"></div>
+    </div>
+    <label>Deal Badge</label>
+    <select id="selDeal">
+      <option value="none"${S.deal==='none'?' selected':''}>No deal</option>
+      <option value="dotd"${S.deal==='dotd'?' selected':''}>Deal of the Day</option>
+      <option value="lightning"${S.deal==='lightning'?' selected':''}>Lightning Deal</option>
+    </select>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Sponsored Brands Headline</div>
+    <input type="text" id="inpHeadline" value="${esc(S.headline)}" placeholder="Custom headline for Brands format">
+    <div style="font-size:.62rem;color:var(--muted);margin-top:3px">Used only in the Sponsored Brands tab</div>
+  </div>
+  `;
+  bindControls();
+}
+
+// ============================================================
+// BIND CONTROLS
+// ============================================================
+function bindControls(){
+  const $ = id => document.getElementById(id);
+
+  $('inpTitle').oninput = e => { S.title = e.target.value; render(); };
+  $('inpPrice').oninput = e => { S.price = e.target.value; render(); };
+  $('inpBrand').oninput = e => { S.brand = e.target.value; render(); };
+  $('inpRating').oninput = e => { S.rating = Math.min(5, Math.max(0, parseFloat(e.target.value)||0)); render(); };
+  $('inpReviews').oninput = e => { S.reviewCount = parseInt(e.target.value)||0; render(); };
+  $('inpHeadline').oninput = e => { S.headline = e.target.value; render(); };
+  $('selDeal').onchange = e => { S.deal = e.target.value; render(); };
+
+  $('togglePrime').onclick = function(){ S.prime = !S.prime; this.classList.toggle('on', S.prime); render(); };
+
+  // Image upload
+  const dropZone = $('dropZone');
+  const fileInput = $('fileInput');
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); const f = e.dataTransfer.files[0]; if(f && f.type.startsWith('image/')) loadImage(f); });
+  fileInput.addEventListener('change', e => { const f = e.target.files[0]; if(f) loadImage(f); });
+  const removeBtn = $('removeImg');
+  if(removeBtn) removeBtn.onclick = () => { S.imageData = null; buildControls(); render(); };
+}
+
+function loadImage(file){
+  const r = new FileReader();
+  r.onload = e => { S.imageData = e.target.result; buildControls(); render(); };
+  r.readAsDataURL(file);
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function buildTabs(){
+  document.getElementById('tabBar').innerHTML = TABS.map(t =>
+    `<button class="tab${t.id===S.activeTab?' active':''}" data-tab="${t.id}">${t.label}</button>`
+  ).join('');
+  document.getElementById('tabBar').onclick = e => {
+    const tab = e.target.closest('[data-tab]');
+    if(!tab) return;
+    S.activeTab = tab.dataset.tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === S.activeTab));
+    render();
+  };
+}
+
+// ============================================================
+// SHARED PIECES
+// ============================================================
+function amzHeaderHTML(query){
+  return `
+  <div class="amz-header">
+    <div class="amz-logo">
+      <span class="logo-text" style="color:#fff">amazon</span>
+      <span style="color:#FF9900;font-size:8px;margin-top:6px;display:inline-block">.com</span>
+    </div>
+    <div class="amz-search">
+      <select><option>All</option></select>
+      <input type="text" value="${esc(query)}" readonly>
+      <button><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
+    </div>
+  </div>
+  <div class="amz-subnav">
+    <span>Today's Deals</span><span>Customer Service</span><span>Registry</span><span>Gift Cards</span><span>Sell</span>
+  </div>`;
+}
+
+function imgHTML(cls){
+  if(S.imageData) return `<img src="${S.imageData}" alt="Product">`;
+  return `<div class="placeholder"><svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+}
+
+function primeHTML(){
+  if(!S.prime) return '';
+  return `<div class="amz-sp-prime"><span class="prime-text" style="color:#00485E">prime</span></div>`;
+}
+
+function dealHTML(){
+  if(S.deal === 'none') return '';
+  if(S.deal === 'dotd') return `<div class="amz-sp-deal dotd">Deal of the Day</div>`;
+  return `<div class="amz-sp-deal lightning">Lightning Deal</div>`;
+}
+
+function priceParts(){
+  const parts = S.price.split('.');
+  return { whole: parts[0] || '0', fraction: parts[1] || '00' };
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render(){
+  const area = document.getElementById('previewArea');
+  switch(S.activeTab){
+    case 'products': area.innerHTML = renderProducts(); break;
+    case 'brands': area.innerHTML = renderBrands(); break;
+    case 'display': area.innerHTML = renderDisplay(); break;
+  }
+}
+
+function renderProducts(){
+  const p = priceParts();
+  const query = S.title.split(' ').slice(0,3).join(' ').toLowerCase();
+
+  const organicProducts = [
+    {title:'Basic Wired Headphones Over-Ear Design Comfortable Fit', price:'24', frac:'99', reviews:'1,204'},
+    {title:'Bluetooth Earbuds with Charging Case - True Wireless', price:'34', frac:'95', reviews:'8,421'},
+    {title:'Studio Monitor Headphones Professional Grade Audio', price:'149', frac:'00', reviews:'3,567'}
+  ];
+
+  return `<div class="amz">
+    ${amzHeaderHTML(query)}
+    <div class="amz-results-bar">1-48 of over 1,000 results for <strong>"${esc(query)}"</strong></div>
+    <div class="amz-sp-grid">
+      <!-- Sponsored product -->
+      <div class="amz-sp-card">
+        <div class="amz-sp-label">Sponsored</div>
+        ${dealHTML()}
+        <div class="amz-sp-image">${imgHTML()}</div>
+        <div class="amz-sp-title">${esc(S.title)}</div>
+        <div class="amz-sp-rating">
+          <div class="amz-sp-stars">${renderStars(S.rating)}</div>
+          <span class="amz-sp-reviews">${formatReviews(S.reviewCount)}</span>
+        </div>
+        <div class="amz-sp-price">
+          <span class="price-symbol">$</span><span class="price-whole">${esc(p.whole)}</span><span class="price-fraction">${esc(p.fraction)}</span>
+        </div>
+        ${primeHTML()}
+        <div class="amz-sp-delivery">FREE delivery <strong>Tomorrow</strong></div>
+      </div>
+      ${organicProducts.map(op => `
+      <div class="amz-sp-card organic">
+        <div class="amz-sp-image"><div class="placeholder"><svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div></div>
+        <div class="amz-sp-title">${op.title}</div>
+        <div class="amz-sp-rating">
+          <div class="amz-sp-stars">${renderStars(4.2)}</div>
+          <span class="amz-sp-reviews">${op.reviews}</span>
+        </div>
+        <div class="amz-sp-price">
+          <span class="price-symbol">$</span><span class="price-whole">${op.price}</span><span class="price-fraction">${op.frac}</span>
+        </div>
+        <div class="amz-sp-prime"><span class="prime-text" style="color:#00485E">prime</span></div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function renderBrands(){
+  const p = priceParts();
+  const query = S.title.split(' ').slice(0,3).join(' ').toLowerCase();
+  const initial = (S.brand || 'B').charAt(0).toUpperCase();
+
+  return `<div class="amz">
+    ${amzHeaderHTML(query)}
+    <!-- Sponsored Brands banner -->
+    <div class="amz-sb-banner">
+      <div class="amz-sb-left">
+        <div class="amz-sb-label">Sponsored</div>
+        <div class="amz-sb-logo">${S.imageData ? `<img src="${S.imageData}" alt="Logo">` : `<span style="font-size:18px;font-weight:700;color:#232F3E">${initial}</span>`}</div>
+        <div class="amz-sb-headline">${esc(S.headline)}</div>
+        <button class="amz-sb-cta">Shop now</button>
+      </div>
+      <div class="amz-sb-products">
+        <div class="amz-sb-product">
+          <div class="amz-sb-product-image">${imgHTML()}</div>
+          <div class="amz-sb-product-price">$${esc(S.price)}</div>
+          <div class="amz-sb-product-rating">${renderStars(S.rating)} <span class="amz-sb-product-reviews">${formatReviews(S.reviewCount)}</span></div>
+        </div>
+        <div class="amz-sb-product">
+          <div class="amz-sb-product-image"><div class="placeholder"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div></div>
+          <div class="amz-sb-product-price">$49.99</div>
+          <div class="amz-sb-product-rating">${renderStars(4.3)} <span class="amz-sb-product-reviews">892</span></div>
+        </div>
+        <div class="amz-sb-product">
+          <div class="amz-sb-product-image"><div class="placeholder"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div></div>
+          <div class="amz-sb-product-price">$129.99</div>
+          <div class="amz-sb-product-rating">${renderStars(4.6)} <span class="amz-sb-product-reviews">1,543</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="amz-results-bar">1-48 of over 1,000 results for <strong>"${esc(query)}"</strong></div>
+    <div class="amz-sp-grid">
+      ${[1,2,3,4].map(() => `
+      <div class="amz-sp-card organic">
+        <div class="amz-sp-image"><div class="placeholder"><svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div></div>
+        <div class="amz-sp-title">Related Product in This Category With Long Title</div>
+        <div class="amz-sp-rating"><div class="amz-sp-stars">${renderStars(4.1)}</div><span class="amz-sp-reviews">2,104</span></div>
+        <div class="amz-sp-price"><span class="price-symbol">$</span><span class="price-whole">39</span><span class="price-fraction">99</span></div>
+        <div class="amz-sp-prime"><span class="prime-text" style="color:#00485E">prime</span></div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function renderDisplay(){
+  const p = priceParts();
+
+  return `<div class="amz">
+    ${amzHeaderHTML('browse')}
+    <div style="padding:20px 16px;background:#eaeded;min-height:400px">
+      <div style="font-size:14px;color:#0F1111;font-weight:700;margin-bottom:12px">Inspired by your browsing history</div>
+      <div class="amz-sd-card">
+        <div class="amz-sd-label">Sponsored</div>
+        ${S.deal !== 'none' ? `<div style="padding:0 10px">${dealHTML()}</div>` : ''}
+        <div class="amz-sd-image">${imgHTML()}</div>
+        <div class="amz-sd-body">
+          <div class="amz-sd-title">${esc(S.title)}</div>
+          <div class="amz-sd-rating">
+            <div class="amz-sd-stars">${renderStars(S.rating)}</div>
+            <span class="amz-sd-reviews">${formatReviews(S.reviewCount)}</span>
+          </div>
+          <div class="amz-sd-price">$${esc(S.price)}</div>
+          ${S.prime ? `<div class="amz-sd-prime"><span class="prime-text" style="color:#00485E">prime</span></div>` : ''}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildControls();
+buildTabs();
+render();
+</script>
+</body>
+</html>

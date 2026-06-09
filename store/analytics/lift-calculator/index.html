@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Conversion Lift Calculator - FreeAdStore</title>
+<meta name="description" content="Calculate conversion lift with statistical significance, confidence intervals, and minimum detectable effect. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:#fef2f2;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#22c55e;--blue:#3b82f6;--purple:#8b5cf6;--orange:#f97316}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 16px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px;font-family:'Fraunces',serif}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-width:0;padding:24px 32px 40px}
+
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+.panel-title svg{width:14px;height:14px;color:var(--muted)}
+label{font-size:.7rem;color:var(--muted);display:block;margin:6px 0 3px;font-weight:500}
+input[type=number]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;transition:border-color .15s;font-weight:600}
+input[type=number]:focus{border-color:var(--accent)}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.82rem;font-family:inherit;background:var(--bg);outline:none;cursor:pointer;font-weight:500}
+select:focus{border-color:var(--accent)}
+
+.group-card{border:1px solid var(--line);border-radius:var(--radius);padding:12px;margin-bottom:12px;background:var(--bg)}
+.group-header{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.group-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:800;color:#fff;flex-shrink:0}
+.group-name{font-size:.78rem;font-weight:700}
+.group-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+.btn{padding:8px 16px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;border:none;transition:all .12s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{filter:brightness(1.1)}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-row{display:flex;gap:8px;margin-top:12px}
+.sep{border:none;border-top:1px solid var(--line);margin:14px 0}
+
+/* Confidence pills */
+.pills{display:flex;gap:4px;margin-top:4px}
+.pill{flex:1;padding:6px 4px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:.72rem;font-weight:600;cursor:pointer;text-align:center;font-family:inherit;color:var(--muted);transition:all .15s}
+.pill.active{background:var(--accent);border-color:var(--accent);color:white}
+.pill:hover:not(.active){border-color:var(--accent);color:var(--accent)}
+
+/* Results */
+.section{margin-bottom:24px}
+.section-title{font-family:'Fraunces',serif;font-size:1.05rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-title svg{width:20px;height:20px;color:var(--accent)}
+
+/* Hero lift */
+.lift-hero{text-align:center;padding:28px 16px;border-radius:14px;border:1px solid var(--line);background:var(--panel);margin-bottom:20px}
+.lift-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:4px}
+.lift-big{font-family:'Fraunces',serif;font-size:3.6rem;font-weight:700;line-height:1}
+.lift-big.pos{color:var(--green)}.lift-big.neg{color:var(--accent)}.lift-big.neutral{color:var(--muted)}
+.lift-sub{font-size:.78rem;color:var(--muted);margin-top:8px;line-height:1.5}
+.lift-sub strong{color:var(--text)}
+
+/* Sig badge */
+.sig-card{display:flex;align-items:center;gap:16px;padding:16px;border-radius:var(--radius);border:1px solid var(--line);background:var(--panel);margin-bottom:20px}
+.sig-badge{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;flex-shrink:0}
+.sig-badge.yes{background:#d1fae5;color:#065f46}.sig-badge.no{background:#fee2e2;color:#991b1b}
+.sig-info{flex:1}
+.sig-title{font-size:.88rem;font-weight:700;margin-bottom:3px}
+.sig-detail{font-size:.76rem;color:var(--muted);line-height:1.5}
+.sig-detail strong{color:var(--text)}
+
+/* Metrics grid */
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+.metric{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+.metric-label{font-size:.66rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.metric-val{font-size:1.3rem;font-weight:800;font-family:'Fraunces',serif}
+.metric-sub{font-size:.66rem;color:var(--muted);margin-top:2px}
+
+/* CVR comparison bar */
+.cvr-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:20px}
+.cvr-card h3{font-size:.82rem;font-weight:700;margin-bottom:12px}
+.cvr-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cvr-label{font-size:.74rem;font-weight:600;width:80px;flex-shrink:0}
+.cvr-track{flex:1;background:var(--bg);border-radius:5px;height:28px;overflow:hidden;border:1px solid var(--line)}
+.cvr-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:.7rem;font-weight:700;color:#fff;transition:width .4s;white-space:nowrap;min-width:fit-content}
+
+/* CI bar */
+.ci-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:20px}
+.ci-card h3{font-size:.82rem;font-weight:700;margin-bottom:12px}
+.ci-bar-wrap{position:relative;height:40px;background:var(--bg);border-radius:8px;border:1px solid var(--line);margin-bottom:8px;overflow:visible}
+.ci-range{position:absolute;top:8px;bottom:8px;background:rgba(59,130,246,.15);border-radius:4px;border:1px solid rgba(59,130,246,.3)}
+.ci-point{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:var(--blue);border:2px solid #fff;transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.ci-zero{position:absolute;top:0;bottom:0;width:1px;background:var(--accent);opacity:.5}
+.ci-zero-label{position:absolute;top:-16px;transform:translateX(-50%);font-size:.58rem;color:var(--accent);font-weight:600}
+.ci-labels{display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted);font-weight:500}
+
+/* Recommendation */
+.reco-box{border-radius:var(--radius);padding:16px;margin-bottom:20px}
+.reco-box.positive{background:#f0fdf4;border:1px solid rgba(34,197,94,.3)}
+.reco-box.negative{background:#fef2f2;border:1px solid rgba(239,68,68,.3)}
+.reco-box.neutral{background:var(--panel);border:1px solid var(--line)}
+.reco-title{font-size:.85rem;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.reco-title.positive{color:#065f46}.reco-title.negative{color:#991b1b}.reco-title.neutral{color:var(--muted)}
+.reco-text{font-size:.78rem;color:var(--text);line-height:1.6}
+
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.empty-state svg{width:48px;height:48px;margin-bottom:12px;opacity:.4}
+.empty-state h3{font-size:.9rem;font-weight:700;margin-bottom:4px;color:var(--text)}
+.empty-state p{font-size:.78rem}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .main{padding:16px}
+  .metrics{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&#8592; FreeAdStore</a>
+      <h1>Conversion Lift Calculator</h1>
+      <p>Measure the incremental lift from your ad campaigns with statistical significance testing.</p>
+    </div>
+    <div class="sidebar-scroll">
+      <div class="group-card">
+        <div class="group-header">
+          <span class="group-icon" style="background:var(--blue)">T</span>
+          <span class="group-name">Test Group (Exposed to Ads)</span>
+        </div>
+        <div class="group-inputs">
+          <div>
+            <label>Conversions</label>
+            <input type="number" id="testConv" placeholder="e.g. 120" min="0" value="">
+          </div>
+          <div>
+            <label>Group Size</label>
+            <input type="number" id="testSize" placeholder="e.g. 5000" min="1" value="">
+          </div>
+        </div>
+      </div>
+
+      <div class="group-card">
+        <div class="group-header">
+          <span class="group-icon" style="background:var(--muted)">C</span>
+          <span class="group-name">Control Group (No Ads)</span>
+        </div>
+        <div class="group-inputs">
+          <div>
+            <label>Conversions</label>
+            <input type="number" id="ctrlConv" placeholder="e.g. 80" min="0" value="">
+          </div>
+          <div>
+            <label>Group Size</label>
+            <input type="number" id="ctrlSize" placeholder="e.g. 5000" min="1" value="">
+          </div>
+        </div>
+      </div>
+
+      <hr class="sep">
+
+      <div class="panel">
+        <div class="panel-title">Confidence Level</div>
+        <div class="pills">
+          <button class="pill" data-cl="0.90">90%</button>
+          <button class="pill active" data-cl="0.95">95%</button>
+          <button class="pill" data-cl="0.99">99%</button>
+        </div>
+      </div>
+
+      <hr class="sep">
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btnCalc" style="flex:1">Calculate Lift</button>
+        <button class="btn btn-outline" id="btnReset">Reset</button>
+      </div>
+
+      <hr class="sep">
+      <div class="panel">
+        <div class="panel-title">Quick Examples</div>
+        <button class="btn btn-outline" id="exStrong" style="width:100%;margin-bottom:4px;justify-content:flex-start;font-size:.72rem">Strong lift (significant)</button>
+        <button class="btn btn-outline" id="exWeak" style="width:100%;margin-bottom:4px;justify-content:flex-start;font-size:.72rem">Weak lift (not significant)</button>
+        <button class="btn btn-outline" id="exNeg" style="width:100%;justify-content:flex-start;font-size:.72rem">Negative lift</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main" id="mainArea">
+    <div class="empty-state" id="emptyState">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20V10"/><path d="M6 20V4"/><path d="M18 20v-6"/></svg>
+      <h3>Enter test and control group data</h3>
+      <p>Fill in conversions and group sizes, then click "Calculate Lift" to measure your campaign's incremental impact.</p>
+    </div>
+    <div id="results" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+let confidence = 0.95;
+
+function $(id){return document.getElementById(id)}
+
+// Z-scores for confidence levels
+const Z_SCORES = {0.90: 1.645, 0.95: 1.96, 0.99: 2.576};
+
+// Normal CDF approximation (Abramowitz and Stegun)
+function normalCDF(x){
+  const a1=0.254829592, a2=-0.284496736, a3=1.421413741, a4=-1.453152027, a5=1.061405429, p=0.3275911;
+  const sign = x < 0 ? -1 : 1;
+  x = Math.abs(x) / Math.SQRT2;
+  const t = 1.0 / (1.0 + p * x);
+  const y = 1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t * Math.exp(-x*x);
+  return 0.5 * (1.0 + sign * y);
+}
+
+function calc(){
+  const tc = parseFloat($('testConv').value)||0;
+  const ts = parseFloat($('testSize').value)||0;
+  const cc = parseFloat($('ctrlConv').value)||0;
+  const cs = parseFloat($('ctrlSize').value)||0;
+
+  if(ts <= 0 || cs <= 0){
+    alert('Group sizes must be greater than 0.');
+    return;
+  }
+
+  $('emptyState').style.display = 'none';
+  $('results').style.display = 'block';
+
+  const testCVR = tc / ts;
+  const ctrlCVR = cc / cs;
+  const lift = ctrlCVR > 0 ? ((testCVR - ctrlCVR) / ctrlCVR * 100) : (testCVR > 0 ? Infinity : 0);
+
+  // Pooled proportion for z-test
+  const pooledP = (tc + cc) / (ts + cs);
+  const se = Math.sqrt(pooledP * (1 - pooledP) * (1/ts + 1/cs));
+  const z = se > 0 ? (testCVR - ctrlCVR) / se : 0;
+  const pValue = 2 * (1 - normalCDF(Math.abs(z))); // Two-tailed
+  const isSignificant = pValue < (1 - confidence);
+
+  // Confidence interval for the difference
+  const zCrit = Z_SCORES[confidence] || 1.96;
+  const seDiff = Math.sqrt((testCVR*(1-testCVR)/ts) + (ctrlCVR*(1-ctrlCVR)/cs));
+  const diff = testCVR - ctrlCVR;
+  const ciLow = diff - zCrit * seDiff;
+  const ciHigh = diff + zCrit * seDiff;
+
+  // Minimum detectable effect
+  const mde = zCrit * se * 100 / (ctrlCVR > 0 ? ctrlCVR : 1);
+
+  // Format
+  const maxCVR = Math.max(testCVR, ctrlCVR, 0.01);
+  const liftClass = lift > 0 ? 'pos' : lift < 0 ? 'neg' : 'neutral';
+  const liftStr = isFinite(lift) ? (lift >= 0 ? '+' : '') + lift.toFixed(1) + '%' : '\u2014';
+
+  let html = '';
+
+  // Hero lift
+  html += `<div class="lift-hero">
+    <div class="lift-label">Conversion Lift</div>
+    <div class="lift-big ${liftClass}">${liftStr}</div>
+    <div class="lift-sub">Your ads drove <strong>${isFinite(lift) ? Math.abs(lift).toFixed(1) + '%' : 'N/A'} ${lift >= 0 ? 'more' : 'fewer'}</strong> conversions than organic.</div>
+  </div>`;
+
+  // Significance
+  html += `<div class="sig-card">
+    <div class="sig-badge ${isSignificant ? 'yes' : 'no'}">${isSignificant ? 'YES' : 'NO'}</div>
+    <div class="sig-info">
+      <div class="sig-title">Statistically ${isSignificant ? 'Significant' : 'Not Significant'}</div>
+      <div class="sig-detail">
+        p-value: <strong>${pValue < 0.0001 ? '< 0.0001' : pValue.toFixed(4)}</strong> |
+        z-score: <strong>${z.toFixed(3)}</strong> |
+        Confidence: <strong>${(confidence*100).toFixed(0)}%</strong>
+      </div>
+    </div>
+  </div>`;
+
+  // Metrics
+  html += `<div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Test CVR</div>
+      <div class="metric-val" style="color:var(--blue)">${(testCVR*100).toFixed(2)}%</div>
+      <div class="metric-sub">${tc.toLocaleString()} / ${ts.toLocaleString()}</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Control CVR</div>
+      <div class="metric-val" style="color:var(--muted)">${(ctrlCVR*100).toFixed(2)}%</div>
+      <div class="metric-sub">${cc.toLocaleString()} / ${cs.toLocaleString()}</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Absolute Difference</div>
+      <div class="metric-val">${diff >= 0 ? '+' : ''}${(diff*100).toFixed(2)}pp</div>
+      <div class="metric-sub">Percentage point difference</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Min Detectable Effect</div>
+      <div class="metric-val">${isFinite(mde) ? mde.toFixed(1) + '%' : '\u2014'}</div>
+      <div class="metric-sub">Smallest lift detectable at ${(confidence*100).toFixed(0)}%</div>
+    </div>
+  </div>`;
+
+  // CVR comparison bars
+  html += `<div class="cvr-card"><h3>Conversion Rate Comparison</h3>
+    <div class="cvr-row">
+      <div class="cvr-label">Test</div>
+      <div class="cvr-track"><div class="cvr-fill" style="width:${Math.max(testCVR/maxCVR*100,5)}%;background:var(--blue)">${(testCVR*100).toFixed(2)}%</div></div>
+    </div>
+    <div class="cvr-row">
+      <div class="cvr-label">Control</div>
+      <div class="cvr-track"><div class="cvr-fill" style="width:${Math.max(ctrlCVR/maxCVR*100,5)}%;background:var(--muted)">${(ctrlCVR*100).toFixed(2)}%</div></div>
+    </div>
+  </div>`;
+
+  // Confidence interval
+  const ciMin = Math.min(ciLow, 0) * 100;
+  const ciMax = Math.max(ciHigh, 0) * 100;
+  const range = ciMax - ciMin || 1;
+  const zeroPos = ((0 - ciMin) / range * 100);
+  const lowPos = ((ciLow*100 - ciMin) / range * 100);
+  const highPos = ((ciHigh*100 - ciMin) / range * 100);
+  const pointPos = ((diff*100 - ciMin) / range * 100);
+
+  html += `<div class="ci-card"><h3>Confidence Interval (${(confidence*100).toFixed(0)}%)</h3>
+    <div class="ci-bar-wrap">
+      <div class="ci-zero" style="left:${zeroPos}%"><span class="ci-zero-label">0</span></div>
+      <div class="ci-range" style="left:${lowPos}%;width:${highPos-lowPos}%"></div>
+      <div class="ci-point" style="left:${pointPos}%"></div>
+    </div>
+    <div class="ci-labels">
+      <span>${(ciLow*100).toFixed(2)}pp</span>
+      <span>Lift: ${(diff*100).toFixed(2)}pp</span>
+      <span>${(ciHigh*100).toFixed(2)}pp</span>
+    </div>
+    <p style="font-size:.68rem;color:var(--muted);margin-top:8px">The true difference is between <strong>${(ciLow*100).toFixed(2)}</strong> and <strong>${(ciHigh*100).toFixed(2)}</strong> percentage points with ${(confidence*100).toFixed(0)}% confidence.</p>
+  </div>`;
+
+  // Recommendation
+  let recoClass, recoTitle, recoText;
+  if(isSignificant && lift > 0){
+    recoClass = 'positive';
+    recoTitle = 'Your campaign is working';
+    recoText = `The ${lift.toFixed(1)}% lift is statistically significant (p=${pValue < 0.0001 ? '< 0.0001' : pValue.toFixed(4)}). Your ads are driving ${lift.toFixed(1)}% more conversions than would occur organically. Consider scaling spend while monitoring for diminishing returns.`;
+  } else if(isSignificant && lift < 0){
+    recoClass = 'negative';
+    recoTitle = 'Your ads may be hurting conversions';
+    recoText = `The ${Math.abs(lift).toFixed(1)}% negative lift is statistically significant. The test group converted at a lower rate than the control. Review ad targeting, creative, and landing pages. Consider pausing and restructuring the campaign.`;
+  } else {
+    recoClass = 'neutral';
+    recoTitle = 'Need more data or larger effect';
+    recoText = `The observed lift of ${isFinite(lift) ? lift.toFixed(1) + '%' : 'N/A'} is not statistically significant at the ${(confidence*100).toFixed(0)}% confidence level (p=${pValue.toFixed(4)}). Either run the experiment longer to increase sample size, or the true effect may be smaller than the minimum detectable effect of ${isFinite(mde) ? mde.toFixed(1) + '%' : 'N/A'}.`;
+  }
+
+  html += `<div class="reco-box ${recoClass}">
+    <div class="reco-title ${recoClass}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+      ${recoTitle}
+    </div>
+    <div class="reco-text">${recoText}</div>
+  </div>`;
+
+  $('results').innerHTML = html;
+}
+
+// Events
+document.querySelectorAll('.pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    confidence = parseFloat(btn.dataset.cl);
+  });
+});
+
+$('btnCalc').addEventListener('click', calc);
+
+$('btnReset').addEventListener('click', () => {
+  $('testConv').value = '';
+  $('testSize').value = '';
+  $('ctrlConv').value = '';
+  $('ctrlSize').value = '';
+  $('emptyState').style.display = 'block';
+  $('results').style.display = 'none';
+});
+
+// Quick examples
+$('exStrong').addEventListener('click', () => {
+  $('testConv').value = '150';
+  $('testSize').value = '5000';
+  $('ctrlConv').value = '100';
+  $('ctrlSize').value = '5000';
+  calc();
+});
+$('exWeak').addEventListener('click', () => {
+  $('testConv').value = '52';
+  $('testSize').value = '1000';
+  $('ctrlConv').value = '48';
+  $('ctrlSize').value = '1000';
+  calc();
+});
+$('exNeg').addEventListener('click', () => {
+  $('testConv').value = '80';
+  $('testSize').value = '5000';
+  $('ctrlConv').value = '130';
+  $('ctrlSize').value = '5000';
+  calc();
+});
+
+// Live calculation
+['testConv','testSize','ctrlConv','ctrlSize'].forEach(id => {
+  $(id).addEventListener('input', () => {
+    const tc = parseFloat($('testConv').value);
+    const ts = parseFloat($('testSize').value);
+    const cc = parseFloat($('ctrlConv').value);
+    const cs = parseFloat($('ctrlSize').value);
+    if(tc >= 0 && ts > 0 && cc >= 0 && cs > 0) calc();
+  });
+});
+})();
+</script>
+</body>
+</html>

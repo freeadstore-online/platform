@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ad Format Reference - FreeAdStore</title>
+<meta name="description" content="Every ad format, every platform. Dimensions, character limits, file sizes. Google, Meta, LinkedIn, TikTok, X, YouTube, Amazon, Pinterest specs.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:#fef2f2;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#22c55e;--blue:#3b82f6;--purple:#8b5cf6;--orange:#f97316;--cyan:#06b6d4;--pink:#ec4899;--yellow:#eab308;--teal:#14b8a6}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+/* HEADER */
+.top-bar{padding:14px 24px;border-bottom:1px solid var(--line);background:var(--panel)}
+a.back{color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* HERO */
+.hero{text-align:center;padding:2.5rem 1.5rem 1.2rem;max-width:800px;margin:0 auto}
+.hero h1{font-family:'Fraunces',serif;font-size:2rem;font-weight:800;margin-bottom:.4rem}
+.hero h1 span{color:var(--accent)}
+.hero p{color:var(--muted);font-size:.88rem;max-width:560px;margin:0 auto;line-height:1.55}
+
+/* PLATFORM TABS */
+.tabs{max-width:1200px;margin:0 auto;padding:.4rem 24px 1rem;display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.tab{padding:7px 16px;border:1px solid var(--line);border-radius:99px;font-size:.75rem;font-weight:600;cursor:pointer;background:var(--panel);font-family:inherit;transition:all .15s;color:var(--muted)}
+.tab:hover{border-color:var(--accent);color:var(--text)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:white}
+
+/* PLATFORM SECTIONS */
+.content{max-width:1200px;margin:0 auto;padding:0 24px 3rem}
+.platform-section{margin-bottom:2rem}
+.platform-section.hidden{display:none}
+.platform-header{display:flex;align-items:center;gap:10px;margin-bottom:1rem;padding-bottom:.6rem;border-bottom:2px solid var(--line)}
+.platform-logo{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:white;flex-shrink:0;font-weight:700}
+.platform-name{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700}
+.platform-count{font-size:.7rem;color:var(--muted);font-weight:600;background:var(--bg);padding:2px 8px;border-radius:99px;border:1px solid var(--line)}
+
+/* FORMAT CARDS */
+.formats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px}
+.format-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
+.format-card:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.05)}
+.format-top{padding:16px 18px 12px;display:flex;gap:14px;align-items:flex-start}
+.format-visual{width:72px;height:54px;border-radius:6px;background:var(--bg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden}
+.format-visual .ratio-label{font-size:.55rem;font-weight:700;color:var(--muted);position:absolute;bottom:2px;right:3px}
+.format-info{flex:1;min-width:0}
+.format-name{font-size:.9rem;font-weight:700;margin-bottom:2px}
+.format-platform-badge{display:inline-block;font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:.03em;color:white;margin-bottom:6px}
+
+/* SPEC TABLE */
+.spec-table{width:100%;border-collapse:collapse;font-size:.72rem}
+.spec-table th{text-align:left;font-weight:600;color:var(--muted);padding:4px 12px;border-bottom:1px solid var(--line);font-size:.65rem;text-transform:uppercase;letter-spacing:.04em;background:var(--bg)}
+.spec-table td{padding:5px 12px;border-bottom:1px solid #f3f4f6;vertical-align:top}
+.spec-table tr:last-child td{border-bottom:none}
+.spec-label{color:var(--muted);font-weight:500;width:110px}
+.spec-value{font-weight:600;color:var(--text)}
+.spec-value .rec{color:var(--accent);font-weight:700;font-size:.65rem;margin-left:4px}
+.spec-value .min{color:var(--muted);font-weight:400;font-size:.65rem;margin-left:4px}
+
+/* PRO TIP */
+.pro-tip{padding:8px 18px 12px;border-top:1px solid var(--line);display:flex;align-items:flex-start;gap:6px;background:#fffbeb}
+.pro-tip .tip-icon{font-size:.75rem;flex-shrink:0;margin-top:1px}
+.pro-tip .tip-text{font-size:.68rem;color:#92400e;line-height:1.45;font-weight:500}
+
+/* COPY BUTTON */
+.copy-row{padding:0 18px 12px;display:flex;justify-content:flex-end}
+.btn-copy{padding:5px 12px;border-radius:6px;font-size:.68rem;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid var(--line);background:var(--panel);color:var(--muted);transition:all .12s;display:flex;align-items:center;gap:4px}
+.btn-copy:hover{border-color:var(--accent);color:var(--accent)}
+.btn-copy.copied{border-color:var(--green);color:var(--green);background:#f0fdf4}
+
+/* CSS VISUALS FOR FORMAT CARDS */
+.vis-search{display:flex;flex-direction:column;gap:2px;padding:6px;width:100%}
+.vis-search .vis-line{height:3px;border-radius:1px;background:var(--line)}
+.vis-search .vis-line.title{background:var(--blue);width:80%}
+.vis-search .vis-line.url{background:var(--green);width:50%}
+.vis-search .vis-line.desc{width:90%}
+
+.vis-display{padding:4px;width:100%;height:100%;display:flex;flex-direction:column}
+.vis-display .vis-img{flex:1;background:linear-gradient(135deg,var(--accent-light),#fde8e8);border-radius:3px}
+.vis-display .vis-bar{height:6px;background:var(--accent);border-radius:1px;margin-top:3px;width:60%}
+
+.vis-shopping{padding:4px;width:100%;text-align:center}
+.vis-shopping .vis-box{width:30px;height:30px;background:var(--line);border-radius:3px;margin:0 auto 3px;border:1px solid #d1d5db}
+.vis-shopping .vis-price{font-size:.5rem;font-weight:700;color:var(--accent)}
+
+.vis-video{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a1a,#374151)}
+.vis-video .play{width:16px;height:16px;background:white;border-radius:50%;position:relative}
+.vis-video .play::after{content:'';position:absolute;left:6px;top:4px;border-left:6px solid #374151;border-top:4px solid transparent;border-bottom:4px solid transparent}
+.vis-video .duration{position:absolute;bottom:2px;right:4px;font-size:.45rem;color:white;font-weight:600;background:rgba(0,0,0,.6);padding:0 3px;border-radius:1px}
+
+.vis-bumper{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#fef2f2,#fde8e8)}
+.vis-bumper .six{font-size:1.1rem;font-weight:800;color:var(--accent)}
+.vis-bumper .sec{font-size:.5rem;font-weight:600;color:var(--accent);margin-top:-2px}
+
+.vis-feed{padding:4px;width:100%;display:flex;flex-direction:column;gap:2px}
+.vis-feed .vis-avatar{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.vis-feed .vis-img-rect{flex:1;min-height:20px;background:linear-gradient(135deg,#dbeafe,#eff6ff);border-radius:2px}
+.vis-feed .vis-text-line{height:2px;background:var(--line);border-radius:1px;width:70%}
+
+.vis-stories{width:100%;height:100%;background:linear-gradient(180deg,#ec4899,#8b5cf6);border-radius:4px;display:flex;align-items:center;justify-content:center}
+.vis-stories .vis-inner{width:28px;height:42px;border:1px solid rgba(255,255,255,.5);border-radius:4px}
+
+.vis-carousel{display:flex;gap:2px;padding:6px;align-items:center;width:100%}
+.vis-carousel .vis-card{width:18px;height:24px;background:var(--line);border-radius:2px;flex-shrink:0}
+.vis-carousel .vis-card:first-child{background:var(--blue);opacity:.7}
+.vis-carousel .vis-card:nth-child(2){background:var(--blue);opacity:.5}
+.vis-carousel .vis-card:nth-child(3){background:var(--blue);opacity:.3}
+
+.vis-message{padding:6px;width:100%;display:flex;flex-direction:column;gap:3px}
+.vis-message .vis-bubble{padding:3px 6px;background:var(--blue);border-radius:4px 4px 4px 0;font-size:.4rem;color:white;align-self:flex-start;max-width:80%}
+.vis-message .vis-bubble.reply{background:var(--line);color:var(--text);align-self:flex-end;border-radius:4px 4px 0 4px}
+
+.vis-text-ad{padding:6px;width:100%;display:flex;align-items:center;gap:4px}
+.vis-text-ad .vis-thumb{width:16px;height:16px;background:var(--line);border-radius:2px}
+.vis-text-ad .vis-lines{display:flex;flex-direction:column;gap:2px;flex:1}
+.vis-text-ad .vis-lines span{height:2px;background:var(--line);border-radius:1px;display:block}
+.vis-text-ad .vis-lines span:first-child{width:60%;background:var(--blue)}
+
+.vis-vertical{width:100%;height:100%;background:linear-gradient(180deg,#000,#1a1a1a);display:flex;align-items:center;justify-content:center;border-radius:4px}
+.vis-vertical .vis-phone{width:22px;height:36px;border:1px solid #4b5563;border-radius:4px;display:flex;align-items:center;justify-content:center}
+.vis-vertical .vis-phone .tri{width:0;height:0;border-left:5px solid white;border-top:3px solid transparent;border-bottom:3px solid transparent}
+
+.vis-collection{padding:4px;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.vis-collection .vis-main{grid-column:1/3;height:18px;background:linear-gradient(135deg,#dbeafe,#eff6ff);border-radius:2px}
+.vis-collection .vis-thumb-sm{height:12px;background:var(--line);border-radius:2px}
+
+.vis-hashtag{width:100%;height:100%;background:linear-gradient(135deg,#000,#1a1a1a);display:flex;align-items:center;justify-content:center}
+.vis-hashtag .hash{font-size:1.2rem;font-weight:800;color:var(--cyan)}
+
+.vis-takeover{width:100%;height:100%;background:linear-gradient(135deg,var(--accent-light),#fff);display:flex;align-items:center;justify-content:center;position:relative}
+.vis-takeover .vis-star{font-size:1rem;color:var(--accent)}
+.vis-takeover .vis-label{position:absolute;bottom:2px;font-size:.4rem;font-weight:700;color:var(--accent)}
+
+.vis-discovery{padding:6px;width:100%;display:flex;gap:4px;align-items:center}
+.vis-discovery .vis-thumb-lg{width:28px;height:22px;background:var(--line);border-radius:2px;display:flex;align-items:center;justify-content:center}
+.vis-discovery .vis-thumb-lg .tri-sm{width:0;height:0;border-left:4px solid var(--muted);border-top:3px solid transparent;border-bottom:3px solid transparent}
+.vis-discovery .vis-meta{display:flex;flex-direction:column;gap:2px;flex:1}
+.vis-discovery .vis-meta span{height:2px;background:var(--line);border-radius:1px;display:block}
+.vis-discovery .vis-meta span:first-child{width:90%;background:#374151}
+
+.vis-shorts{width:100%;height:100%;background:linear-gradient(180deg,#ff0000,#cc0000);border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.vis-shorts .vis-shorts-icon{font-size:.6rem;font-weight:800;color:white}
+.vis-shorts .vis-shorts-label{font-size:.35rem;font-weight:700;color:rgba(255,255,255,.7)}
+
+.vis-pin{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#fef2f2,#fee2e2);border-radius:8px}
+.vis-pin .vis-pin-inner{width:24px;height:34px;background:white;border-radius:8px 8px 8px 0;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;transform:rotate(-15deg)}
+.vis-pin .vis-pin-inner .vis-pin-dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+
+.vis-idea{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#fffbeb,#fef3c7)}
+.vis-idea .bulb{font-size:1rem}
+
+.vis-spark{width:100%;height:100%;background:linear-gradient(180deg,#000,#1a1a1a);display:flex;align-items:center;justify-content:center;border-radius:4px}
+.vis-spark .spark-icon{font-size:.7rem;color:var(--cyan);display:flex;align-items:center;gap:2px;font-weight:700}
+
+/* FOOTER */
+footer{border-top:1px solid var(--line);padding:1rem;text-align:center;font-size:.7rem;color:var(--muted);background:var(--panel)}
+footer a{color:var(--accent)}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a1a;color:white;padding:10px 20px;border-radius:8px;font-size:.78rem;font-weight:600;transition:transform .3s ease;z-index:100;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+@media(max-width:800px){
+  .hero h1{font-size:1.5rem}
+  .formats-grid{grid-template-columns:1fr}
+  .tabs{gap:4px}
+  .tab{padding:6px 12px;font-size:.7rem}
+  .content{padding:0 12px 2rem}
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a class="back" href="/">&larr; FreeAdStore</a>
+</div>
+
+<section class="hero">
+  <h1>Ad Format <span>Reference</span></h1>
+  <p>Every ad format, every platform. Dimensions, character limits, file sizes.</p>
+</section>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" data-platform="all">All</button>
+  <button class="tab" data-platform="google">Google</button>
+  <button class="tab" data-platform="meta">Meta</button>
+  <button class="tab" data-platform="linkedin">LinkedIn</button>
+  <button class="tab" data-platform="tiktok">TikTok</button>
+  <button class="tab" data-platform="x">X</button>
+  <button class="tab" data-platform="youtube">YouTube</button>
+  <button class="tab" data-platform="amazon">Amazon</button>
+  <button class="tab" data-platform="pinterest">Pinterest</button>
+</div>
+
+<div class="content" id="content"></div>
+
+<footer>
+  <a href="/">FreeAdStore</a> &mdash; Free advertising tools. No signup, no tracking.
+</footer>
+
+<div class="toast" id="toast">Specs copied to clipboard</div>
+
+<script>
+/* ── DATA ────────────────────────────────────────────────────────────── */
+const PLATFORMS = [
+  {
+    id:'google', name:'Google Ads', color:'#4285f4', icon:'G',
+    formats:[
+      {
+        name:'Search Ad',
+        visual:'search',
+        dimensions:'Text only (SERP placement)',
+        aspect:'N/A',
+        specs:[
+          ['Headline','30 chars x 3 (up to 15 for RSA)'],
+          ['Description','90 chars x 2 (up to 4 for RSA)'],
+          ['Display URL path','15 chars x 2'],
+          ['CTA','Automatic (platform-generated)'],
+          ['Final URL','Required'],
+        ],
+        fileSize:'N/A (text only)',
+        recommended:'Use all 15 headline slots + 4 descriptions for RSA. Pin sparingly.',
+        tip:'Front-load keywords in Headline 1 -- it shows most often and drives Quality Score.'
+      },
+      {
+        name:'Responsive Display Ad',
+        visual:'display',
+        dimensions:'1200x628 (landscape), 1200x1200 (square), 1200x300 (logo)',
+        aspect:'1.91:1, 1:1, 4:1 (logo)',
+        specs:[
+          ['Landscape image','1200 x 628 px','600 x 314 min'],
+          ['Square image','1200 x 1200 px','300 x 300 min'],
+          ['Logo','1200 x 300 px','512 x 128 min'],
+          ['Headline','30 chars x 5'],
+          ['Long headline','90 chars x 1'],
+          ['Description','90 chars x 5'],
+          ['Business name','25 chars'],
+        ],
+        fileSize:'< 5 MB per image, PNG / JPG / GIF',
+        recommended:'Upload 5+ images in each ratio. Google mixes and matches for best performance.',
+        tip:'Square images get ~50% more impressions on mobile placements than landscape alone.'
+      },
+      {
+        name:'Shopping Ad',
+        visual:'shopping',
+        dimensions:'800x800 min (product image)',
+        aspect:'1:1 (recommended)',
+        specs:[
+          ['Product image','800 x 800 px min','250 x 250 min'],
+          ['Title','150 chars (70 visible)'],
+          ['Price','Required (from feed)'],
+          ['Description','5,000 chars'],
+          ['Brand','70 chars'],
+        ],
+        fileSize:'< 16 MB, PNG / JPG / GIF (non-animated)',
+        recommended:'Use 800x800 or larger square images with white background for best click-through.',
+        tip:'Titles with brand + product type + key attribute in the first 70 chars win the impression.'
+      },
+      {
+        name:'YouTube In-Stream',
+        visual:'video',
+        dimensions:'1920x1080 or 1280x720',
+        aspect:'16:9',
+        specs:[
+          ['Video length','12s - 3 min recommended'],
+          ['Format','MP4, MOV, AVI'],
+          ['Resolution','1920 x 1080 (rec)','1280 x 720 min'],
+          ['Companion banner','300 x 60 px (desktop)'],
+          ['CTA overlay','10 chars headline, 15 chars CTA'],
+        ],
+        fileSize:'< 256 MB',
+        recommended:'Hook in the first 5 seconds. Add closed captions -- 80% of mobile viewers watch muted initially.',
+        tip:'Skippable in-stream only charges when a viewer watches 30s or clicks -- optimize for engagement, not impressions.'
+      },
+      {
+        name:'YouTube Bumper Ad',
+        visual:'bumper',
+        dimensions:'1920x1080 or 1280x720',
+        aspect:'16:9',
+        specs:[
+          ['Video length','6 seconds max (non-skippable)'],
+          ['Format','MP4, MOV'],
+          ['Resolution','1920 x 1080 (rec)','1280 x 720 min'],
+          ['Audio','Required -- no silent bumpers'],
+        ],
+        fileSize:'< 256 MB',
+        recommended:'One single message per bumper. No time for setup -- lead with the punchline.',
+        tip:'Sequence 3-4 bumpers to tell a story across impressions. Frequency cap at 3/week.'
+      },
+      {
+        name:'YouTube Discovery Ad',
+        visual:'discovery',
+        dimensions:'1280x720 (thumbnail)',
+        aspect:'16:9',
+        specs:[
+          ['Thumbnail','1280 x 720 px'],
+          ['Title','100 chars (25-45 visible)'],
+          ['Description','Line 1: 35 chars, Line 2: 35 chars'],
+          ['Channel name','Shown automatically'],
+        ],
+        fileSize:'< 2 MB thumbnail, JPG / PNG / GIF',
+        recommended:'Custom thumbnails with faces and text overlays get 2x higher CTR than auto-generated.',
+        tip:'Discovery ads appear in search results and watch-next -- write titles like organic YouTube, not ad copy.'
+      },
+    ]
+  },
+  {
+    id:'meta', name:'Meta / Facebook', color:'#1877f2', icon:'f',
+    formats:[
+      {
+        name:'Feed Image Ad',
+        visual:'feed',
+        dimensions:'1080x1080 (square) or 1200x628 (landscape)',
+        aspect:'1:1 or 1.91:1',
+        specs:[
+          ['Image','1080 x 1080 px (square)','600 x 600 min'],
+          ['Landscape alt','1200 x 628 px'],
+          ['Primary text','125 chars (rec)','up to 2,200 max'],
+          ['Headline','40 chars'],
+          ['Description','30 chars (below headline)'],
+          ['CTA button','Select from dropdown'],
+        ],
+        fileSize:'< 30 MB, JPG / PNG',
+        recommended:'Square 1:1 images take up more feed real estate on mobile and outperform landscape by ~20%.',
+        tip:'Keep text on images under 20% of the area -- the old rule is gone but low-text still gets better delivery.'
+      },
+      {
+        name:'Feed Video Ad',
+        visual:'video',
+        dimensions:'1080x1080 (1:1) or 1080x1350 (4:5)',
+        aspect:'1:1 or 4:5',
+        specs:[
+          ['Resolution','1080 x 1080 or 1080 x 1350'],
+          ['Duration','1s - 241 min','15-30s rec'],
+          ['Format','MP4, MOV, GIF'],
+          ['Thumbnail','1080 x 1080 px'],
+          ['Captions','SRT file or burned in'],
+          ['Primary text','125 chars'],
+        ],
+        fileSize:'< 4 GB',
+        recommended:'First 3 seconds decide everything. 4:5 ratio takes max vertical space in mobile feed.',
+        tip:'Add captions -- 85% of Facebook video is watched without sound. Auto-captions work, SRT is better.'
+      },
+      {
+        name:'Stories Ad',
+        visual:'stories',
+        dimensions:'1080x1920',
+        aspect:'9:16',
+        specs:[
+          ['Image/Video','1080 x 1920 px'],
+          ['Video duration','1 - 120 seconds','5-15s rec'],
+          ['Image display','5 seconds'],
+          ['Safe zone','Top/bottom 14% (250px) for UI'],
+          ['CTA','Swipe-up or sticker link'],
+        ],
+        fileSize:'< 30 MB image, < 4 GB video',
+        recommended:'Design for sound-off but reward sound-on. Keep CTA in the bottom-center safe zone.',
+        tip:'Leave 250px clear at top (profile/close) and bottom (CTA/swipe) -- the "safe zone" is 1080x1420.'
+      },
+      {
+        name:'Reels Ad',
+        visual:'vertical',
+        dimensions:'1080x1920 (min 500x888)',
+        aspect:'9:16',
+        specs:[
+          ['Resolution','1080 x 1920 px','500 x 888 min'],
+          ['Duration','0 - 90 seconds','15-30s rec'],
+          ['Format','MP4, MOV'],
+          ['Audio','Strongly recommended'],
+          ['Text overlay','Keep in center 80%'],
+        ],
+        fileSize:'< 4 GB',
+        recommended:'Native-feeling content outperforms polished ads 2:1 on Reels. Film vertical, not cropped horizontal.',
+        tip:'Hook in the first frame -- Reels auto-play and users swipe in <1 second if not engaged.'
+      },
+      {
+        name:'Carousel Ad',
+        visual:'carousel',
+        dimensions:'1080x1080 per card',
+        aspect:'1:1',
+        specs:[
+          ['Cards','2 - 10 per carousel'],
+          ['Image per card','1080 x 1080 px'],
+          ['Video per card','Up to 240 min','15s rec'],
+          ['Headline/card','40 chars'],
+          ['Description/card','20 chars'],
+          ['Primary text','125 chars (shared)'],
+        ],
+        fileSize:'< 30 MB/image, < 4 GB/video',
+        recommended:'Tell a sequential story across cards, or show product features one per card. Last card = CTA.',
+        tip:'The first card is your hook. Put your best-performing creative there -- carousel swipe rate averages 1.4 cards.'
+      },
+      {
+        name:'Collection Ad',
+        visual:'collection',
+        dimensions:'Cover: 1200x628 or video + 4 products',
+        aspect:'1.91:1 cover',
+        specs:[
+          ['Cover image/video','1200 x 628 px (or 1:1 video)'],
+          ['Product images','4 shown from catalog'],
+          ['Headline','40 chars'],
+          ['Primary text','125 chars'],
+          ['Instant Experience','Required (full-screen landing)'],
+        ],
+        fileSize:'< 30 MB image, < 4 GB video',
+        recommended:'Connect to a product catalog. Dynamic product selection outperforms manual curation.',
+        tip:'Collection ads open an Instant Experience (full-screen) -- design the landing, not just the ad.'
+      },
+      {
+        name:'Right Column (Desktop)',
+        visual:'text-ad',
+        dimensions:'1200x628',
+        aspect:'1.91:1',
+        specs:[
+          ['Image','1200 x 628 px'],
+          ['Headline','40 chars'],
+          ['Description','Not shown (optional)'],
+          ['Placement','Desktop only'],
+          ['CTA','Optional button'],
+        ],
+        fileSize:'< 30 MB, JPG / PNG',
+        recommended:'Lowest cost placement on Meta. Good for retargeting warm audiences.',
+        tip:'Right column is tiny -- use high-contrast images and short, punchy headlines. No body text shown.'
+      },
+    ]
+  },
+  {
+    id:'linkedin', name:'LinkedIn', color:'#0a66c2', icon:'in',
+    formats:[
+      {
+        name:'Single Image Ad',
+        visual:'feed',
+        dimensions:'1200x627',
+        aspect:'1.91:1',
+        specs:[
+          ['Image','1200 x 627 px','400 x 209 min'],
+          ['Intro text','150 chars rec','up to 600 max'],
+          ['Headline','70 chars rec','200 max'],
+          ['Description','100 chars rec','300 max'],
+          ['CTA button','Select from preset list'],
+        ],
+        fileSize:'< 5 MB, JPG / PNG / GIF',
+        recommended:'B2B audiences respond to data and stats in ad copy. Lead with a number or percentage.',
+        tip:'LinkedIn truncates intro text at 150 chars on mobile -- put your hook in the first line.'
+      },
+      {
+        name:'Video Ad',
+        visual:'video',
+        dimensions:'1920x1080 max',
+        aspect:'16:9, 1:1, or 9:16',
+        specs:[
+          ['Resolution','1920 x 1080 max','360p min'],
+          ['Duration','3s - 30 min','15-30s rec'],
+          ['Format','MP4 only'],
+          ['Frame rate','Up to 30 fps'],
+          ['Intro text','150 chars rec (600 max)'],
+          ['Headline','70 chars rec (200 max)'],
+        ],
+        fileSize:'< 200 MB',
+        recommended:'Keep under 30 seconds for sponsored content. Put your value prop in the first 10 seconds.',
+        tip:'LinkedIn video auto-plays muted -- burn in captions or use bold text overlays from the first frame.'
+      },
+      {
+        name:'Carousel Ad',
+        visual:'carousel',
+        dimensions:'1080x1080 per card',
+        aspect:'1:1',
+        specs:[
+          ['Cards','2 - 10 per carousel'],
+          ['Card image','1080 x 1080 px','312 x 312 min'],
+          ['Card headline','45 chars'],
+          ['Intro text','150 chars rec (255 max)'],
+          ['Landing URL','Per card (individual)'],
+        ],
+        fileSize:'< 10 MB per card, JPG / PNG',
+        recommended:'Use carousels for step-by-step guides, case study results, or product feature tours.',
+        tip:'Each card can link to a different URL -- use this for multi-product or multi-segment campaigns.'
+      },
+      {
+        name:'Message Ad (InMail)',
+        visual:'message',
+        dimensions:'300x250 banner (optional)',
+        aspect:'N/A (message format)',
+        specs:[
+          ['Subject line','60 chars'],
+          ['Message body','1,500 chars','under 500 rec'],
+          ['CTA button','20 chars'],
+          ['Banner image','300 x 250 px (optional)'],
+          ['Sender','Must be a real person'],
+        ],
+        fileSize:'< 2 MB banner, JPG / PNG',
+        recommended:'Personalize the first line with company name or job title. Keep under 500 chars for 2x CTR.',
+        tip:'Members receive max 1 Message Ad per 45 days -- your one shot needs to be exceptional.'
+      },
+      {
+        name:'Text Ad',
+        visual:'text-ad',
+        dimensions:'100x100 (thumbnail)',
+        aspect:'1:1',
+        specs:[
+          ['Thumbnail','100 x 100 px'],
+          ['Headline','25 chars'],
+          ['Description','75 chars'],
+          ['Placement','Desktop right rail & top'],
+          ['CTA','Included in description'],
+        ],
+        fileSize:'< 2 MB, JPG / PNG',
+        recommended:'Cheapest LinkedIn format. Good for brand awareness with tight budgets.',
+        tip:'Use a face (person photo) as the 100x100 thumbnail -- it gets 3x more clicks than a logo.'
+      },
+    ]
+  },
+  {
+    id:'tiktok', name:'TikTok', color:'#000000', icon:'T',
+    formats:[
+      {
+        name:'In-Feed Ad',
+        visual:'vertical',
+        dimensions:'1080x1920 (min 720x1280)',
+        aspect:'9:16 or 1:1',
+        specs:[
+          ['Resolution','1080 x 1920 px','720 x 1280 min'],
+          ['Duration','5 - 60 seconds','9-15s rec'],
+          ['Format','MP4, MOV, AVI, MPEG'],
+          ['Ad description','1 - 100 chars (on-screen)'],
+          ['CTA','Select from preset list'],
+          ['Profile image','Auto from account'],
+        ],
+        fileSize:'< 500 MB',
+        recommended:'Film natively in-app or match the TikTok aesthetic. Overproduced ads get scrolled past.',
+        tip:'Sound is essential on TikTok -- 88% of users say sound is critical. Use trending audio when possible.'
+      },
+      {
+        name:'TopView Ad',
+        visual:'takeover',
+        dimensions:'1080x1920',
+        aspect:'9:16',
+        specs:[
+          ['Resolution','1080 x 1920 px'],
+          ['Duration','5 - 60 seconds'],
+          ['Placement','First in-feed after app open'],
+          ['Sound','Auto-play with sound on'],
+          ['CTA','Custom button'],
+        ],
+        fileSize:'< 500 MB, MP4 / MOV',
+        recommended:'Premium placement -- first thing users see. Use for launches, events, major announcements.',
+        tip:'TopView has 67% higher engagement than standard in-feed -- but costs 10-20x more. Reserve for tent-pole moments.'
+      },
+      {
+        name:'Spark Ads',
+        visual:'spark',
+        dimensions:'Same as organic TikTok (9:16)',
+        aspect:'9:16',
+        specs:[
+          ['Content source','Existing organic TikTok post'],
+          ['Resolution','Matches original post'],
+          ['Duration','Matches original post'],
+          ['Auth code','Required from creator'],
+          ['CTA','Overlay button added'],
+        ],
+        fileSize:'Matches original post',
+        recommended:'Boost creator content that is already performing organically. Authenticity drives results.',
+        tip:'Spark Ads retain the original creator\'s profile and engagement -- CTR is 30% higher than standard in-feed.'
+      },
+      {
+        name:'Branded Hashtag Challenge',
+        visual:'hashtag',
+        dimensions:'Custom banner: 1200x400 (Discover page)',
+        aspect:'3:1 (banner)',
+        specs:[
+          ['Campaign','2 - 6 days'],
+          ['Banner image','1200 x 400 px'],
+          ['Hashtag','Custom branded hashtag'],
+          ['Video examples','3 - 5 seed videos rec'],
+          ['Challenge page','Full takeover page'],
+        ],
+        fileSize:'Banner < 5 MB, JPG / PNG',
+        recommended:'Create a simple, fun, repeatable action. The best challenges are easy to join in 1 take.',
+        tip:'Branded Hashtag Challenges average 8.5% engagement rate -- but start at $150K. Best for brand awareness at scale.'
+      },
+    ]
+  },
+  {
+    id:'x', name:'X / Twitter', color:'#1d9bf0', icon:'X',
+    formats:[
+      {
+        name:'Promoted Post (Image)',
+        visual:'feed',
+        dimensions:'1200x675 (or 1200x1200)',
+        aspect:'16:9 or 1:1',
+        specs:[
+          ['Image','1200 x 675 px (16:9)','600 x 335 min'],
+          ['Square alt','1200 x 1200 px'],
+          ['Post text','280 chars','under 100 rec'],
+          ['CTA','Website button or app install'],
+          ['Hashtags','1-2 recommended'],
+        ],
+        fileSize:'< 5 MB, JPG / PNG / GIF (< 15 MB)',
+        recommended:'Short, punchy copy wins. Leave room for engagement -- don\'t use all 280 chars.',
+        tip:'Posts under 100 characters get 17% more engagement. One strong image + one clear CTA.'
+      },
+      {
+        name:'Promoted Post (Video)',
+        visual:'video',
+        dimensions:'1280x720 min (1920x1080 rec)',
+        aspect:'16:9, 1:1, or 9:16',
+        specs:[
+          ['Resolution','1920 x 1080 rec','1280 x 720 min'],
+          ['Duration','0:15 - 2:20','15-30s rec'],
+          ['Format','MP4, MOV'],
+          ['Thumbnail','Custom or auto-generated'],
+          ['Post text','280 chars'],
+          ['Captions','Closed captions rec'],
+        ],
+        fileSize:'< 1 GB',
+        recommended:'First 2-3 seconds need a visual hook. Auto-play is muted by default on timeline.',
+        tip:'Videos under 15 seconds have 3x higher completion rates. If longer, front-load the key message.'
+      },
+      {
+        name:'Carousel Ad',
+        visual:'carousel',
+        dimensions:'800x418 (landscape) or 800x800 (square)',
+        aspect:'1.91:1 or 1:1',
+        specs:[
+          ['Cards','2 - 6 per carousel'],
+          ['Image/card','800 x 418 or 800 x 800 px'],
+          ['Video/card','Up to 2:20 each'],
+          ['Card title','70 chars'],
+          ['Card URL','Individual per card'],
+          ['Post text','280 chars (shared)'],
+        ],
+        fileSize:'< 5 MB/image, < 1 GB/video',
+        recommended:'Use consistent visual style across cards. Each card should work standalone and in sequence.',
+        tip:'Carousel swipe rates on X average 1.8 cards -- put your strongest offer on card 1 and CTA on card 2.'
+      },
+      {
+        name:'Timeline Takeover',
+        visual:'takeover',
+        dimensions:'Same as promoted post formats',
+        aspect:'16:9 or 1:1',
+        specs:[
+          ['Duration','24 hours'],
+          ['Placement','Top of timeline, first ad seen'],
+          ['Creative','Standard promoted post specs'],
+          ['Targeting','Broad reach (mass awareness)'],
+          ['Frequency','1 advertiser per day per market'],
+        ],
+        fileSize:'Same as promoted post',
+        recommended:'Pair with a major event, launch, or cultural moment for maximum impact.',
+        tip:'Timeline Takeover guarantees top-of-timeline placement all day -- best ROI when paired with a trending hashtag.'
+      },
+    ]
+  },
+  {
+    id:'youtube', name:'YouTube', color:'#ff0000', icon:'Y',
+    formats:[
+      {
+        name:'Skippable In-Stream',
+        visual:'video',
+        dimensions:'1920x1080 or 1280x720',
+        aspect:'16:9',
+        specs:[
+          ['Skip','After 5 seconds'],
+          ['Duration','Any length','15-60s rec'],
+          ['Format','MP4, MOV, AVI, WMV'],
+          ['Resolution','1920 x 1080 rec','1280 x 720 min'],
+          ['Companion banner','300 x 60 px (desktop)'],
+          ['Billing','CPV (30s view or click)'],
+        ],
+        fileSize:'< 256 MB',
+        recommended:'You only pay when someone watches 30s or clicks. Optimize for engagement, not just impressions.',
+        tip:'The 5-second mark is do-or-die. Brand name and value prop must land before the skip button appears.'
+      },
+      {
+        name:'Non-Skippable In-Stream',
+        visual:'video',
+        dimensions:'1920x1080 or 1280x720',
+        aspect:'16:9',
+        specs:[
+          ['Duration','15 seconds max (some markets 20s)'],
+          ['Skip','Not available'],
+          ['Format','MP4, MOV'],
+          ['Resolution','1920 x 1080 rec'],
+          ['Billing','CPM (per 1,000 impressions)'],
+          ['Companion banner','300 x 60 px'],
+        ],
+        fileSize:'< 256 MB',
+        recommended:'You have guaranteed attention -- every second counts. No skip means no wasted seconds.',
+        tip:'Structure: hook (0-3s) + message (3-12s) + CTA (12-15s). Don\'t save the brand reveal for the end.'
+      },
+      {
+        name:'Bumper Ad',
+        visual:'bumper',
+        dimensions:'1920x1080 or 1280x720',
+        aspect:'16:9',
+        specs:[
+          ['Duration','6 seconds max'],
+          ['Skip','Non-skippable'],
+          ['Format','MP4, MOV'],
+          ['Resolution','1920 x 1080 rec'],
+          ['Billing','CPM'],
+          ['Audio','Required'],
+        ],
+        fileSize:'< 256 MB',
+        recommended:'One idea, one message, one CTA. Do not try to fit a 30-second story into 6 seconds.',
+        tip:'Google\'s own research: bumper ads drive ad recall +38% and brand awareness +13% on average.'
+      },
+      {
+        name:'Discovery Ad',
+        visual:'discovery',
+        dimensions:'1280x720 (thumbnail)',
+        aspect:'16:9',
+        specs:[
+          ['Thumbnail','1280 x 720 px (custom)'],
+          ['Title','100 chars max','25-45 visible'],
+          ['Description','2 lines x 35 chars each'],
+          ['Placement','Search results, watch next, home'],
+          ['Billing','CPC (only when clicked)'],
+        ],
+        fileSize:'< 2 MB thumbnail',
+        recommended:'Treat these like organic YouTube titles -- curiosity and value drive clicks, not ad-speak.',
+        tip:'Custom thumbnails with a person\'s face and 3-5 words of text overlay get 2x higher CTR.'
+      },
+      {
+        name:'Shorts Ad',
+        visual:'shorts',
+        dimensions:'1080x1920',
+        aspect:'9:16',
+        specs:[
+          ['Resolution','1080 x 1920 px'],
+          ['Duration','10 - 60 seconds'],
+          ['Format','MP4, MOV'],
+          ['Placement','Between organic Shorts'],
+          ['Sound','Plays with sound by default'],
+          ['CTA','Button overlay'],
+        ],
+        fileSize:'< 256 MB',
+        recommended:'Vertical, fast-paced, native-feeling. Repurpose TikTok/Reels content here.',
+        tip:'YouTube Shorts get 50B+ daily views. Ads here feel like organic content when done right -- lean into creator style.'
+      },
+    ]
+  },
+  {
+    id:'amazon', name:'Amazon Ads', color:'#ff9900', icon:'a',
+    formats:[
+      {
+        name:'Sponsored Products',
+        visual:'shopping',
+        dimensions:'Product image from listing',
+        aspect:'1:1 (from listing)',
+        specs:[
+          ['Image','From product listing (1000x1000 rec)'],
+          ['Title','From listing (200 chars max)'],
+          ['Price','From listing (dynamic)'],
+          ['Rating','From listing (stars + count)'],
+          ['Badge','Prime badge if eligible'],
+          ['Targeting','Keyword or product targeting'],
+        ],
+        fileSize:'Per Amazon listing requirements',
+        recommended:'Your listing IS your ad creative. Optimize main image, title, and price before running ads.',
+        tip:'Sponsored Products drive ~78% of Amazon ad revenue. Target competitor ASINs for conquest campaigns.'
+      },
+      {
+        name:'Sponsored Brands',
+        visual:'display',
+        dimensions:'Custom headline banner',
+        aspect:'Variable (banner)',
+        specs:[
+          ['Logo','400 x 400 px min'],
+          ['Headline','50 chars'],
+          ['Products','3 product images shown'],
+          ['Custom image','1200 x 628 px (optional)'],
+          ['Video option','1920 x 1080, 6-45s'],
+          ['Landing','Store page or product list'],
+        ],
+        fileSize:'< 5 MB images, < 500 MB video',
+        recommended:'Drive traffic to your Amazon Store, not individual listings. Build the brand, not just the sale.',
+        tip:'Sponsored Brands with video get 3x the impression share of static Sponsored Brands at similar bids.'
+      },
+      {
+        name:'Sponsored Display',
+        visual:'display',
+        dimensions:'Auto-generated or custom',
+        aspect:'Variable',
+        specs:[
+          ['Creative','Auto-generated from listing or custom'],
+          ['Custom image','600 x 500, 980 x 55, 300 x 250'],
+          ['Headline','50 chars'],
+          ['Logo','600 x 100 px'],
+          ['Targeting','Audiences, products, or views remarketing'],
+          ['Placement','On and off Amazon'],
+        ],
+        fileSize:'< 5 MB, JPG / PNG',
+        recommended:'Use views remarketing to retarget shoppers who viewed your product but didn\'t buy.',
+        tip:'Sponsored Display extends beyond Amazon to Twitch, IMDb, and third-party sites -- true full-funnel.'
+      },
+    ]
+  },
+  {
+    id:'pinterest', name:'Pinterest', color:'#e60023', icon:'P',
+    formats:[
+      {
+        name:'Standard Pin Ad',
+        visual:'pin',
+        dimensions:'1000x1500',
+        aspect:'2:3',
+        specs:[
+          ['Image','1000 x 1500 px','600 x 900 min'],
+          ['Title','100 chars'],
+          ['Description','500 chars'],
+          ['Destination URL','Required'],
+          ['CTA','Automatic based on objective'],
+        ],
+        fileSize:'< 20 MB, JPG / PNG',
+        recommended:'Vertical 2:3 ratio takes maximum space in the Pinterest feed. Use lifestyle imagery over product-only shots.',
+        tip:'Pins have a 3.5-month content half-life -- longest of any social platform. Your ad keeps working months later.'
+      },
+      {
+        name:'Video Pin Ad',
+        visual:'video',
+        dimensions:'1000x1500 (2:3) or 1080x1080 (1:1)',
+        aspect:'2:3, 1:1, or 9:16',
+        specs:[
+          ['Resolution','1000 x 1500 rec (2:3)'],
+          ['Duration','4s - 15 min','6-15s rec'],
+          ['Format','MP4, MOV, M4V'],
+          ['Cover image','Same as video dimensions'],
+          ['Title','100 chars'],
+          ['Description','500 chars'],
+        ],
+        fileSize:'< 2 GB',
+        recommended:'How-to and tutorial-style videos perform best. Show the transformation or end result early.',
+        tip:'Pinterest video views increased 240% YoY. Vertical 2:3 video gets 3x more impressions than square.'
+      },
+      {
+        name:'Carousel Pin Ad',
+        visual:'carousel',
+        dimensions:'1000x1500 or 1080x1080 per card',
+        aspect:'2:3 or 1:1',
+        specs:[
+          ['Cards','2 - 5 per carousel'],
+          ['Image/card','1000 x 1500 or 1080 x 1080 px'],
+          ['Title/card','100 chars'],
+          ['Description','500 chars (shared)'],
+          ['URL','Individual per card'],
+        ],
+        fileSize:'< 20 MB per card, JPG / PNG',
+        recommended:'Use each card for a different product variant, color, or use case.',
+        tip:'Carousels get 3x higher click-through than standard pins. Use the first card as the hero.'
+      },
+      {
+        name:'Idea Pin Ad',
+        visual:'idea',
+        dimensions:'1080x1920 per page',
+        aspect:'9:16',
+        specs:[
+          ['Pages','Up to 20 per Idea Pin'],
+          ['Image/page','1080 x 1920 px'],
+          ['Video/page','Up to 60s per page'],
+          ['Title','100 chars'],
+          ['Text overlay','Built-in editor'],
+          ['Shopping tag','Tag products from catalog'],
+        ],
+        fileSize:'< 20 MB/image, < 1 GB/video per page',
+        recommended:'Multi-page storytelling format. Perfect for recipes, tutorials, and step-by-step guides.',
+        tip:'Idea Pins get 9x higher comment rate than standard pins. Use 5-7 pages for optimal engagement.'
+      },
+    ]
+  }
+];
+
+/* ── RENDER ───────────────────────────────────────────────────────────── */
+const content = document.getElementById('content');
+const toast = document.getElementById('toast');
+
+function getVisualHTML(visual) {
+  const visuals = {
+    search: `<div class="vis-search"><div class="vis-line title"></div><div class="vis-line url"></div><div class="vis-line desc"></div><div class="vis-line desc" style="width:70%"></div></div>`,
+    display: `<div class="vis-display"><div class="vis-img"></div><div class="vis-bar"></div></div>`,
+    shopping: `<div class="vis-shopping"><div class="vis-box"></div><div class="vis-price">$29.99</div></div>`,
+    video: `<div class="vis-video"><div class="play"></div><div class="duration">0:30</div></div>`,
+    bumper: `<div class="vis-bumper"><div class="six">6s</div></div>`,
+    feed: `<div class="vis-feed"><div class="vis-avatar"></div><div class="vis-img-rect"></div><div class="vis-text-line"></div></div>`,
+    stories: `<div class="vis-stories"><div class="vis-inner"></div></div>`,
+    carousel: `<div class="vis-carousel"><div class="vis-card"></div><div class="vis-card"></div><div class="vis-card"></div><div class="vis-card"></div></div>`,
+    collection: `<div class="vis-collection"><div class="vis-main"></div><div class="vis-thumb-sm"></div><div class="vis-thumb-sm"></div></div>`,
+    message: `<div class="vis-message"><div class="vis-bubble">Hi there!</div><div class="vis-bubble reply">Learn more</div></div>`,
+    'text-ad': `<div class="vis-text-ad"><div class="vis-thumb"></div><div class="vis-lines"><span></span><span style="width:80%"></span></div></div>`,
+    vertical: `<div class="vis-vertical"><div class="vis-phone"><div class="tri"></div></div></div>`,
+    hashtag: `<div class="vis-hashtag"><div class="hash">#</div></div>`,
+    takeover: `<div class="vis-takeover"><div class="vis-star">&#9733;</div><div class="vis-label">TOP</div></div>`,
+    discovery: `<div class="vis-discovery"><div class="vis-thumb-lg"><div class="tri-sm"></div></div><div class="vis-meta"><span></span><span style="width:60%"></span></div></div>`,
+    shorts: `<div class="vis-shorts"><div class="vis-shorts-icon">S</div><div class="vis-shorts-label">SHORTS</div></div>`,
+    pin: `<div class="vis-pin"><div class="vis-pin-inner"><div class="vis-pin-dot"></div></div></div>`,
+    idea: `<div class="vis-idea"><div class="bulb">&#9670;</div></div>`,
+    spark: `<div class="vis-spark"><div class="spark-icon">&#9889; Spark</div></div>`,
+  };
+  return visuals[visual] || '';
+}
+
+function buildSpecsText(platform, fmt) {
+  let t = `${fmt.name} (${platform.name})\n`;
+  t += `${'='.repeat(40)}\n`;
+  t += `Dimensions: ${fmt.dimensions}\n`;
+  t += `Aspect Ratio: ${fmt.aspect}\n\n`;
+  t += `Specs:\n`;
+  fmt.specs.forEach(s => {
+    let line = `  ${s[0]}: ${s[1]}`;
+    if (s[2]) line += ` (min: ${s[2]})`;
+    t += line + '\n';
+  });
+  t += `\nFile Size: ${fmt.fileSize}\n`;
+  t += `\nPro Tip: ${fmt.tip}\n`;
+  return t;
+}
+
+function showToast(msg) {
+  toast.textContent = msg || 'Specs copied to clipboard';
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+function renderPlatform(p) {
+  let html = `<section class="platform-section" data-platform="${p.id}">`;
+  html += `<div class="platform-header">`;
+  html += `<div class="platform-logo" style="background:${p.color}">${p.icon}</div>`;
+  html += `<span class="platform-name">${p.name}</span>`;
+  html += `<span class="platform-count">${p.formats.length} formats</span>`;
+  html += `</div>`;
+  html += `<div class="formats-grid">`;
+
+  p.formats.forEach((fmt, i) => {
+    const cardId = `${p.id}-${i}`;
+    html += `<div class="format-card" id="${cardId}">`;
+    html += `<div class="format-top">`;
+    html += `<div class="format-visual">${getVisualHTML(fmt.visual)}<span class="ratio-label">${fmt.aspect.split(' ')[0]}</span></div>`;
+    html += `<div class="format-info">`;
+    html += `<div class="format-name">${fmt.name}</div>`;
+    html += `<span class="format-platform-badge" style="background:${p.color}">${p.name}</span>`;
+    html += `</div>`;
+    html += `</div>`;
+
+    /* Spec table */
+    html += `<table class="spec-table"><thead><tr><th>Property</th><th>Specification</th></tr></thead><tbody>`;
+    html += `<tr><td class="spec-label">Dimensions</td><td class="spec-value">${fmt.dimensions}</td></tr>`;
+    html += `<tr><td class="spec-label">Aspect Ratio</td><td class="spec-value">${fmt.aspect}</td></tr>`;
+    fmt.specs.forEach(s => {
+      let val = `${s[1]}`;
+      if (s[2]) val += `<span class="min">(min: ${s[2]})</span>`;
+      html += `<tr><td class="spec-label">${s[0]}</td><td class="spec-value">${val}</td></tr>`;
+    });
+    html += `<tr><td class="spec-label">File Size</td><td class="spec-value">${fmt.fileSize}</td></tr>`;
+    html += `</tbody></table>`;
+
+    /* Pro tip */
+    html += `<div class="pro-tip"><span class="tip-icon">&#9889;</span><span class="tip-text"><strong>Pro tip:</strong> ${fmt.tip}</span></div>`;
+
+    /* Copy button */
+    html += `<div class="copy-row"><button class="btn-copy" data-platform="${p.id}" data-index="${i}" onclick="copySpecs('${p.id}',${i},this)">`;
+    html += `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>`;
+    html += `Copy specs</button></div>`;
+
+    html += `</div>`;
+  });
+
+  html += `</div></section>`;
+  return html;
+}
+
+function copySpecs(platformId, index, btn) {
+  const platform = PLATFORMS.find(p => p.id === platformId);
+  const fmt = platform.formats[index];
+  const text = buildSpecsText(platform, fmt);
+  navigator.clipboard.writeText(text).then(() => {
+    btn.classList.add('copied');
+    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+    showToast();
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy specs`;
+    }, 2000);
+  });
+}
+
+/* ── INITIAL RENDER ───────────────────────────────────────────────────── */
+content.innerHTML = PLATFORMS.map(p => renderPlatform(p)).join('');
+
+/* ── TABS ─────────────────────────────────────────────────────────────── */
+document.getElementById('tabs').addEventListener('click', e => {
+  const tab = e.target.closest('.tab');
+  if (!tab) return;
+  const platform = tab.dataset.platform;
+
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+
+  document.querySelectorAll('.platform-section').forEach(s => {
+    if (platform === 'all') {
+      s.classList.remove('hidden');
+    } else {
+      s.classList.toggle('hidden', s.dataset.platform !== platform);
+    }
+  });
+
+  /* Smooth scroll to top of content */
+  if (platform !== 'all') {
+    const target = document.querySelector(`.platform-section[data-platform="${platform}"]`);
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+});
+
+/* ── TOTAL COUNT ──────────────────────────────────────────────────────── */
+const totalFormats = PLATFORMS.reduce((sum, p) => sum + p.formats.length, 0);
+document.querySelector('.hero p').textContent += ` ${totalFormats} formats across ${PLATFORMS.length} platforms.`;
+</script>
+</body>
+</html>

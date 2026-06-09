@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Advertising Glossary — FreeAdStore</title>
+<meta name="description" content="Every advertising term explained simply. 128 terms covering campaigns, bidding, targeting, creative, analytics, and more.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#ef4444;--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--panel:#ffffff;--line:#e5e7eb;--radius:10px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+/* BACK + HEADER */
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+.hero{text-align:center;padding:0 1.5rem 1.2rem}
+.hero h1{font-family:'Fraunces',serif;font-size:2rem;font-weight:700;margin-bottom:.35rem}
+.hero h1 span{color:var(--accent)}
+.hero p{color:var(--muted);font-size:.88rem;max-width:600px;margin:0 auto;line-height:1.5}
+.badge{display:inline-block;padding:.2rem .6rem;border-radius:99px;font-size:.72rem;font-weight:600;background:var(--panel);border:1px solid var(--line);color:var(--muted);margin-top:.5rem}
+
+/* STICKY SEARCH */
+.search-bar{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--line);padding:.6rem 1.5rem}
+.search-inner{max-width:900px;margin:0 auto;position:relative}
+.search-inner input{width:100%;padding:10px 14px 10px 38px;border:1px solid var(--line);border-radius:var(--radius);font-size:.88rem;font-family:inherit;background:var(--panel);outline:none}
+.search-inner input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(239,68,68,.08)}
+.search-inner input::placeholder{color:#9ca3af}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.9rem;pointer-events:none}
+.search-count{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:.7rem;color:var(--muted);font-weight:600}
+
+/* ALPHABET NAV */
+.alpha-nav{max-width:900px;margin:.8rem auto .4rem;padding:0 1.5rem;display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.alpha-btn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:.75rem;font-weight:700;cursor:pointer;background:var(--panel);border:1px solid var(--line);color:var(--text);font-family:inherit;transition:all .12s}
+.alpha-btn:hover{border-color:var(--accent);color:var(--accent)}
+.alpha-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.alpha-btn.disabled{opacity:.3;cursor:default;pointer-events:none}
+
+/* CONTENT */
+.content{max-width:900px;margin:0 auto;padding:0 1.5rem 3rem}
+.letter-section{margin-top:1.5rem}
+.letter-heading{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;color:var(--accent);border-bottom:2px solid var(--line);padding-bottom:.35rem;margin-bottom:.6rem;scroll-margin-top:120px}
+.term-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:.85rem 1rem;margin-bottom:.5rem;transition:border-color .15s,box-shadow .15s}
+.term-card:hover{border-color:#d1d5db;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.term-card.hidden{display:none}
+.term-name{font-size:.92rem;font-weight:700;color:var(--text);margin-bottom:.2rem}
+.term-abbr{font-size:.72rem;font-weight:600;color:var(--accent);margin-left:.3rem}
+.term-def{font-size:.82rem;color:var(--text);line-height:1.55;margin-bottom:.25rem}
+.term-example{font-size:.78rem;color:var(--muted);font-style:italic;line-height:1.5;margin-bottom:.25rem}
+.term-related{font-size:.72rem;color:var(--muted);font-weight:500}
+.term-related a{color:var(--accent);font-weight:600;font-size:.72rem}
+.letter-section.hidden{display:none}
+
+/* NO RESULTS */
+.no-results{display:none;text-align:center;padding:3rem 1rem;color:var(--muted)}
+.no-results h3{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:.3rem}
+.no-results p{font-size:.82rem}
+
+/* FOOTER */
+footer{border-top:1px solid var(--line);padding:1rem;text-align:center;font-size:.7rem;color:var(--muted);background:var(--panel)}
+footer a{color:var(--accent)}
+
+@media(max-width:640px){
+  .hero h1{font-size:1.5rem}
+  .alpha-nav{gap:3px}
+  .alpha-btn{width:28px;height:28px;font-size:.68rem}
+  .content{padding:0 1rem 2rem}
+  .term-card{padding:.7rem .8rem}
+}
+</style>
+</head>
+<body>
+
+<a class="back" href="/">&#8592; FreeAdStore</a>
+
+<section class="hero">
+<h1>Advertising <span>Glossary</span></h1>
+<p>Every advertising term explained simply. Search or browse by letter.</p>
+<span class="badge" id="termCount">128 terms</span>
+</section>
+
+<div class="search-bar">
+<div class="search-inner">
+<span class="search-icon">&#128269;</span>
+<input type="text" id="searchInput" placeholder="Search terms... e.g. CPC, retargeting, quality score" autocomplete="off">
+<span class="search-count" id="searchCount"></span>
+</div>
+</div>
+
+<nav class="alpha-nav" id="alphaNav"></nav>
+
+<div class="content" id="glossaryContent"></div>
+<div class="no-results" id="noResults"><h3>No terms found</h3><p>Try a different search term.</p></div>
+
+<footer>FreeAdStore &mdash; Free advertising tools, in your browser. <a href="/">Browse all tools</a></footer>
+
+<script>
+const TERMS = [
+  // A
+  {t:"A/B Testing",d:"Running two or more versions of an ad simultaneously to see which performs better. Traffic is split between variants and the winner is determined by a chosen metric like CTR or conversions.",e:"You test two headlines — 'Save 20% Today' vs 'Limited Time Offer' — and the first gets 40% more clicks.",r:["Split Test","Conversion Rate","Ad Creative"]},
+  {t:"ACOS",f:"Advertising Cost of Sales",d:"The percentage of ad spend relative to the revenue generated, commonly used in Amazon advertising. Lower ACOS means higher profitability.",e:"If you spend $25 on ads and earn $100 in sales, your ACOS is 25%.",r:["ROAS","CPA","Budget"]},
+  {t:"Ad Copy",d:"The text content of an advertisement, including headlines, descriptions, and calls to action. Good ad copy is concise, relevant, and persuasive.",e:"'Get 50% off your first order — Shop now' is a simple piece of ad copy with a CTA.",r:["Ad Creative","Headline","CTA"]},
+  {t:"Ad Creative",d:"The visual and textual elements that make up an advertisement, including images, video, copy, and design. Creative is what the user actually sees.",r:["Ad Copy","Banner Ad","Carousel Ad","Rich Media"]},
+  {t:"Ad Extension",d:"Additional information added to a search ad, such as phone numbers, site links, or location details. Extensions increase ad real estate and typically improve CTR.",e:"A Google Search ad showing 'Call us: 555-0123' beneath the description is using a call extension.",r:["Sitelink","Search Ad","Google Ads"]},
+  {t:"Ad Group",d:"A container within a campaign that holds one or more ads sharing a set of keywords or targeting criteria. Ad groups let you organize themes within a campaign.",r:["Campaign","Ad Set","Keyword"]},
+  {t:"Ad Network",d:"A platform that connects advertisers with publishers who want to host ads. The network aggregates ad space and sells it to advertisers.",e:"Google Display Network places your banner ads across millions of websites.",r:["Display Network","Google Display Network","Audience Network"]},
+  {t:"Ad Placement",d:"The specific location where an ad appears, such as Facebook News Feed, Instagram Stories, or a particular website. Placement affects visibility and cost.",r:["Placement","Display Ad","Ad Network"]},
+  {t:"Ad Rank",d:"A score used by Google Ads to determine your ad's position on the search results page. It combines your bid, Quality Score, and expected impact of extensions.",r:["Quality Score","Bid","Google Ads"]},
+  {t:"Ad Relevance",d:"A measure of how closely your ad matches the intent behind a user's search query or the interests of your target audience. Higher relevance lowers costs and improves placement.",r:["Quality Score","Ad Rank","Keyword"]},
+  {t:"Ad Rotation",d:"The setting that controls how multiple ads within an ad group are displayed. Options typically include optimizing for clicks, conversions, or rotating evenly.",r:["Ad Group","A/B Testing","Optimization Score"]},
+  {t:"Ad Set",d:"A Meta Ads term for a group of ads that share the same budget, schedule, targeting, and placement settings. Equivalent to an ad group in Google Ads.",r:["Ad Group","Campaign","Meta Ads"]},
+  {t:"Affinity Audience",d:"A targeting option that reaches people based on their long-term interests and habits, such as 'Cooking Enthusiasts' or 'Travel Buffs.' Available on Google and other platforms.",r:["In-Market Audience","Interest Targeting","Custom Audience"]},
+  {t:"Attribution",d:"The process of identifying which ads, channels, or touchpoints contributed to a conversion. Models range from simple (last-click) to complex (data-driven).",e:"A customer sees your display ad Monday, clicks a search ad Wednesday, and buys Friday — attribution decides which ad gets credit.",r:["Conversion","Conversion Window","Tracking Pixel"]},
+  {t:"Audience Network",d:"A collection of third-party apps and websites where a platform (like Meta) can show your ads beyond its own properties.",r:["Ad Network","Display Network","Placement"]},
+  {t:"Automated Bidding",d:"A bidding strategy where the ad platform's algorithm sets bids automatically to achieve a specified goal, such as maximizing clicks or hitting a target CPA.",r:["Smart Bidding","Manual Bidding","Bid Strategy"]},
+  // B
+  {t:"Banner Ad",d:"A rectangular display ad that appears on websites, typically in standard IAB sizes like 300x250 or 728x90. One of the oldest digital ad formats.",r:["Display Ad","Rich Media","Ad Creative"]},
+  {t:"Bid",d:"The maximum amount an advertiser is willing to pay for a specific action, such as a click, impression, or conversion. Actual cost is often lower due to auction dynamics.",r:["Maximum Bid","Bid Strategy","CPC"]},
+  {t:"Bid Strategy",d:"The approach used to set bids in an ad auction. Strategies range from manual CPC to automated options like Target CPA or Maximize Conversions.",r:["Automated Bidding","Manual Bidding","Smart Bidding"]},
+  {t:"Bounce Rate",d:"The percentage of visitors who leave your landing page without taking any further action. A high bounce rate often signals poor ad-to-page relevance.",e:"If 100 people click your ad and 70 leave immediately, your bounce rate is 70%.",r:["Landing Page","Conversion Rate","Click-Through Rate"]},
+  {t:"Brand Awareness",d:"A campaign objective focused on making people familiar with your brand rather than driving immediate conversions. Measured by reach, impressions, and brand lift surveys.",r:["Brand Lift","Reach","Impression"]},
+  {t:"Brand Lift",d:"The measurable increase in brand perception (awareness, favorability, purchase intent) caused by an ad campaign, typically measured via surveys.",r:["Brand Awareness","Reach","View-Through Conversion"]},
+  {t:"Brand Safety",d:"Practices and tools that prevent ads from appearing alongside inappropriate, harmful, or off-brand content. Critical for maintaining brand reputation.",r:["Exclusion List","Placement","Ad Network"]},
+  {t:"Broad Match",d:"A keyword match type that triggers your ad for searches related to your keyword, including synonyms, related queries, and variations. Widest reach but least precise.",e:"Broad match keyword 'running shoes' might show your ad for 'best sneakers for jogging.'",r:["Exact Match","Phrase Match","Match Type"]},
+  {t:"Budget",d:"The total amount allocated to an ad campaign or ad set, either daily or for the campaign's lifetime. Controls how much you spend over a given period.",r:["Daily Budget","Lifetime Budget","Bid"]},
+  {t:"Bumper Ad",d:"A six-second, non-skippable video ad format on YouTube. Designed for brief, memorable brand messages.",r:["Video Ad","Pre-Roll","In-Stream Ad"]},
+  // C
+  {t:"Campaign",d:"The highest level of organization in an ad account. A campaign defines the advertising objective (awareness, traffic, conversions) and contains ad groups or ad sets.",r:["Ad Group","Ad Set","Budget"]},
+  {t:"Carousel Ad",d:"An ad format that displays multiple images or videos in a swipeable horizontal row. Each card can have its own headline, description, and link.",r:["Collection Ad","Ad Creative","Meta Ads"]},
+  {t:"Click",d:"A user interaction where someone taps or clicks on your ad, typically leading to a landing page or app. The fundamental action in pay-per-click advertising.",r:["Click-Through Rate","CPC","Landing Page"]},
+  {t:"Click-Through Rate",f:"CTR",d:"The percentage of people who click your ad after seeing it. Calculated as clicks divided by impressions, multiplied by 100. A key indicator of ad relevance.",e:"1,000 impressions and 30 clicks = 3% CTR.",r:["Impression","Click","Ad Relevance"]},
+  {t:"Collection Ad",d:"A Meta ad format that opens a full-screen Instant Experience when tapped. Features a cover image or video with product thumbnails below it.",r:["Carousel Ad","Meta Ads","Ad Creative"]},
+  {t:"Conversion",d:"A desired action taken by a user after interacting with your ad, such as a purchase, sign-up, download, or form submission. The ultimate goal of most campaigns.",r:["Conversion Rate","CPA","Attribution"]},
+  {t:"Conversion Rate",f:"CVR",d:"The percentage of ad clicks (or visitors) that result in a conversion. Higher CVR means your landing page and offer are effectively persuading visitors.",e:"100 clicks and 5 purchases = 5% conversion rate.",r:["Conversion","Landing Page","Click-Through Rate"]},
+  {t:"Conversion Window",d:"The time period after a click or view during which a conversion is attributed to an ad. Common windows are 1-day view, 7-day click, or 28-day click.",r:["Attribution","Conversion","View-Through Conversion"]},
+  {t:"Cost Per Acquisition",f:"CPA",d:"The average cost to acquire one conversion (purchase, sign-up, lead). Calculated as total ad spend divided by total conversions.",e:"Spending $500 for 25 sign-ups means a CPA of $20.",r:["Conversion","Target CPA","ROAS"]},
+  {t:"Cost Per Click",f:"CPC",d:"The amount you pay each time someone clicks your ad. In auction-based systems, actual CPC is often less than your maximum bid.",e:"You bid $2.00 but only pay $1.43 because the next-highest bidder bid $1.40.",r:["Pay Per Click","Bid","Click"]},
+  {t:"Cost Per Mille",f:"CPM",d:"The cost per 1,000 impressions. Used primarily in display, video, and awareness campaigns where visibility matters more than clicks.",e:"A CPM of $8 means you pay $8 for every 1,000 times your ad is shown.",r:["Impression","Reach","Brand Awareness"]},
+  {t:"Cost Per View",f:"CPV",d:"The cost you pay each time someone watches your video ad (usually at least 30 seconds or to completion, whichever is shorter). Common in YouTube advertising.",r:["Video Ad","View Rate","In-Stream Ad"]},
+  {t:"Creative",d:"Short for ad creative — the combination of visuals, text, and media that form the ad a user sees. Often used interchangeably with 'ad creative.'",r:["Ad Creative","Ad Copy","Creative Fatigue"]},
+  {t:"Creative Fatigue",d:"The decline in ad performance that occurs when your audience has seen the same creative too many times. Symptoms include rising costs and falling CTR.",e:"After 3 weeks, your ad's CTR drops from 2.1% to 0.8% — time for fresh creative.",r:["Ad Creative","Frequency","A/B Testing"]},
+  {t:"CTA",f:"Call to Action",d:"The instruction in an ad telling the user what to do next — 'Shop Now,' 'Learn More,' 'Sign Up,' etc. A strong CTA drives clicks and conversions.",r:["Ad Copy","Click","Conversion"]},
+  {t:"Custom Audience",d:"An audience built from your own data — customer email lists, website visitors, app users, or engagement on your social pages. Used for retargeting and lookalikes.",e:"Upload your email list of 5,000 customers to Meta and target them with a loyalty offer.",r:["Lookalike Audience","Retargeting","Pixel"]},
+  {t:"Customer Lifetime Value",f:"CLV / LTV",d:"The total revenue a business expects from a single customer over the entire relationship. Used to determine how much you can profitably spend to acquire a customer.",e:"If a customer spends $50/month for an average of 12 months, their LTV is $600.",r:["CPA","ROAS","Budget"]},
+  // D
+  {t:"Daily Budget",d:"The average amount you're willing to spend per day on a campaign. Platforms may exceed the daily budget on high-traffic days but stay within the monthly equivalent.",r:["Budget","Lifetime Budget","Campaign"]},
+  {t:"Dayparting",d:"Scheduling ads to run only during specific hours or days of the week. Useful for businesses that want to advertise during peak customer activity.",e:"A pizza restaurant runs ads only from 11am to 9pm when they're open for delivery.",r:["Campaign","Targeting","Budget"]},
+  {t:"Demographics",d:"Audience characteristics such as age, gender, income, education, and parental status. Used for targeting or analyzing who responds to your ads.",r:["Targeting","Audience Network","Interest Targeting"]},
+  {t:"Discovery Ad",d:"Google ad format that appears in the YouTube home feed, Gmail Promotions tab, and Google Discover feed. Visually rich with large images.",r:["Google Ads","Display Ad","Native Ad"]},
+  {t:"Display Ad",d:"A visual advertisement (image, animation, or rich media) shown on websites, apps, and other digital properties. Part of the display advertising channel.",r:["Banner Ad","Display Network","Rich Media"]},
+  {t:"Display Network",d:"A collection of websites, apps, and Google-owned properties where display ads can appear. Google Display Network alone reaches over 90% of internet users.",r:["Google Display Network","Ad Network","Display Ad"]},
+  {t:"Dynamic Ad",d:"An ad that automatically personalizes its content (product images, descriptions, prices) based on user behavior, data feeds, or context.",e:"A visitor who viewed running shoes sees an ad featuring those exact shoes at the current price.",r:["Dynamic Creative Optimization","Retargeting","Responsive Ad"]},
+  {t:"Dynamic Creative Optimization",f:"DCO",d:"Technology that automatically assembles the best-performing combination of headlines, images, CTAs, and other elements for each individual viewer in real time.",r:["Dynamic Ad","A/B Testing","Ad Creative"]},
+  // E
+  {t:"Engagement Rate",d:"The percentage of people who interact with your ad (likes, comments, shares, saves, clicks) relative to those who saw it. Key metric for social ads.",e:"500 impressions and 40 interactions = 8% engagement rate.",r:["Click-Through Rate","Impression","Social Proof"]},
+  {t:"Exact Match",d:"A keyword match type that triggers your ad only when the search query matches your keyword exactly or is a very close variant (same meaning, same intent).",e:"Exact match [running shoes] won't show for 'buy running shoes' on some platforms.",r:["Broad Match","Phrase Match","Match Type"]},
+  {t:"Exclusion List",d:"A list of placements, topics, keywords, or audiences you explicitly prevent your ads from targeting. Used for brand safety and budget efficiency.",r:["Brand Safety","Negative Keyword","Placement"]},
+  // F
+  {t:"Frequency",d:"The average number of times a single person sees your ad during a given time period. Too-high frequency causes creative fatigue; too-low frequency limits recall.",e:"A frequency of 4.2 means the average person in your audience saw your ad about 4 times.",r:["Frequency Cap","Creative Fatigue","Reach"]},
+  {t:"Frequency Cap",d:"A limit on how many times a single person can see your ad within a set time period. Prevents overexposure and wasted spend.",e:"Setting a frequency cap of 3 per week means nobody sees your ad more than 3 times in 7 days.",r:["Frequency","Creative Fatigue","Brand Awareness"]},
+  {t:"Funnel",d:"The stages a customer goes through from first awareness to final purchase. Common stages: awareness, consideration, conversion, retention.",r:["Brand Awareness","Lead Generation","Conversion"]},
+  // G
+  {t:"Geotargeting",d:"Targeting ads to users based on their geographic location — country, region, city, zip code, or radius around a point. Essential for local businesses.",e:"A dentist in Austin targets ads only to people within a 15-mile radius of the office.",r:["Targeting","Demographics","Dayparting"]},
+  {t:"Google Ads",d:"Google's advertising platform for search, display, video (YouTube), shopping, and app campaigns. The largest search advertising platform in the world.",r:["Google Display Network","Search Ad","Quality Score"]},
+  {t:"Google Display Network",f:"GDN",d:"Google's network of over 2 million websites, videos, and apps where display ads can appear. Reaches over 90% of internet users worldwide.",r:["Display Network","Display Ad","Ad Network"]},
+  // H
+  {t:"Headline",d:"The primary text line of an ad, designed to capture attention and convey the main message. Search ads typically allow multiple headlines that rotate or combine.",r:["Ad Copy","CTA","Responsive Ad"]},
+  // I
+  {t:"Impression",d:"A single instance of your ad being displayed to a user. One person seeing your ad three times counts as three impressions but one unique reach.",r:["Reach","CPM","Impression Share"]},
+  {t:"Impression Share",d:"The percentage of total available impressions your ad actually received. Low impression share means your budget or bid is limiting visibility.",e:"If your ad was eligible for 10,000 impressions but appeared 7,000 times, your impression share is 70%.",r:["Impression","Ad Rank","Budget"]},
+  {t:"In-Market Audience",d:"Users who are actively researching or comparing products/services in a specific category. They show purchase intent through recent browsing behavior.",e:"Someone searching for 'best DSLR camera 2024' and reading camera reviews is in-market for cameras.",r:["Affinity Audience","Interest Targeting","Custom Audience"]},
+  {t:"In-Stream Ad",d:"A video ad that plays before (pre-roll), during (mid-roll), or after (post-roll) video content. Can be skippable or non-skippable.",r:["Pre-Roll","Mid-Roll","Video Ad"]},
+  {t:"Interest Targeting",d:"Reaching users based on topics, hobbies, or interests they've demonstrated through their online behavior. Broader than in-market, narrower than broad demographics.",r:["Affinity Audience","In-Market Audience","Demographics"]},
+  // K
+  {t:"Keyword",d:"A word or phrase that advertisers bid on so their ads appear when users search for that term. The foundation of search advertising.",e:"A shoe retailer bids on the keyword 'running shoes' to appear when people search that term.",r:["Keyword Match Type","Negative Keyword","Search Ad"]},
+  {t:"Keyword Match Type",d:"The setting that controls how broadly or narrowly a keyword triggers your ad. The three main types are broad match, phrase match, and exact match.",r:["Broad Match","Phrase Match","Exact Match"]},
+  {t:"KPI",f:"Key Performance Indicator",d:"A measurable value that indicates how effectively a campaign is achieving its objectives. Common ad KPIs include CTR, CPA, ROAS, and conversion rate.",r:["CTR","CPA","ROAS"]},
+  // L
+  {t:"Landing Page",d:"The web page a user arrives at after clicking an ad. An effective landing page is relevant to the ad, loads quickly, and has a clear conversion path.",r:["Bounce Rate","Conversion Rate","Quality Score"]},
+  {t:"Lead",d:"A person who has shown interest in your product by providing contact information — filling out a form, signing up, or requesting a demo.",r:["Lead Generation","Conversion","CPA"]},
+  {t:"Lead Generation",d:"A campaign type focused on collecting contact information from potential customers. Often uses forms, gated content, or free trials as incentives.",r:["Lead","Conversion","Funnel"]},
+  {t:"Lifetime Budget",d:"The total amount you're willing to spend over the entire duration of a campaign. The platform paces spend to distribute it across the campaign period.",r:["Daily Budget","Budget","Campaign"]},
+  {t:"Lookalike Audience",d:"A targeting audience built by a platform to find new users who resemble your existing customers or custom audience. Also called 'similar audience.'",e:"Meta analyzes your 1,000 best customers and finds 2 million similar users to target.",r:["Custom Audience","Targeting","Affinity Audience"]},
+  // M
+  {t:"Manual Bidding",d:"A bidding strategy where the advertiser sets the maximum bid for each keyword or ad group manually, giving full control over costs at the expense of automation.",r:["Automated Bidding","Bid","Bid Strategy"]},
+  {t:"Match Type",d:"See Keyword Match Type. The setting that determines which search queries trigger your ad based on how closely they must match your chosen keyword.",r:["Keyword Match Type","Broad Match","Exact Match"]},
+  {t:"Maximum Bid",d:"The highest amount you're willing to pay for a click, impression, or conversion. The actual cost is typically lower due to second-price auction dynamics.",r:["Bid","CPC","Bid Strategy"]},
+  {t:"Meta Ads",d:"The advertising platform for Facebook, Instagram, Messenger, and the Meta Audience Network. Offers detailed demographic and interest-based targeting.",r:["Ad Set","Custom Audience","Lookalike Audience"]},
+  {t:"Mid-Roll",d:"A video ad that plays during (in the middle of) video content, similar to a TV commercial break. Available on YouTube for videos over 8 minutes.",r:["Pre-Roll","In-Stream Ad","Video Ad"]},
+  // N
+  {t:"Native Ad",d:"An ad that matches the look, feel, and function of the content around it. Designed to blend in rather than interrupt, native ads often achieve higher engagement.",e:"A sponsored article in a news feed that looks like a regular editorial piece is a native ad.",r:["Sponsored Content","Display Ad","Social Proof"]},
+  {t:"Negative Keyword",d:"A keyword you exclude from your campaign so your ad won't appear for irrelevant searches. Prevents wasted spend on unqualified traffic.",e:"A luxury watch brand adds 'cheap' as a negative keyword to avoid bargain-hunters.",r:["Keyword","Exclusion List","Search Ad"]},
+  // O
+  {t:"Optimization Score",d:"A Google Ads metric (0-100%) that estimates how well your account is set up to perform. Includes recommendations you can accept or dismiss.",r:["Google Ads","Quality Score","Ad Rank"]},
+  {t:"Organic",d:"Traffic or results earned without paying for ads — through SEO, social media posts, or word of mouth. The opposite of paid/sponsored content.",r:["Paid Search","Search Ad","SEO"]},
+  // P
+  {t:"Paid Search",d:"Advertising on search engine results pages (SERPs) by bidding on keywords. Your ad appears above or below organic results when someone searches your keyword.",r:["Search Ad","Google Ads","PPC"]},
+  {t:"Pay Per Click",f:"PPC",d:"An advertising model where you pay only when someone clicks your ad. The dominant model for search advertising and widely used in social and display.",r:["CPC","Paid Search","Click"]},
+  {t:"Phrase Match",d:"A keyword match type that triggers your ad when a search contains your keyword phrase in order, with additional words allowed before or after.",e:"Phrase match 'running shoes' triggers for 'best running shoes for flat feet' but not 'shoes for running.'",r:["Broad Match","Exact Match","Match Type"]},
+  {t:"Pixel",d:"A small piece of code placed on your website that tracks visitor behavior, enabling conversion tracking, retargeting, and audience building.",e:"The Meta Pixel fires when someone completes a purchase on your site, letting you track which ad drove the sale.",r:["Tracking Pixel","Retargeting","Attribution"]},
+  {t:"Placement",d:"The specific location where your ad appears — a website URL, app, social feed position, or video content. Advertisers can choose automatic or manual placements.",r:["Ad Placement","Ad Network","Display Network"]},
+  {t:"Pre-Roll",d:"A video ad that plays before the main video content begins. Can be skippable (after 5 seconds on YouTube) or non-skippable (15-20 seconds).",r:["Mid-Roll","In-Stream Ad","Video Ad"]},
+  {t:"Programmatic",d:"The automated buying and selling of digital ad inventory using software, algorithms, and real-time bidding. Replaces manual insertion orders and negotiations.",r:["Ad Network","Display Ad","CPM"]},
+  // Q
+  {t:"Quality Score",d:"A Google Ads metric (1-10) that rates the quality and relevance of your keywords, ads, and landing pages. Higher scores mean lower costs and better positions.",e:"A keyword with Quality Score 8/10 might cost $1.50 per click while a score of 4/10 costs $3.00 for the same position.",r:["Ad Rank","Ad Relevance","Landing Page"]},
+  // R
+  {t:"Reach",d:"The total number of unique people who saw your ad at least once. Unlike impressions, reach counts each person only once regardless of how many times they saw it.",r:["Impression","Frequency","Unique Reach"]},
+  {t:"Remarketing",d:"Showing ads to people who have previously visited your website or used your app. Also called retargeting. Keeps your brand top-of-mind for warm prospects.",r:["Retargeting","Custom Audience","Pixel"]},
+  {t:"Responsive Ad",d:"An ad format where you provide multiple headlines, descriptions, and images, and the platform automatically tests combinations to find the best performers.",r:["Dynamic Ad","A/B Testing","Ad Creative"]},
+  {t:"Retargeting",d:"The practice of targeting ads to users who have previously interacted with your brand — visited your site, added to cart, or engaged with content. Synonymous with remarketing.",r:["Remarketing","Custom Audience","Pixel"]},
+  {t:"Return on Ad Spend",f:"ROAS",d:"Revenue generated for every dollar spent on advertising. A ROAS of 4:1 means you earned $4 for every $1 spent. The primary profitability metric for performance campaigns.",e:"$10,000 in revenue from $2,500 in ad spend = 4x ROAS.",r:["CPA","Target ROAS","Budget"]},
+  {t:"Rich Media",d:"Interactive display ads that include advanced features like video, audio, expandable panels, or games. More engaging than standard static banners.",r:["Banner Ad","Display Ad","Ad Creative"]},
+  // S
+  {t:"Search Ad",d:"A text-based ad that appears on search engine results pages when a user searches for relevant keywords. The core format of Google Ads and Microsoft Ads.",r:["Paid Search","Google Ads","Text Ad"]},
+  {t:"Search Network",d:"The group of search engines and partner sites where search ads can appear. Google's Search Network includes Google.com and search partner sites.",r:["Display Network","Google Ads","Search Ad"]},
+  {t:"SEO",f:"Search Engine Optimization",d:"The practice of optimizing website content and structure to rank higher in organic (unpaid) search results. Complementary to paid search advertising.",r:["Organic","Paid Search","Landing Page"]},
+  {t:"Sitelink",d:"An ad extension that adds additional links below your main ad, directing users to specific pages on your website like 'Pricing,' 'Contact,' or 'Reviews.'",r:["Ad Extension","Search Ad","Google Ads"]},
+  {t:"Smart Bidding",d:"Google's subset of automated bidding strategies that use machine learning to optimize for conversions or conversion value. Includes Target CPA, Target ROAS, and Maximize Conversions.",r:["Automated Bidding","Target CPA","Target ROAS"]},
+  {t:"Social Proof",d:"Using evidence of other people's approval (reviews, testimonials, follower counts, engagement) in your ads to build trust and credibility.",e:"An ad showing '4.8 stars from 2,300 reviews' leverages social proof to reduce purchase hesitation.",r:["Ad Creative","Engagement Rate","Native Ad"]},
+  {t:"Spark Ad",d:"A TikTok native ad format that lets brands boost existing organic TikTok posts (their own or a creator's with permission) as paid ads.",r:["Native Ad","Sponsored Content","Video Ad"]},
+  {t:"Split Test",d:"Another term for A/B testing. Running two or more ad variants simultaneously to determine which performs better based on a specific metric.",r:["A/B Testing","Ad Creative","Conversion Rate"]},
+  {t:"Sponsored Content",d:"Paid content that appears in a platform's feed or editorial section, designed to look like native content. Common on LinkedIn, news sites, and social platforms.",r:["Native Ad","Social Proof","Brand Awareness"]},
+  {t:"Story Ad",d:"A full-screen vertical ad format that appears between user stories on Instagram, Facebook, Snapchat, or similar platforms. Typically 5-15 seconds.",r:["Video Ad","Meta Ads","Ad Creative"]},
+  // T
+  {t:"Target CPA",d:"An automated bidding strategy that sets bids to get as many conversions as possible at or below your specified cost per acquisition.",e:"Setting a Target CPA of $15 tells Google to aim for conversions costing $15 or less on average.",r:["CPA","Smart Bidding","Automated Bidding"]},
+  {t:"Target ROAS",d:"An automated bidding strategy that sets bids to maximize conversion value while achieving your desired return on ad spend.",r:["ROAS","Smart Bidding","Automated Bidding"]},
+  {t:"Targeting",d:"The process of defining who sees your ads based on criteria like demographics, interests, behaviors, location, device, and more. Better targeting means less wasted spend.",r:["Demographics","Geotargeting","Interest Targeting"]},
+  {t:"Text Ad",d:"A simple ad format consisting only of text — headlines, descriptions, and a display URL. The standard format for search advertising.",r:["Search Ad","Responsive Ad","Ad Copy"]},
+  {t:"TopView",d:"A TikTok ad format that appears as the first thing users see when they open the app. Full-screen video up to 60 seconds with guaranteed premium placement.",r:["Video Ad","Spark Ad","Brand Awareness"]},
+  {t:"Tracking Pixel",d:"A tiny, invisible image or code snippet embedded on a webpage that records when someone visits the page. Used for conversion tracking and audience building.",r:["Pixel","Attribution","Retargeting"]},
+  // U
+  {t:"Unique Reach",d:"The number of individual people who saw your ad at least once, with duplicates removed. More precise than general reach in cross-platform campaigns.",r:["Reach","Impression","Frequency"]},
+  {t:"UTM Parameters",d:"Tags added to the end of a URL that track the source, medium, campaign, and other details of traffic in analytics tools like Google Analytics.",e:"example.com?utm_source=facebook&utm_medium=cpc&utm_campaign=summer_sale tells you exactly which campaign drove the visit.",r:["Attribution","Tracking Pixel","Analytics"]},
+  // V
+  {t:"Video Ad",d:"Any advertisement delivered in video format, including in-stream (pre/mid/post-roll), outstream, feed videos, stories, and vertical video (reels, shorts).",r:["In-Stream Ad","Bumper Ad","View Rate"]},
+  {t:"View Rate",d:"The percentage of people who watched your video ad out of those who were shown it. Calculated as views divided by impressions.",e:"10,000 impressions and 3,500 views = 35% view rate.",r:["Video Ad","CPV","Impression"]},
+  {t:"View-Through Conversion",d:"A conversion that occurs after someone sees (but doesn't click) your ad. Measured within a view-through conversion window, typically 1 day.",e:"A user sees your display ad but doesn't click. The next day they search your brand and buy — that's a view-through conversion.",r:["Conversion","Attribution","Conversion Window"]},
+  {t:"Viewability",d:"A metric measuring whether an ad had the opportunity to be seen. Industry standard: 50% of pixels in view for at least 1 second (display) or 2 seconds (video).",r:["Impression","CPM","Display Ad"]},
+  // Additional terms to reach 128
+  {t:"Above the Fold",d:"The portion of a web page visible without scrolling. Ad placements above the fold generally receive higher viewability and engagement.",r:["Viewability","Placement","Banner Ad"]},
+  {t:"Ad Auction",d:"The real-time process that determines which ads appear and in what order when a user triggers an ad opportunity. Considers bids, quality, and relevance.",r:["Bid","Ad Rank","Quality Score"]},
+  {t:"Ad Fraud",d:"Invalid activity that artificially inflates ad metrics — fake clicks, bot traffic, or impression laundering. Costs advertisers billions annually.",r:["Click","Impression","Brand Safety"]},
+  {t:"Ad Inventory",d:"The total amount of ad space a publisher has available to sell. Supply and demand for inventory affects CPM and placement availability.",r:["Ad Network","Programmatic","CPM"]},
+  {t:"Ad Serving",d:"The technology and process of delivering ads to users and tracking their performance. Ad servers decide which ad to show based on targeting rules and auction results.",r:["Ad Network","Programmatic","Impression"]},
+  {t:"Ad Spend",d:"The total amount of money invested in advertising over a given period. The denominator in ROAS and CPA calculations.",r:["Budget","ROAS","CPA"]},
+  {t:"Advertiser",d:"The business or individual paying to show ads to an audience. Advertisers set campaign goals, budgets, and targeting to reach potential customers.",r:["Campaign","Ad Network","Publisher"]},
+  {t:"Analytics",d:"The collection, measurement, and analysis of advertising data to understand performance and make optimization decisions.",r:["Attribution","KPI","UTM Parameters"]},
+  {t:"Audience Segmentation",d:"Dividing your total audience into smaller groups based on shared characteristics (demographics, behavior, interests) for more targeted messaging.",r:["Targeting","Demographics","Custom Audience"]},
+  {t:"Bidding",d:"The act of entering an amount you're willing to pay in an ad auction. Bidding can be manual (you set amounts) or automated (the platform optimizes).",r:["Bid","Bid Strategy","Ad Auction"]},
+  {t:"Call Extension",d:"An ad extension that adds a clickable phone number to your search ad, allowing mobile users to call your business directly from the SERP.",r:["Ad Extension","Sitelink","Search Ad"]},
+  {t:"Click Fraud",d:"Illegitimate clicks on pay-per-click ads, either by competitors, bots, or click farms, intended to waste the advertiser's budget.",r:["Ad Fraud","CPC","PPC"]},
+  {t:"Contextual Targeting",d:"Placing ads on web pages whose content is relevant to the ad's message, rather than targeting based on user data. Privacy-friendly alternative to behavioral targeting.",r:["Targeting","Display Network","Placement"]},
+  {t:"Cost Per Engagement",f:"CPE",d:"The amount you pay each time a user interacts meaningfully with your ad — expanding it, watching a video, sharing, or completing an interaction beyond a simple click.",r:["Engagement Rate","CPC","CPV"]},
+  {t:"Cost Per Lead",f:"CPL",d:"The average cost to generate one lead from your advertising. A specific type of CPA where the conversion is a lead form submission.",r:["Lead Generation","CPA","Lead"]},
+  {t:"Cross-Device Tracking",d:"Following a user's journey across multiple devices (phone, tablet, desktop) to build a complete picture of how they interact with your ads before converting.",r:["Attribution","Pixel","Conversion"]},
+  {t:"Data-Driven Attribution",d:"An attribution model that uses machine learning to analyze all touchpoints and assign conversion credit based on their actual impact, not predetermined rules.",r:["Attribution","Conversion","Analytics"]},
+  {t:"Demand-Side Platform",f:"DSP",d:"Software that allows advertisers to buy digital ad inventory from multiple ad exchanges and networks through a single interface. Used in programmatic buying.",r:["Programmatic","Ad Network","Ad Inventory"]},
+  {t:"First-Party Data",d:"Data collected directly from your customers and website visitors — purchase history, email lists, site behavior. The most valuable and privacy-compliant data source.",r:["Custom Audience","Pixel","Retargeting"]},
+  {t:"Geo-Fencing",d:"Creating a virtual geographic boundary that triggers an ad or notification when a mobile user enters the defined area.",e:"A coffee shop sets a geo-fence around nearby office buildings to serve ads during morning commute hours.",r:["Geotargeting","Targeting","Mobile Ad"]},
+  {t:"Impression Fraud",d:"Artificially inflating the number of ad impressions through bots, hidden ads, ad stacking, or pixel stuffing. A form of ad fraud.",r:["Ad Fraud","Impression","Viewability"]},
+  {t:"Interstitial Ad",d:"A full-screen ad that covers the entire interface of a website or app, typically shown at natural transition points like between game levels or during page loads.",r:["Display Ad","Mobile Ad","Rich Media"]},
+  {t:"Lifetime Value",f:"LTV",d:"See Customer Lifetime Value. The predicted total revenue from a customer over the entire relationship, used to gauge acceptable acquisition costs.",r:["Customer Lifetime Value","CPA","ROAS"]},
+  {t:"Mobile Ad",d:"Any advertisement specifically designed for or delivered on mobile devices. Includes formats like interstitials, app install ads, and mobile-optimized banners.",r:["Display Ad","Interstitial Ad","Story Ad"]},
+  {t:"Outstream Ad",d:"A video ad that plays outside of video content — in article text, social feeds, or app interfaces. Auto-plays when in view and pauses when scrolled past.",r:["Video Ad","In-Stream Ad","Viewability"]},
+  {t:"Publisher",d:"A website, app, or content creator that displays ads and earns revenue from advertisers. Publishers sell their ad inventory directly or through ad networks.",r:["Ad Network","Advertiser","Ad Inventory"]},
+  {t:"Real-Time Bidding",f:"RTB",d:"An auction-based system where ad impressions are bought and sold individually in real time (within milliseconds) as a web page loads.",r:["Programmatic","DSP","Ad Auction"]},
+  {t:"Relevance Score",d:"A platform-assigned rating of how well your ad resonates with your target audience, based on expected engagement, quality, and conversion rates. Affects cost and delivery.",r:["Quality Score","Ad Relevance","Engagement Rate"]},
+  {t:"Supply-Side Platform",f:"SSP",d:"Technology that helps publishers sell their ad inventory programmatically. The publisher-side counterpart to a DSP.",r:["DSP","Programmatic","Publisher"]},
+  {t:"Viewable Impression",d:"An ad impression that meets the industry viewability standard — at least 50% of pixels visible for 1 second (display) or 2 seconds (video).",r:["Viewability","Impression","CPM"]},
+  {t:"Win Rate",d:"The percentage of ad auctions you win out of all auctions you participate in. A low win rate may indicate your bids or quality are too low.",r:["Ad Auction","Bid","Impression Share"]},
+  {t:"Zero-Click Search",d:"A search query where Google provides the answer directly on the SERP (via featured snippets, knowledge panels), so the user doesn't click any result.",r:["Organic","SEO","Paid Search"]}
+];
+
+// Sort terms alphabetically
+TERMS.sort((a,b) => a.t.localeCompare(b.t));
+
+// Group by letter
+function groupByLetter(terms) {
+  const groups = {};
+  terms.forEach(term => {
+    const letter = term.t[0].toUpperCase();
+    if (!groups[letter]) groups[letter] = [];
+    groups[letter].push(term);
+  });
+  return groups;
+}
+
+// Slugify for anchor IDs
+function slug(str) {
+  return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+// Build alphabet nav
+const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const grouped = groupByLetter(TERMS);
+const alphaNav = document.getElementById('alphaNav');
+alphabet.forEach(letter => {
+  const btn = document.createElement('button');
+  btn.className = 'alpha-btn' + (grouped[letter] ? '' : ' disabled');
+  btn.textContent = letter;
+  if (grouped[letter]) {
+    btn.onclick = () => {
+      const el = document.getElementById('letter-' + letter);
+      if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
+    };
+  }
+  alphaNav.appendChild(btn);
+});
+
+// Build glossary content
+const content = document.getElementById('glossaryContent');
+
+function buildRelatedLink(name) {
+  const found = TERMS.find(t => t.t === name || t.f === name);
+  if (found) {
+    return `<a href="#${slug(found.t)}" onclick="event.preventDefault();document.getElementById('${slug(found.t)}').scrollIntoView({behavior:'smooth',block:'start'})">${name}</a>`;
+  }
+  return name;
+}
+
+Object.keys(grouped).sort().forEach(letter => {
+  const section = document.createElement('div');
+  section.className = 'letter-section';
+  section.id = 'letter-' + letter;
+  section.setAttribute('data-letter', letter);
+
+  let html = `<h2 class="letter-heading">${letter}</h2>`;
+  grouped[letter].forEach(term => {
+    const abbr = term.f ? `<span class="term-abbr">(${term.f})</span>` : '';
+    const example = term.e ? `<div class="term-example">${term.e}</div>` : '';
+    const related = term.r && term.r.length
+      ? `<div class="term-related">Related: ${term.r.map(r => buildRelatedLink(r)).join(', ')}</div>`
+      : '';
+    html += `<div class="term-card" id="${slug(term.t)}" data-search="${(term.t + ' ' + (term.f||'') + ' ' + term.d).toLowerCase()}">
+      <div class="term-name">${term.t}${abbr}</div>
+      <div class="term-def">${term.d}</div>
+      ${example}
+      ${related}
+    </div>`;
+  });
+  section.innerHTML = html;
+  content.appendChild(section);
+});
+
+// Update term count
+document.getElementById('termCount').textContent = TERMS.length + ' terms';
+
+// Search
+const searchInput = document.getElementById('searchInput');
+const searchCount = document.getElementById('searchCount');
+const noResults = document.getElementById('noResults');
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.toLowerCase().trim();
+  let visible = 0;
+  const visibleLetters = new Set();
+
+  document.querySelectorAll('.term-card').forEach(card => {
+    const match = !q || card.getAttribute('data-search').includes(q);
+    card.classList.toggle('hidden', !match);
+    if (match) {
+      visible++;
+      const section = card.closest('.letter-section');
+      if (section) visibleLetters.add(section.getAttribute('data-letter'));
+    }
+  });
+
+  document.querySelectorAll('.letter-section').forEach(section => {
+    const letter = section.getAttribute('data-letter');
+    const hasVisible = visibleLetters.has(letter);
+    section.classList.toggle('hidden', !hasVisible);
+  });
+
+  // Update alpha nav
+  document.querySelectorAll('.alpha-btn').forEach(btn => {
+    const letter = btn.textContent;
+    if (grouped[letter]) {
+      btn.classList.toggle('disabled', !visibleLetters.has(letter));
+    }
+  });
+
+  searchCount.textContent = q ? `${visible} of ${TERMS.length}` : '';
+  noResults.style.display = visible === 0 && q ? 'block' : 'none';
+});
+</script>
+</body>
+</html>

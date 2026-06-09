@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LinkedIn Ad Preview - FreeAdStore</title>
+<meta name="description" content="Preview how your LinkedIn ads will look as Sponsored Content, Message Ads, and Text Ads. Pixel-accurate LinkedIn ad mockups, free.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--panel:#ffffff;--line:#e5e7eb;--radius:10px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 24px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px;font-family:'Fraunces',serif}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:#f3f2ef}
+
+/* FORMAT TABS (sidebar) */
+.format-tabs{display:flex;gap:0;border-bottom:1px solid var(--line);flex-shrink:0;padding:0 16px;margin-bottom:12px}
+.format-tab{padding:10px 14px;font-size:.75rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);font-family:inherit;background:none;border-top:none;border-left:none;border-right:none;transition:all .15s;white-space:nowrap}
+.format-tab:hover{color:var(--text)}
+.format-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* DEVICE TOGGLE (main top bar) */
+.device-bar{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--line);background:var(--panel);flex-shrink:0;padding:0 20px}
+.device-btn{padding:12px 18px;font-size:.78rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);font-family:inherit;background:none;border-top:none;border-left:none;border-right:none;transition:all .15s;white-space:nowrap}
+.device-btn:hover{color:var(--text)}
+.device-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* PREVIEW AREA */
+.preview-area{flex:1;overflow-y:auto;display:flex;align-items:flex-start;justify-content:center;padding:24px}
+
+/* PANELS */
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.03em}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 3px;font-weight:500}
+input[type=text],textarea,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;resize:none}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{min-height:60px;line-height:1.4}
+.char-count{font-size:.65rem;color:var(--muted);text-align:right;margin-top:2px;font-variant-numeric:tabular-nums}
+.char-count.over{color:var(--accent)}
+.format-section{display:none}
+.format-section.active{display:block}
+
+/* IMAGE UPLOAD */
+.drop-zone{border:2px dashed var(--line);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg);position:relative}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);background:#fef2f2}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop-zone-text{font-size:.75rem;color:var(--muted)}
+.drop-zone-text strong{color:var(--text)}
+.image-preview-wrap{position:relative;border-radius:var(--radius);overflow:hidden;margin-top:6px}
+.image-preview-wrap img{width:100%;display:block;border-radius:var(--radius)}
+.image-preview-wrap .remove-img{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+
+/* ============================================================
+   LINKEDIN SPONSORED CONTENT (FEED)
+   ============================================================ */
+.li-feed{background:#fff;border-radius:8px;border:1px solid #e0e0e0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;overflow:hidden}
+.li-feed.desktop{width:552px}
+.li-feed.mobile{width:375px}
+.li-feed-header{display:flex;align-items:flex-start;gap:8px;padding:12px 16px 0}
+.li-feed-avatar{width:48px;height:48px;border-radius:50%;background:#0a66c2;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:20px;flex-shrink:0}
+.li-feed-meta{flex:1;min-width:0}
+.li-feed-name{font-size:14px;font-weight:600;color:#000;line-height:1.3}
+.li-feed-tagline{font-size:12px;color:#666666;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-feed-followers{font-size:12px;color:#666666;line-height:1.3}
+.li-feed-promoted{font-size:12px;color:#666666;display:flex;align-items:center;gap:3px;line-height:1.3}
+.li-feed-promoted svg{width:12px;height:12px;fill:#666666}
+.li-feed-dots{width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#666666;cursor:default;font-size:18px;flex-shrink:0}
+.li-feed-body{padding:8px 16px 12px;font-size:14px;color:#000;line-height:1.43;white-space:pre-wrap;word-break:break-word}
+.li-feed-body .see-more{color:#666666;cursor:default}
+.li-feed-image{width:100%;aspect-ratio:1200/627;background:#f3f2ef;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.li-feed-image img{width:100%;height:100%;object-fit:cover}
+.li-feed-image .placeholder{color:#bbb;font-size:48px}
+.li-feed-link-bar{padding:10px 16px;border-top:1px solid #e0e0e0;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.li-feed-link-text{flex:1;min-width:0}
+.li-feed-link-headline{font-size:14px;font-weight:600;color:#000;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.li-feed-link-desc{font-size:12px;color:#666666;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-feed-cta{padding:0 16px;height:32px;border-radius:16px;background:transparent;border:1px solid #0a66c2;font-size:14px;font-weight:600;color:#0a66c2;cursor:default;font-family:inherit;flex-shrink:0;white-space:nowrap}
+.li-feed-social{display:flex;align-items:center;gap:6px;padding:4px 16px 0;font-size:12px;color:#666666}
+.li-feed-social svg{width:16px;height:16px}
+.li-feed-social .like-icon{color:#0a66c2}
+.li-feed-social .celebrate-icon{color:#44712e}
+.li-feed-actions{display:flex;border-top:1px solid #e0e0e0;padding:4px 8px;margin-top:4px}
+.li-feed-action{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:8px 0;font-size:12px;font-weight:600;color:#666666;cursor:default;border-radius:4px}
+.li-feed-action:hover{background:#f3f2ef}
+.li-feed-action svg{width:20px;height:20px}
+
+/* ============================================================
+   LINKEDIN MESSAGE AD
+   ============================================================ */
+.li-message{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;overflow:hidden}
+.li-message.desktop{width:600px}
+.li-message.mobile{width:375px}
+.li-msg-inbox{background:#fff;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden}
+.li-msg-inbox-header{background:#fff;border-bottom:1px solid #e0e0e0;padding:12px 16px;display:flex;align-items:center;gap:8px}
+.li-msg-inbox-title{font-size:16px;font-weight:600;color:#000}
+.li-msg-inbox-badge{background:#cc1016;color:#fff;font-size:11px;font-weight:700;padding:1px 6px;border-radius:10px}
+.li-msg-row{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;background:#edf3f8;border-left:3px solid #0a66c2;cursor:default}
+.li-msg-avatar{width:48px;height:48px;border-radius:50%;background:#0a66c2;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:20px;flex-shrink:0}
+.li-msg-content{flex:1;min-width:0}
+.li-msg-sender{font-size:14px;font-weight:600;color:#000;line-height:1.3}
+.li-msg-sponsored-tag{font-size:12px;color:#666;margin-left:6px;font-weight:400}
+.li-msg-subject{font-size:14px;font-weight:600;color:#000;line-height:1.3;margin-top:2px}
+.li-msg-snippet{font-size:13px;color:#666;line-height:1.3;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-msg-time{font-size:12px;color:#666;flex-shrink:0;white-space:nowrap}
+.li-msg-detail{background:#fff;border:1px solid #e0e0e0;border-radius:8px;margin-top:12px;overflow:hidden}
+.li-msg-detail-header{display:flex;align-items:center;gap:10px;padding:16px;border-bottom:1px solid #e0e0e0}
+.li-msg-detail-avatar{width:48px;height:48px;border-radius:50%;background:#0a66c2;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:20px;flex-shrink:0}
+.li-msg-detail-meta{flex:1;min-width:0}
+.li-msg-detail-name{font-size:14px;font-weight:600;color:#000}
+.li-msg-detail-title{font-size:12px;color:#666}
+.li-msg-detail-body{padding:16px;font-size:14px;color:#000;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.li-msg-detail-cta{display:inline-block;margin:0 16px 16px;padding:8px 24px;background:#0a66c2;color:#fff;border-radius:20px;font-size:14px;font-weight:600;cursor:default;text-decoration:none}
+
+/* ============================================================
+   LINKEDIN TEXT AD
+   ============================================================ */
+.li-text-ad-wrap{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+.li-text-ad-wrap.desktop{width:300px}
+.li-text-ad-wrap.mobile{width:320px}
+.li-text-ad-container{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:16px;margin-bottom:12px}
+.li-text-ad-label{font-size:11px;color:#666;margin-bottom:12px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.li-text-ad{display:flex;gap:10px;align-items:flex-start;cursor:default}
+.li-text-ad-thumb{width:50px;height:50px;border-radius:4px;background:#f3f2ef;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.li-text-ad-thumb img{width:100%;height:100%;object-fit:cover}
+.li-text-ad-thumb .placeholder{color:#bbb;font-size:20px}
+.li-text-ad-body{flex:1;min-width:0}
+.li-text-ad-headline{font-size:14px;font-weight:600;color:#0a66c2;line-height:1.25;margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.li-text-ad-desc{font-size:12px;color:#666;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.li-text-ad-right{background:#fff;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden}
+.li-text-ad-right-label{font-size:11px;color:#666;padding:12px 12px 8px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.li-text-ad-right-item{display:flex;gap:8px;align-items:flex-start;padding:8px 12px;cursor:default;border-top:1px solid #f0f0f0}
+.li-text-ad-right-item:first-of-type{border-top:none}
+.li-text-ad-right-thumb{width:50px;height:50px;border-radius:4px;background:#f3f2ef;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.li-text-ad-right-thumb img{width:100%;height:100%;object-fit:cover}
+.li-text-ad-right-thumb .placeholder{color:#bbb;font-size:18px}
+.li-text-ad-right-body{flex:1;min-width:0}
+.li-text-ad-right-headline{font-size:13px;font-weight:600;color:#0a66c2;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-text-ad-right-desc{font-size:12px;color:#666;line-height:1.3;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .preview-area{min-height:500px}
+  .li-feed.desktop,.li-feed.mobile{width:100%;max-width:552px}
+  .li-message.desktop,.li-message.mobile{width:100%;max-width:600px}
+  .li-text-ad-wrap.desktop,.li-text-ad-wrap.mobile{width:100%;max-width:320px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Controls -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&#8592; FreeAdStore</a>
+      <h1>LinkedIn Ad Preview</h1>
+      <p>See how your ad looks on LinkedIn before you publish.</p>
+    </div>
+    <!-- Format tabs -->
+    <div class="format-tabs" id="formatTabs"></div>
+    <div class="sidebar-scroll" id="controls"></div>
+  </div>
+  <!-- RIGHT: Preview -->
+  <div class="main">
+    <div class="device-bar" id="deviceBar"></div>
+    <div class="preview-area" id="previewArea"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  companyName: 'Acme Cloud',
+  companyTagline: 'Enterprise cloud infrastructure for modern teams',
+  format: 'sponsored', // sponsored | message | text
+
+  // Sponsored Content
+  introText: 'Tired of slow deployments? Acme Cloud cuts your CI/CD pipeline time by 60%. Join 2,000+ engineering teams who shipped faster this quarter.',
+  scImage: null,
+  scHeadline: 'Ship Code 60% Faster with Acme Cloud',
+  scDescription: 'Free 14-day trial. No credit card required.',
+  scCta: 'Learn More',
+
+  // Message Ad
+  msgSubject: 'A faster way to deploy your code',
+  msgBody: 'Hi {{FirstName}},\n\nI noticed your team is scaling fast — congratulations! Many engineering leaders in your space have told us their biggest bottleneck is deployment speed.\n\nWe built Acme Cloud to solve exactly that. Our platform cuts CI/CD pipeline time by 60%, with zero config changes to your existing stack.\n\nWould you be open to a quick 15-minute demo this week?',
+  msgCta: 'Book a Demo',
+  msgSender: 'Sarah Chen',
+
+  // Text Ad
+  taHeadline: 'Deploy 60% Faster',
+  taDescription: 'Acme Cloud speeds up your CI/CD pipeline. Free trial, no credit card.',
+  taImage: null,
+
+  device: 'desktop'
+};
+
+const SC_CTA_OPTIONS = ['Learn More','Sign Up','Download','Visit Website','Apply Now','Request Demo'];
+const FORMATS = [
+  {id:'sponsored', label:'Sponsored Content'},
+  {id:'message', label:'Message Ad'},
+  {id:'text', label:'Text Ad'}
+];
+
+// ============================================================
+// HELPERS
+// ============================================================
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function getInitial(name){
+  return (name || 'A').trim().charAt(0).toUpperCase();
+}
+
+function charCountHTML(current, recommended, max){
+  const len = (current||'').length;
+  const cls = len > (max||recommended) ? 'char-count over' : 'char-count';
+  if(max && max !== recommended){
+    return `<div class="${cls}">${len} / ${recommended} recommended (${max} max)</div>`;
+  }
+  return `<div class="${cls}">${len} / ${recommended}</div>`;
+}
+
+// ============================================================
+// CURSOR PRESERVATION
+// ============================================================
+let activeId = null;
+let cursorPos = null;
+document.addEventListener('focusin', e => {
+  if(e.target.matches('input[type=text], textarea')){
+    activeId = e.target.id;
+  }
+});
+document.addEventListener('selectionchange', () => {
+  const el = document.activeElement;
+  if(el && el.matches && el.matches('input[type=text], textarea')){
+    cursorPos = el.selectionStart;
+  }
+});
+
+function restoreCursor(){
+  if(activeId){
+    const el = document.getElementById(activeId);
+    if(el){
+      el.focus();
+      if(cursorPos != null){
+        try{ el.setSelectionRange(cursorPos, cursorPos); }catch(e){}
+      }
+    }
+  }
+}
+
+// ============================================================
+// BUILD FORMAT TABS
+// ============================================================
+function buildFormatTabs(){
+  document.getElementById('formatTabs').innerHTML = FORMATS.map(f =>
+    `<button class="format-tab${f.id===S.format?' active':''}" data-fmt="${f.id}">${f.label}</button>`
+  ).join('');
+
+  document.getElementById('formatTabs').onclick = e => {
+    const btn = e.target.closest('[data-fmt]');
+    if(!btn) return;
+    S.format = btn.dataset.fmt;
+    document.querySelectorAll('.format-tab').forEach(t => t.classList.toggle('active', t.dataset.fmt === S.format));
+    buildControls();
+    render();
+  };
+}
+
+// ============================================================
+// BUILD DEVICE BAR
+// ============================================================
+function buildDeviceBar(){
+  const bar = document.getElementById('deviceBar');
+  bar.innerHTML = ['desktop','mobile'].map(d =>
+    `<button class="device-btn${d===S.device?' active':''}" data-dev="${d}">${d.charAt(0).toUpperCase()+d.slice(1)}</button>`
+  ).join('');
+
+  bar.onclick = e => {
+    const btn = e.target.closest('[data-dev]');
+    if(!btn) return;
+    S.device = btn.dataset.dev;
+    document.querySelectorAll('.device-btn').forEach(t => t.classList.toggle('active', t.dataset.dev === S.device));
+    render();
+  };
+}
+
+// ============================================================
+// BUILD CONTROLS
+// ============================================================
+function buildControls(){
+  const c = document.getElementById('controls');
+  let html = `
+  <div class="panel">
+    <div class="panel-title">Company</div>
+    <label>Company Name</label>
+    <input type="text" id="inpCompany" value="${esc(S.companyName)}" placeholder="Your company name">
+    <label>Company Tagline</label>
+    <input type="text" id="inpTagline" value="${esc(S.companyTagline)}" placeholder="Short description or tagline">
+  </div>`;
+
+  if(S.format === 'sponsored'){
+    html += buildSponsoredControls();
+  } else if(S.format === 'message'){
+    html += buildMessageControls();
+  } else if(S.format === 'text'){
+    html += buildTextControls();
+  }
+
+  c.innerHTML = html;
+  bindControls();
+  restoreCursor();
+}
+
+function buildSponsoredControls(){
+  return `
+  <div class="panel">
+    <div class="panel-title">Intro Text</div>
+    <textarea id="inpIntro" placeholder="Introductory text above the image" maxlength="600">${esc(S.introText)}</textarea>
+    ${charCountHTML(S.introText, 150, 600)}
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Image</div>
+    <div class="drop-zone" id="dropZoneSC">
+      <input type="file" accept="image/*" id="fileInputSC">
+      <div class="drop-zone-text">
+        <strong>Drop image here</strong> or click to upload<br>
+        <span style="font-size:.65rem;color:var(--muted)">Recommended: 1200x627</span>
+      </div>
+    </div>
+    ${S.scImage ? `<div class="image-preview-wrap"><img src="${S.scImage}" alt="Ad image"><button class="remove-img" id="removeImgSC">&times;</button></div>` : ''}
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Headline &amp; Description</div>
+    <label>Headline</label>
+    <input type="text" id="inpSCHeadline" value="${esc(S.scHeadline)}" placeholder="Ad headline" maxlength="200">
+    ${charCountHTML(S.scHeadline, 70)}
+    <label>Description</label>
+    <input type="text" id="inpSCDesc" value="${esc(S.scDescription)}" placeholder="Short description" maxlength="300">
+    ${charCountHTML(S.scDescription, 100)}
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Call to Action</div>
+    <select id="selSCCta">
+      ${SC_CTA_OPTIONS.map(o => `<option value="${o}"${o===S.scCta?' selected':''}>${o}</option>`).join('')}
+    </select>
+  </div>`;
+}
+
+function buildMessageControls(){
+  return `
+  <div class="panel">
+    <div class="panel-title">Sender</div>
+    <label>Sender Name</label>
+    <input type="text" id="inpMsgSender" value="${esc(S.msgSender)}" placeholder="Name shown on the message">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Message</div>
+    <label>Subject Line</label>
+    <input type="text" id="inpMsgSubject" value="${esc(S.msgSubject)}" placeholder="Email-style subject" maxlength="60">
+    ${charCountHTML(S.msgSubject, 60)}
+    <label>Message Body</label>
+    <textarea id="inpMsgBody" style="min-height:140px" maxlength="1500">${esc(S.msgBody)}</textarea>
+    ${charCountHTML(S.msgBody, 1500)}
+    <label>CTA Button Text</label>
+    <input type="text" id="inpMsgCta" value="${esc(S.msgCta)}" placeholder="Button label" maxlength="20">
+    ${charCountHTML(S.msgCta, 20)}
+  </div>`;
+}
+
+function buildTextControls(){
+  return `
+  <div class="panel">
+    <div class="panel-title">Ad Copy</div>
+    <label>Headline</label>
+    <input type="text" id="inpTAHeadline" value="${esc(S.taHeadline)}" placeholder="Short headline" maxlength="25">
+    ${charCountHTML(S.taHeadline, 25)}
+    <label>Description</label>
+    <input type="text" id="inpTADesc" value="${esc(S.taDescription)}" placeholder="Brief description" maxlength="75">
+    ${charCountHTML(S.taDescription, 75)}
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Image (100x100)</div>
+    <div class="drop-zone" id="dropZoneTA">
+      <input type="file" accept="image/*" id="fileInputTA">
+      <div class="drop-zone-text">
+        <strong>Drop image here</strong> or click to upload<br>
+        <span style="font-size:.65rem;color:var(--muted)">Recommended: 100x100px</span>
+      </div>
+    </div>
+    ${S.taImage ? `<div class="image-preview-wrap"><img src="${S.taImage}" alt="Ad image" style="max-width:100px"><button class="remove-img" id="removeImgTA">&times;</button></div>` : ''}
+  </div>`;
+}
+
+// ============================================================
+// BIND CONTROLS
+// ============================================================
+function bindControls(){
+  const $ = id => document.getElementById(id);
+
+  // Company fields (always present)
+  $('inpCompany').oninput = e => { S.companyName = e.target.value; render(); };
+  $('inpTagline').oninput = e => { S.companyTagline = e.target.value; render(); };
+
+  if(S.format === 'sponsored'){
+    $('inpIntro').oninput = e => { S.introText = e.target.value; buildControls(); render(); };
+    $('inpSCHeadline').oninput = e => { S.scHeadline = e.target.value; buildControls(); render(); };
+    $('inpSCDesc').oninput = e => { S.scDescription = e.target.value; buildControls(); render(); };
+    $('selSCCta').onchange = e => { S.scCta = e.target.value; render(); };
+    setupImageUpload('dropZoneSC','fileInputSC','removeImgSC','scImage');
+  }
+
+  if(S.format === 'message'){
+    $('inpMsgSender').oninput = e => { S.msgSender = e.target.value; render(); };
+    $('inpMsgSubject').oninput = e => { S.msgSubject = e.target.value; buildControls(); render(); };
+    $('inpMsgBody').oninput = e => { S.msgBody = e.target.value; buildControls(); render(); };
+    $('inpMsgCta').oninput = e => { S.msgCta = e.target.value; buildControls(); render(); };
+  }
+
+  if(S.format === 'text'){
+    $('inpTAHeadline').oninput = e => { S.taHeadline = e.target.value; buildControls(); render(); };
+    $('inpTADesc').oninput = e => { S.taDescription = e.target.value; buildControls(); render(); };
+    setupImageUpload('dropZoneTA','fileInputTA','removeImgTA','taImage');
+  }
+}
+
+function setupImageUpload(dropId, inputId, removeId, stateKey){
+  const dropZone = document.getElementById(dropId);
+  const fileInput = document.getElementById(inputId);
+  if(!dropZone || !fileInput) return;
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if(file && file.type.startsWith('image/')) loadImage(file, stateKey);
+  });
+
+  fileInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if(file) loadImage(file, stateKey);
+  });
+
+  const removeBtn = document.getElementById(removeId);
+  if(removeBtn){
+    removeBtn.onclick = () => {
+      S[stateKey] = null;
+      buildControls();
+      render();
+    };
+  }
+}
+
+function loadImage(file, stateKey){
+  const reader = new FileReader();
+  reader.onload = e => {
+    S[stateKey] = e.target.result;
+    buildControls();
+    render();
+  };
+  reader.readAsDataURL(file);
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render(){
+  const area = document.getElementById('previewArea');
+  switch(S.format){
+    case 'sponsored': area.innerHTML = renderSponsored(); break;
+    case 'message': area.innerHTML = renderMessage(); break;
+    case 'text': area.innerHTML = renderTextAd(); break;
+  }
+}
+
+// ---------- SPONSORED CONTENT ----------
+function renderSponsored(){
+  const initial = getInitial(S.companyName);
+  const cls = S.device === 'mobile' ? 'mobile' : 'desktop';
+
+  const imgHTML = S.scImage
+    ? `<img src="${S.scImage}" alt="Ad">`
+    : `<div class="placeholder"><svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+
+  const introDisplay = S.introText.length > 150
+    ? esc(S.introText.slice(0, 150)) + '<span class="see-more">... see more</span>'
+    : esc(S.introText);
+
+  return `
+  <div class="li-feed ${cls}">
+    <div class="li-feed-header">
+      <div class="li-feed-avatar">${initial}</div>
+      <div class="li-feed-meta">
+        <div class="li-feed-name">${esc(S.companyName || 'Company Name')}</div>
+        <div class="li-feed-tagline">${esc(S.companyTagline)}</div>
+        <div class="li-feed-promoted">
+          <span>Promoted</span>
+          <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" fill="none" stroke="#666" stroke-width="1.5"/><path d="M8 4v5M8 11v1" stroke="#666" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+      </div>
+      <div class="li-feed-dots">&#8943;</div>
+    </div>
+    <div class="li-feed-body">${introDisplay}</div>
+    <div class="li-feed-image">${imgHTML}</div>
+    <div class="li-feed-link-bar">
+      <div class="li-feed-link-text">
+        <div class="li-feed-link-headline">${esc(S.scHeadline || 'Headline')}</div>
+        <div class="li-feed-link-desc">${esc(S.scDescription)}</div>
+      </div>
+      <button class="li-feed-cta">${esc(S.scCta)}</button>
+    </div>
+    <div class="li-feed-social">
+      <svg viewBox="0 0 16 16" class="like-icon"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0z" fill="#0a66c2"/><path d="M11.2 7.4l-2.6-4.2c-.2-.3-.7-.3-.9 0L5.8 6.8c-.1.2-.1.4.1.5l1.8 1.1-1.2 3.7c-.1.3.2.5.4.3l4.3-4.5c.2-.2.1-.5-.1-.5z" fill="#fff"/></svg>
+      <svg viewBox="0 0 16 16" class="celebrate-icon"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0z" fill="#44712e"/><path d="M5 11l2-6 4 3-6 3z" fill="#fff"/></svg>
+      <span>128</span>
+      <span style="margin-left:auto">14 comments</span>
+    </div>
+    <div class="li-feed-actions">
+      <div class="li-feed-action">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+        Like
+      </div>
+      <div class="li-feed-action">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Comment
+      </div>
+      <div class="li-feed-action">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        Repost
+      </div>
+      <div class="li-feed-action">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send
+      </div>
+    </div>
+  </div>`;
+}
+
+// ---------- MESSAGE AD ----------
+function renderMessage(){
+  const initial = getInitial(S.msgSender || S.companyName);
+  const cls = S.device === 'mobile' ? 'mobile' : 'desktop';
+  const snippet = (S.msgBody||'').replace(/\n/g,' ').slice(0,60);
+
+  return `
+  <div class="li-message ${cls}">
+    <div class="li-msg-inbox">
+      <div class="li-msg-inbox-header">
+        <div class="li-msg-inbox-title">Messaging</div>
+        <div class="li-msg-inbox-badge">1</div>
+      </div>
+      <div class="li-msg-row">
+        <div class="li-msg-avatar">${initial}</div>
+        <div class="li-msg-content">
+          <div class="li-msg-sender">${esc(S.msgSender || 'Sender Name')}<span class="li-msg-sponsored-tag">Sponsored</span></div>
+          <div class="li-msg-subject">${esc(S.msgSubject || 'Subject line')}</div>
+          <div class="li-msg-snippet">${esc(snippet)}...</div>
+        </div>
+        <div class="li-msg-time">Now</div>
+      </div>
+    </div>
+    <div class="li-msg-detail">
+      <div class="li-msg-detail-header">
+        <div class="li-msg-detail-avatar">${initial}</div>
+        <div class="li-msg-detail-meta">
+          <div class="li-msg-detail-name">${esc(S.msgSender || 'Sender Name')} <span style="color:#666;font-weight:400;font-size:12px">from ${esc(S.companyName || 'Company')}</span></div>
+          <div class="li-msg-detail-title">Sponsored</div>
+        </div>
+      </div>
+      <div class="li-msg-detail-body">${esc(S.msgBody)}</div>
+      <a class="li-msg-detail-cta">${esc(S.msgCta || 'CTA Button')}</a>
+    </div>
+  </div>`;
+}
+
+// ---------- TEXT AD ----------
+function renderTextAd(){
+  const cls = S.device === 'mobile' ? 'mobile' : 'desktop';
+  const initial = getInitial(S.companyName);
+
+  const thumbHTML = S.taImage
+    ? `<img src="${S.taImage}" alt="Ad">`
+    : `<div class="placeholder" style="font-size:18px;color:#0a66c2;font-weight:700">${initial}</div>`;
+
+  // Show the ad in both contexts: top of page + sidebar
+  return `
+  <div class="li-text-ad-wrap ${cls}">
+    <div class="li-text-ad-container">
+      <div class="li-text-ad-label">Ad</div>
+      <div class="li-text-ad">
+        <div class="li-text-ad-thumb">${thumbHTML}</div>
+        <div class="li-text-ad-body">
+          <div class="li-text-ad-headline">${esc(S.taHeadline || 'Headline')}</div>
+          <div class="li-text-ad-desc">${esc(S.taDescription)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="li-text-ad-right">
+      <div class="li-text-ad-right-label">Ads you may be interested in</div>
+      <div class="li-text-ad-right-item" style="background:#f9f9f9">
+        <div class="li-text-ad-right-thumb">${thumbHTML}</div>
+        <div class="li-text-ad-right-body">
+          <div class="li-text-ad-right-headline">${esc(S.taHeadline || 'Headline')}</div>
+          <div class="li-text-ad-right-desc">${esc(S.taDescription)}</div>
+        </div>
+      </div>
+      <div class="li-text-ad-right-item">
+        <div class="li-text-ad-right-thumb"><div class="placeholder" style="font-size:18px;color:#999;font-weight:700">B</div></div>
+        <div class="li-text-ad-right-body">
+          <div class="li-text-ad-right-headline">Other Advertiser Example</div>
+          <div class="li-text-ad-right-desc">See how your ad appears next to others</div>
+        </div>
+      </div>
+      <div class="li-text-ad-right-item">
+        <div class="li-text-ad-right-thumb"><div class="placeholder" style="font-size:18px;color:#999;font-weight:700">C</div></div>
+        <div class="li-text-ad-right-body">
+          <div class="li-text-ad-right-headline">Sample Ad Placement</div>
+          <div class="li-text-ad-right-desc">Right rail sidebar position</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildFormatTabs();
+buildDeviceBar();
+buildControls();
+render();
+</script>
+</body>
+</html>

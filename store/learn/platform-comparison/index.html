@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ad Platform Comparison - FreeAdStore</title>
+<meta name="description" content="Side-by-side comparison of every major advertising platform. Compare Google, Meta, LinkedIn, TikTok, YouTube, Amazon, Pinterest & X/Twitter ads. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:#fef2f2;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#22c55e;--blue:#3b82f6;--purple:#8b5cf6;--orange:#f97316;--cyan:#06b6d4;--pink:#ec4899;--yellow:#eab308;--teal:#14b8a6}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* PAGE LAYOUT */
+.page{max-width:1200px;margin:0 auto;padding:0 16px 60px}
+.page-head{padding:0 0 8px;margin-bottom:4px}
+.page-head h1{font-size:1.8rem;font-weight:800;font-family:'Fraunces',serif;margin-bottom:4px;line-height:1.2}
+.page-head p{font-size:.88rem;color:var(--muted);max-width:600px;line-height:1.5}
+
+/* FILTER BAR */
+.filter-bar{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:24px}
+.filter-group{margin-bottom:12px}
+.filter-group:last-child{margin-bottom:0}
+.filter-label{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.pill-row{display:flex;gap:5px;flex-wrap:wrap}
+.pill{padding:5px 13px;border:1px solid var(--line);border-radius:6px;font-size:.73rem;font-weight:600;cursor:pointer;background:var(--panel);font-family:inherit;transition:all .12s;color:var(--text)}
+.pill:hover{border-color:var(--accent)}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* QUICK PICK */
+.quick-pick{background:var(--accent-light);border:1px solid #fecaca;border-radius:14px;padding:18px 22px;margin-bottom:24px;display:none}
+.quick-pick.visible{display:block}
+.quick-pick-title{font-size:.78rem;font-weight:700;color:var(--accent);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.quick-pick-title svg{width:16px;height:16px}
+.quick-pick-list{display:flex;flex-wrap:wrap;gap:8px}
+.quick-pick-item{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:.78rem;font-weight:600}
+.quick-pick-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.quick-pick-icon svg{width:16px;height:16px;color:#fff}
+.quick-pick-reason{font-size:.68rem;color:var(--muted);font-weight:400;margin-left:4px}
+
+/* RESULTS COUNT */
+.results-count{font-size:.78rem;color:var(--muted);margin-bottom:16px;font-weight:500}
+.results-count span{font-weight:700;color:var(--text)}
+
+/* PLATFORM CARDS */
+.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:box-shadow .15s}
+.card:hover{box-shadow:0 4px 16px rgba(0,0,0,.07)}
+.card.hidden{display:none}
+.card-header{padding:16px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line)}
+.card-logo{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.card-logo svg{width:22px;height:22px;color:#fff}
+.card-title-block h3{font-size:1rem;font-weight:800;line-height:1.2}
+.card-title-block .card-users{font-size:.68rem;color:var(--muted);font-weight:500}
+.card-body{padding:16px 20px}
+.card-best-for{font-size:.75rem;color:var(--muted);margin-bottom:12px;line-height:1.4}
+.card-best-for strong{color:var(--text);font-weight:700}
+
+/* STAT GRID */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.stat{background:var(--bg);border-radius:8px;padding:8px 10px;text-align:center}
+.stat .stat-label{font-size:.6rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-bottom:2px}
+.stat .stat-value{font-size:.88rem;font-weight:800;font-family:'Fraunces',serif}
+
+/* DETAILS */
+.card-section{margin-bottom:10px}
+.card-section:last-child{margin-bottom:0}
+.card-section-label{font-size:.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.tag-row{display:flex;flex-wrap:wrap;gap:4px}
+.tag{padding:3px 8px;border-radius:4px;font-size:.65rem;font-weight:500;background:var(--bg);color:var(--text);border:1px solid var(--line)}
+.tag.strength{background:#f0fdf4;color:#166534;border-color:#bbf7d0}
+.tag.weakness{background:#fef2f2;color:#991b1b;border-color:#fecaca}
+.tag.industry{background:#eff6ff;color:#1e40af;border-color:#bfdbfe}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .cards-grid{grid-template-columns:1fr}
+  .stat-grid{grid-template-columns:1fr 1fr}
+  .page-head h1{font-size:1.4rem}
+}
+@media(max-width:500px){
+  .stat-grid{grid-template-columns:1fr}
+  .pill{padding:4px 10px;font-size:.68rem}
+  .filter-bar{padding:12px 14px}
+}
+
+/* PRINT */
+@media print{
+  a.back,.filter-bar,.quick-pick{display:none!important}
+  .cards-grid{grid-template-columns:1fr}
+  .card{break-inside:avoid;border:1px solid #ddd}
+  body{background:#fff}
+  @page{margin:1.5cm}
+}
+</style>
+</head>
+<body>
+
+<a class="back" href="/">&#8592; FreeAdStore</a>
+
+<div class="page">
+  <div class="page-head">
+    <h1>Ad Platform Comparison</h1>
+    <p>Side-by-side comparison of every major advertising platform. Find the right one for your campaign.</p>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <div class="filter-label">Goal</div>
+      <div class="pill-row" id="goal-pills">
+        <button class="pill active" data-value="all">All</button>
+        <button class="pill" data-value="awareness">Brand Awareness</button>
+        <button class="pill" data-value="traffic">Traffic</button>
+        <button class="pill" data-value="leads">Leads</button>
+        <button class="pill" data-value="sales">Sales</button>
+        <button class="pill" data-value="app-installs">App Installs</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <div class="filter-label">Monthly Budget</div>
+      <div class="pill-row" id="budget-pills">
+        <button class="pill active" data-value="all">All</button>
+        <button class="pill" data-value="under500">Under $500/mo</button>
+        <button class="pill" data-value="500-2k">$500-$2K</button>
+        <button class="pill" data-value="2k-10k">$2K-$10K</button>
+        <button class="pill" data-value="10k+">$10K+</button>
+      </div>
+    </div>
+    <div class="filter-group">
+      <div class="filter-label">Audience</div>
+      <div class="pill-row" id="audience-pills">
+        <button class="pill active" data-value="all">All</button>
+        <button class="pill" data-value="b2b">B2B</button>
+        <button class="pill" data-value="b2c">B2C</button>
+        <button class="pill" data-value="both">Both</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="quick-pick" id="quick-pick">
+    <div class="quick-pick-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      Quick Pick &mdash; best platforms for your filters
+    </div>
+    <div class="quick-pick-list" id="quick-pick-list"></div>
+  </div>
+
+  <div class="results-count" id="results-count"></div>
+
+  <div class="cards-grid" id="cards-grid"></div>
+</div>
+
+<script>
+const PLATFORMS = [
+  {
+    id: 'google',
+    name: 'Google Ads',
+    color: '#4285F4',
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>',
+    users: '8.5B+ searches/month',
+    bestFor: 'High-intent search traffic, shopping, local',
+    formats: ['Search', 'Display', 'Shopping', 'Video (YouTube)', 'App', 'Discovery'],
+    targeting: ['Keywords', 'Demographics', 'Affinity', 'In-market', 'Remarketing'],
+    stats: [
+      { label: 'Avg CPC', value: '$1-$6.50' },
+      { label: 'Avg CTR', value: '3-6%' },
+      { label: 'Min Budget', value: '$1/day' }
+    ],
+    strengths: ['Highest intent', 'Massive reach', 'Shopping integration'],
+    weaknesses: ['Expensive for competitive keywords', 'Complex UI'],
+    industries: ['E-commerce', 'SaaS', 'Local', 'Legal', 'Healthcare'],
+    goals: ['traffic', 'leads', 'sales', 'app-installs'],
+    budgets: ['under500', '500-2k', '2k-10k', '10k+'],
+    audience: 'both'
+  },
+  {
+    id: 'meta',
+    name: 'Meta Ads',
+    color: '#1877F2',
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>',
+    users: '3.0B+ monthly active users',
+    bestFor: 'Brand awareness, retargeting, e-commerce, lookalikes',
+    formats: ['Image', 'Video', 'Carousel', 'Collection', 'Stories', 'Reels', 'Messenger'],
+    targeting: ['Demographics', 'Interests', 'Behaviors', 'Custom audiences', 'Lookalikes'],
+    stats: [
+      { label: 'Avg CPC', value: '$0.60-$3.50' },
+      { label: 'Avg CTR', value: '1-3%' },
+      { label: 'Min Budget', value: '$1/day' }
+    ],
+    strengths: ['Best targeting', 'Visual formats', 'Lookalike audiences'],
+    weaknesses: ['Privacy changes reduced targeting', 'Ad fatigue'],
+    industries: ['E-commerce', 'D2C', 'Apps', 'Entertainment', 'Real Estate'],
+    goals: ['awareness', 'traffic', 'leads', 'sales', 'app-installs'],
+    budgets: ['under500', '500-2k', '2k-10k', '10k+'],
+    audience: 'b2c'
+  },
+  {
+    id: 'linkedin',
+    name: 'LinkedIn Ads',
+    color: '#0A66C2',
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>',
+    users: '900M+ members',
+    bestFor: 'B2B leads, recruiting, professional content',
+    formats: ['Sponsored Content', 'Message Ads', 'Text Ads', 'Dynamic Ads'],
+    targeting: ['Job title', 'Company', 'Industry', 'Skills', 'Seniority', 'Education'],
+    stats: [
+      { label: 'Avg CPC', value: '$3-$12' },
+      { label: 'Avg CTR', value: '0.4-1%' },
+      { label: 'Min Budget', value: '$10/day' }
+    ],
+    strengths: ['Best B2B targeting', 'Professional context', 'High-value leads'],
+    weaknesses: ['Expensive', 'Lower volume', 'Limited creative formats'],
+    industries: ['B2B SaaS', 'Consulting', 'Enterprise', 'Recruiting', 'Finance'],
+    goals: ['awareness', 'leads'],
+    budgets: ['500-2k', '2k-10k', '10k+'],
+    audience: 'b2b'
+  },
+  {
+    id: 'tiktok',
+    name: 'TikTok Ads',
+    color: '#010101',
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.75a8.18 8.18 0 004.77 1.52V6.84a4.86 4.86 0 01-1-.15z"/></svg>',
+    users: '1.5B+ monthly active users',
+    bestFor: 'Gen Z/Millennial reach, viral content, brand awareness',
+    formats: ['In-feed', 'TopView', 'Branded Hashtag', 'Branded Effects', 'Spark Ads'],
+    targeting: ['Demographics', 'Interests', 'Behaviors', 'Custom audiences'],
+    stats: [
+      { label: 'Avg CPC', value: '$0.50-$2.50' },
+      { label: 'Avg CTR', value: '1-3%' },
+      { label: 'Min Budget', value: '$5/day' }
+    ],
+    strengths: ['Highest engagement', 'Creative-first', 'Younger demographics'],
+    weaknesses: ['Limited older demos', 'High creative effort', 'Newer platform'],
+    industries: ['Fashion', 'Beauty', 'Food', 'Entertainment', 'Apps', 'D2C'],
+    goals: ['awareness', 'traffic', 'app-installs'],
+    budgets: ['500-2k', '2k-10k', '10k+'],
+    audience: 'b2c'
+  },
+  {
+    id: 'x',
+    name: 'X / Twitter Ads',
+    color: '#000000',
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>',
+    users: '550M+ monthly active users',
+    bestFor: 'Real-time engagement, trending topics, B2B thought leadership',
+    formats: ['Promoted Tweets', 'Trends', 'Timeline Takeover', 'Video'],
+    targeting: ['Keywords', 'Interests', 'Followers', 'Events', 'Conversation topics'],
+    stats: [
+      { label: 'Avg CPC', value: '$0.50-$3' },
+      { label: 'Avg CTR', value: '0.5-2%' },
+      { label: 'Min Budget', value: 'No min' }
+    ],
+    strengths: ['Real-time relevance', 'News/tech audience', 'Conversation targeting'],
+    weaknesses: ['Smaller scale', 'Brand safety concerns', 'Volatile engagement'],
+    industries: ['Tech', 'Media', 'Finance', 'Sports', 'Gaming'],
+    goals: ['awareness', 'traffic'],
+    budgets: ['under500', '500-2k', '2k-10k', '10k+'],
+    audience: 'both'
+  },
+  {
+    id: 'youtube',
+    name: 'YouTube Ads',
+    color: '#FF0000',
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>',
+    users: '2.7B+ monthly active users',
+    bestFor: 'Brand awareness, product demos, tutorials, pre-roll',
+    formats: ['Skippable in-stream', 'Non-skip', 'Bumper', 'Discovery', 'Shorts'],
+    targeting: ['Demographics', 'Interests', 'Topics', 'Placements', 'Keywords', 'Remarketing'],
+    stats: [
+      { label: 'Avg CPV', value: '$0.01-$0.30' },
+      { label: 'View Rate', value: '15-30%' },
+      { label: 'Min Budget', value: 'No min' }
+    ],
+    strengths: ['Video storytelling', 'Massive reach', 'Google ecosystem'],
+    weaknesses: ['Creative production cost', 'Skip rates', 'Complex measurement'],
+    industries: ['CPG', 'Automotive', 'Education', 'SaaS', 'Entertainment'],
+    goals: ['awareness', 'traffic'],
+    budgets: ['under500', '500-2k', '2k-10k', '10k+'],
+    audience: 'both'
+  },
+  {
+    id: 'amazon',
+    name: 'Amazon Ads',
+    color: '#FF9900',
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M.045 18.02c.072-.116.187-.124.348-.064 2.729 1.353 5.706 2.03 8.93 2.03 2.18 0 4.39-.377 6.63-1.13.155-.053.27-.04.345.046a.315.315 0 01.046.327c-.063.146-.186.236-.369.27-2.399.837-4.736 1.256-7.012 1.256-3.291 0-6.318-.726-9.076-2.18a.27.27 0 01-.158-.327zm-.053-1.665c.066-.09.186-.12.36-.09a15.8 15.8 0 007.012 1.62c2.769 0 5.272-.617 7.51-1.85.09-.046.162-.022.213.07a.223.223 0 01-.007.26c-.12.186-.306.31-.56.373-2.576.96-5.084 1.44-7.523 1.44-2.862 0-5.482-.627-7.858-1.88a.194.194 0 01-.128-.224c.016-.076.039-.124.066-.145zM6.792 15.4a.39.39 0 00-.333.19c-.108.18-.102.37.017.565.935 1.477 2.134 2.205 3.598 2.182a3.6 3.6 0 001.553-.32c.472-.218.87-.52 1.19-.903a.37.37 0 00.077-.37.383.383 0 00-.283-.239.39.39 0 00-.37.108 2.82 2.82 0 01-2.167.958c-1.063-.023-1.87-.563-2.42-1.618a.385.385 0 00-.342-.205l-.044-.003-.038.002-.058.005-.06.005-.05.009-.047.007-.04.01-.04.01-.04.013-.035.011-.03.013-.028.013-.03.015-.025.014-.022.015-.02.014-.02.016-.02.018-.015.017-.015.018-.013.018-.01.018-.01.019-.008.019-.007.02-.005.02-.003.02-.002.02v.023l.002.02.003.02.005.02.007.022.008.02.01.02.01.02.013.02.014.02.015.02.017.018.018.018.018.017.02.016z"/><path d="M13.444 11.16c0-.96-.33-1.71-.99-2.25-.66-.54-1.56-.81-2.7-.81-.84 0-1.68.18-2.52.54-.18.06-.3.21-.3.42 0 .3.21.54.51.54.09 0 .15-.03.24-.06.66-.27 1.35-.39 2.07-.39.81 0 1.41.18 1.8.54.39.36.57.87.57 1.53v.3c-.78-.06-1.44-.09-1.98-.09-1.26 0-2.22.24-2.88.72-.66.48-1.02 1.17-1.02 2.07s.3 1.56.87 2.04c.57.48 1.32.72 2.22.72.96 0 1.77-.39 2.43-1.17v.48c0 .3.21.54.51.54.27 0 .51-.24.51-.54V11.16zm-1.02 2.88c0 .72-.24 1.29-.72 1.71-.48.42-1.08.63-1.8.63-.57 0-1.02-.15-1.38-.42-.36-.27-.54-.66-.54-1.17 0-.54.21-.96.63-1.26.42-.3 1.05-.45 1.89-.45.54 0 1.14.03 1.8.09l.12.03v.84z"/></svg>',
+    users: '300M+ active buyers',
+    bestFor: 'Product sales, e-commerce, purchase intent',
+    formats: ['Sponsored Products', 'Sponsored Brands', 'Sponsored Display', 'Video'],
+    targeting: ['Keywords', 'Products', 'Categories', 'Audiences'],
+    stats: [
+      { label: 'Avg CPC', value: '$0.50-$3' },
+      { label: 'ROAS', value: '3-8x' },
+      { label: 'Min Budget', value: '$1/day' }
+    ],
+    strengths: ['Highest purchase intent', 'Direct to checkout', 'Closed-loop attribution'],
+    weaknesses: ['Amazon sellers only', 'Competitive', 'Limited branding'],
+    industries: ['E-commerce', 'CPG', 'Electronics', 'Home', 'Beauty'],
+    goals: ['sales'],
+    budgets: ['under500', '500-2k', '2k-10k', '10k+'],
+    audience: 'b2c'
+  },
+  {
+    id: 'pinterest',
+    name: 'Pinterest Ads',
+    color: '#E60023',
+    icon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 01.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12.017 24c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641 0 12.017 0z"/></svg>',
+    users: '480M+ monthly active users',
+    bestFor: 'Visual discovery, shopping inspiration, lifestyle brands',
+    formats: ['Standard Pin', 'Video', 'Carousel', 'Shopping', 'Idea Pin'],
+    targeting: ['Keywords', 'Interests', 'Demographics', 'Actalikes', 'Customer lists'],
+    stats: [
+      { label: 'Avg CPC', value: '$0.50-$2' },
+      { label: 'Avg CTR', value: '0.5-1.5%' },
+      { label: 'Min Budget', value: '$1/day' }
+    ],
+    strengths: ['High purchase intent', 'Long content lifespan', 'Visual discovery'],
+    weaknesses: ['Smaller audience', 'Limited targeting', 'Niche'],
+    industries: ['Home Decor', 'Fashion', 'Food', 'Beauty', 'Wedding', 'DIY'],
+    goals: ['awareness', 'traffic', 'sales'],
+    budgets: ['under500', '500-2k', '2k-10k'],
+    audience: 'b2c'
+  }
+];
+
+const QUICK_PICK_REASONS = {
+  'awareness': {
+    google: 'Massive reach via Display Network',
+    meta: 'Best visual brand building',
+    tiktok: 'Highest organic engagement',
+    youtube: 'Video storytelling at scale',
+    pinterest: 'Long-lasting visual impressions'
+  },
+  'traffic': {
+    google: 'Highest intent clicks',
+    meta: 'Low CPC + precise targeting',
+    tiktok: 'Viral potential for young audiences',
+    x: 'Real-time trending traffic',
+    youtube: 'Discovery-driven clicks'
+  },
+  'leads': {
+    google: 'Search captures active demand',
+    meta: 'Lead forms + lookalikes',
+    linkedin: 'Best B2B lead quality'
+  },
+  'sales': {
+    google: 'Shopping + search intent',
+    meta: 'Retargeting + dynamic ads',
+    amazon: 'Direct-to-checkout, highest ROAS',
+    pinterest: 'Purchase-ready discovery'
+  },
+  'app-installs': {
+    google: 'Universal App Campaigns',
+    meta: 'App install optimization',
+    tiktok: 'Young mobile-first audience'
+  }
+};
+
+let currentGoal = 'all';
+let currentBudget = 'all';
+let currentAudience = 'all';
+
+function initFilters() {
+  document.querySelectorAll('.pill-row').forEach(row => {
+    row.addEventListener('click', e => {
+      const pill = e.target.closest('.pill');
+      if (!pill) return;
+      row.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+
+      const id = row.id;
+      const val = pill.dataset.value;
+      if (id === 'goal-pills') currentGoal = val;
+      else if (id === 'budget-pills') currentBudget = val;
+      else if (id === 'audience-pills') currentAudience = val;
+
+      applyFilters();
+    });
+  });
+}
+
+function applyFilters() {
+  let visible = 0;
+  PLATFORMS.forEach(p => {
+    const card = document.getElementById('card-' + p.id);
+    let show = true;
+
+    if (currentGoal !== 'all' && !p.goals.includes(currentGoal)) show = false;
+    if (currentBudget !== 'all' && !p.budgets.includes(currentBudget)) show = false;
+    if (currentAudience !== 'all') {
+      if (currentAudience === 'both') {
+        if (p.audience !== 'both') show = false;
+      } else {
+        if (p.audience !== currentAudience && p.audience !== 'both') show = false;
+      }
+    }
+
+    card.classList.toggle('hidden', !show);
+    if (show) visible++;
+  });
+
+  document.getElementById('results-count').innerHTML =
+    `Showing <span>${visible}</span> of ${PLATFORMS.length} platforms`;
+
+  updateQuickPick();
+}
+
+function updateQuickPick() {
+  const qp = document.getElementById('quick-pick');
+  const list = document.getElementById('quick-pick-list');
+
+  if (currentGoal === 'all' && currentBudget === 'all' && currentAudience === 'all') {
+    qp.classList.remove('visible');
+    return;
+  }
+
+  const visiblePlatforms = PLATFORMS.filter(p => {
+    if (currentGoal !== 'all' && !p.goals.includes(currentGoal)) return false;
+    if (currentBudget !== 'all' && !p.budgets.includes(currentBudget)) return false;
+    if (currentAudience !== 'all') {
+      if (currentAudience === 'both') {
+        if (p.audience !== 'both') return false;
+      } else {
+        if (p.audience !== currentAudience && p.audience !== 'both') return false;
+      }
+    }
+    return true;
+  });
+
+  if (visiblePlatforms.length === 0 || visiblePlatforms.length === PLATFORMS.length) {
+    qp.classList.remove('visible');
+    return;
+  }
+
+  const reasons = currentGoal !== 'all' ? QUICK_PICK_REASONS[currentGoal] || {} : {};
+
+  const topPicks = visiblePlatforms.slice(0, 3);
+
+  list.innerHTML = topPicks.map(p => {
+    const reason = reasons[p.id] || p.bestFor.split(',')[0].trim();
+    return `<div class="quick-pick-item">
+      <div class="quick-pick-icon" style="background:${p.color}">${p.icon}</div>
+      <div>
+        <div>${p.name}</div>
+        <div class="quick-pick-reason">${reason}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  qp.classList.add('visible');
+}
+
+function renderCards() {
+  const grid = document.getElementById('cards-grid');
+  grid.innerHTML = PLATFORMS.map(p => `
+    <div class="card" id="card-${p.id}">
+      <div class="card-header" style="border-top:3px solid ${p.color}">
+        <div class="card-logo" style="background:${p.color}">${p.icon}</div>
+        <div class="card-title-block">
+          <h3>${p.name}</h3>
+          <div class="card-users">${p.users}</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-best-for"><strong>Best for:</strong> ${p.bestFor}</div>
+
+        <div class="stat-grid">
+          ${p.stats.map(s => `
+            <div class="stat">
+              <div class="stat-label">${s.label}</div>
+              <div class="stat-value">${s.value}</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="card-section">
+          <div class="card-section-label">Ad Formats</div>
+          <div class="tag-row">${p.formats.map(f => `<span class="tag">${f}</span>`).join('')}</div>
+        </div>
+
+        <div class="card-section">
+          <div class="card-section-label">Targeting</div>
+          <div class="tag-row">${p.targeting.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        </div>
+
+        <div class="card-section">
+          <div class="card-section-label">Strengths</div>
+          <div class="tag-row">${p.strengths.map(s => `<span class="tag strength">${s}</span>`).join('')}</div>
+        </div>
+
+        <div class="card-section">
+          <div class="card-section-label">Weaknesses</div>
+          <div class="tag-row">${p.weaknesses.map(w => `<span class="tag weakness">${w}</span>`).join('')}</div>
+        </div>
+
+        <div class="card-section">
+          <div class="card-section-label">Best Industries</div>
+          <div class="tag-row">${p.industries.map(i => `<span class="tag industry">${i}</span>`).join('')}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function init() {
+  renderCards();
+  initFilters();
+  applyFilters();
+}
+
+init();
+</script>
+</body>
+</html>

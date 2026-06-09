@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ad Policy Checker - FreeAdStore</title>
+<meta name="description" content="Check your ad copy against Meta, Google, LinkedIn, and TikTok advertising policies. Catch violations before submitting. Free, instant, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#10b981;--yellow:#f59e0b;--red:#ef4444;--blue:#3b82f6}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 24px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px;font-family:'Fraunces',serif}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px;line-height:1.45}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--bg)}
+.main-scroll{flex:1;overflow-y:auto;padding:24px}
+
+/* PANELS */
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.03em}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 3px;font-weight:500}
+input[type=text],input[type=url],textarea,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;resize:none;transition:border-color .15s}
+input[type=text]:focus,input[type=url]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{min-height:80px;line-height:1.4}
+
+/* PILLS */
+.pills{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px}
+.pill{padding:5px 11px;border-radius:99px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid var(--line);background:var(--panel);color:var(--muted);transition:all .15s;white-space:nowrap}
+.pill:hover{border-color:var(--accent);color:var(--text)}
+.pill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* CHECK BUTTON */
+.btn-check{width:100%;padding:11px 16px;border:none;border-radius:var(--radius);background:var(--accent);color:#fff;font-size:.88rem;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s;margin-top:6px}
+.btn-check:hover{background:#dc2626}
+.btn-check:active{transform:scale(.98)}
+
+/* CHAR COUNT */
+.char-info{font-size:.65rem;color:var(--muted);text-align:right;margin-top:2px;font-variant-numeric:tabular-nums}
+.char-info.over{color:var(--accent);font-weight:600}
+
+/* EMPTY STATE */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:40px;text-align:center;color:var(--muted)}
+.empty-state-icon{font-size:3rem;margin-bottom:12px;opacity:.5}
+.empty-state h2{font-family:'Fraunces',serif;font-size:1.3rem;color:var(--text);margin-bottom:6px;font-weight:700}
+.empty-state p{font-size:.82rem;line-height:1.5;max-width:380px}
+
+/* OVERALL SCORE BADGE */
+.score-section{text-align:center;margin-bottom:24px}
+.score-badge{display:inline-flex;align-items:center;gap:10px;padding:14px 28px;border-radius:14px;font-size:1.1rem;font-weight:800;font-family:'Fraunces',serif}
+.score-badge.pass{background:#ecfdf5;color:#059669;border:2px solid #a7f3d0}
+.score-badge.warnings{background:#fffbeb;color:#d97706;border:2px solid #fde68a}
+.score-badge.fail{background:#fef2f2;color:#dc2626;border:2px solid #fecaca}
+.score-badge-icon{font-size:1.5rem}
+.score-summary{font-size:.78rem;color:var(--muted);margin-top:8px;font-weight:500}
+
+/* ISSUE CARDS */
+.issues-section{margin-bottom:24px}
+.issues-section-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.issue-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;border-left:4px solid transparent;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.issue-card.error{border-left-color:var(--red)}
+.issue-card.warning{border-left-color:var(--yellow)}
+.issue-card.info{border-left-color:var(--blue)}
+.issue-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.severity-tag{font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.03em}
+.severity-tag.error{background:#fef2f2;color:#dc2626}
+.severity-tag.warning{background:#fffbeb;color:#d97706}
+.severity-tag.info{background:#eff6ff;color:#2563eb}
+.issue-policy{font-size:.78rem;font-weight:700;color:var(--text)}
+.issue-desc{font-size:.78rem;color:var(--text);line-height:1.5;margin-bottom:6px}
+.issue-platforms{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.platform-tag{font-size:.62rem;font-weight:600;padding:2px 7px;border-radius:4px;background:#f3f4f6;color:var(--muted)}
+.issue-fix{font-size:.75rem;color:var(--muted);line-height:1.4;margin-bottom:4px}
+.issue-fix strong{color:var(--text);font-weight:600}
+.issue-learn{font-size:.72rem;color:var(--accent);font-weight:600;cursor:default}
+
+/* CATEGORY BREAKDOWN */
+.breakdown-section{margin-bottom:24px}
+.breakdown-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:10px}
+.category-block{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.category-header{padding:12px 16px;font-size:.82rem;font-weight:700;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;transition:background .1s}
+.category-header:hover{background:#f9fafb}
+.category-header .cat-icon{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.category-header .cat-icon.pass{background:var(--green)}
+.category-header .cat-icon.fail{background:var(--red)}
+.category-header .cat-icon.warn{background:var(--yellow)}
+.category-header .cat-count{margin-left:auto;font-size:.68rem;font-weight:600;color:var(--muted)}
+.category-header .chevron{margin-left:6px;font-size:.7rem;color:var(--muted);transition:transform .15s}
+.category-header.open .chevron{transform:rotate(90deg)}
+.category-body{padding:0;max-height:0;overflow:hidden;transition:max-height .25s ease}
+.category-body.open{max-height:2000px;padding:0}
+.check-row{display:flex;align-items:flex-start;gap:8px;padding:8px 16px;border-bottom:1px solid #f3f4f6;font-size:.76rem;line-height:1.4}
+.check-row:last-child{border-bottom:none}
+.check-icon{flex-shrink:0;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;margin-top:1px}
+.check-icon.pass{background:#ecfdf5;color:#059669}
+.check-icon.fail{background:#fef2f2;color:#dc2626}
+.check-icon.warn{background:#fffbeb;color:#d97706}
+.check-label{flex:1;min-width:0;color:var(--text)}
+.check-label.muted{color:var(--muted)}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:none}
+  .main-scroll{padding:16px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&#8592; FreeAdStore</a>
+      <h1>Ad Policy Checker</h1>
+      <p>Check your ad copy against Meta, Google, LinkedIn, and TikTok advertising policies before submitting.</p>
+    </div>
+    <div class="sidebar-scroll" id="controls"></div>
+  </div>
+  <div class="main">
+    <div class="main-scroll" id="report"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  platform: 'all',
+  adType: 'image',
+  headline: '',
+  body: '',
+  cta: '',
+  url: '',
+  industry: 'general',
+  hasRun: false,
+  issues: [],
+  checks: []
+};
+
+const PLATFORMS = ['Meta','Google','LinkedIn','TikTok','All Platforms'];
+const PLATFORM_KEYS = ['meta','google','linkedin','tiktok','all'];
+const AD_TYPES = ['Image Ad','Video Ad','Carousel','Search Ad','Story/Reel'];
+const AD_TYPE_KEYS = ['image','video','carousel','search','story'];
+const INDUSTRIES = [
+  {v:'general',l:'General'},
+  {v:'healthcare',l:'Healthcare / Pharma'},
+  {v:'finance',l:'Finance / Crypto'},
+  {v:'alcohol',l:'Alcohol'},
+  {v:'political',l:'Political'},
+  {v:'gambling',l:'Gambling'},
+  {v:'dating',l:'Dating'},
+  {v:'weightloss',l:'Weight Loss'},
+  {v:'realestate',l:'Real Estate'},
+  {v:'legal',l:'Legal'}
+];
+
+// ============================================================
+// PROFANITY LIST (mild set sufficient for ad policy)
+// ============================================================
+const PROFANITY = ['fuck','shit','damn','ass','bitch','bastard','crap','dick','piss','slut','whore','cock','cunt','fag','retard','nigger','nigga'];
+
+// ============================================================
+// POLICY RULES ENGINE
+// ============================================================
+function runChecks(){
+  const issues = [];
+  const checks = [];
+  const all = (S.headline + ' ' + S.body + ' ' + S.cta).toLowerCase();
+  const headlineLower = S.headline.toLowerCase();
+  const bodyLower = S.body.toLowerCase();
+  const selectedPlatforms = S.platform === 'all' ? ['meta','google','linkedin','tiktok'] : [S.platform];
+
+  function affects(p){ return S.platform === 'all' || selectedPlatforms.includes(p); }
+  function affectsAny(arr){ return S.platform === 'all' || arr.some(p => selectedPlatforms.includes(p)); }
+
+  // ---- CATEGORY 1: Prohibited Content ----
+  // Profanity
+  const foundProfanity = PROFANITY.filter(w => new RegExp('\\b'+w+'\\b','i').test(all));
+  if(foundProfanity.length){
+    issues.push({severity:'error',policy:'Prohibited Content',desc:'Ad copy contains profanity: "'+foundProfanity.join('", "')+'".',platforms:['Meta','Google','LinkedIn','TikTok'],fix:'Remove all profane language. Ad platforms reject copy with explicit language.',category:'prohibited'});
+    checks.push({cat:'prohibited',label:'No profanity',status:'fail'});
+  } else {
+    checks.push({cat:'prohibited',label:'No profanity',status:'pass'});
+  }
+
+  // Drug references
+  const drugTerms = ['buy weed','buy marijuana','buy cocaine','order drugs','illegal drugs','recreational drugs','buy steroids'];
+  const foundDrugs = drugTerms.filter(t => all.includes(t));
+  if(foundDrugs.length){
+    issues.push({severity:'error',policy:'Prohibited Content',desc:'Ad references illegal or controlled substances.',platforms:['Meta','Google','LinkedIn','TikTok'],fix:'Remove all references to illegal drugs or controlled substances. Pharmaceutical ads require separate approval.',category:'prohibited'});
+    checks.push({cat:'prohibited',label:'No drug references',status:'fail'});
+  } else {
+    checks.push({cat:'prohibited',label:'No drug references',status:'pass'});
+  }
+
+  // Weapons
+  const weaponTerms = ['buy guns','buy firearms','purchase weapons','order ammunition','buy ammo','gun sale','firearm sale'];
+  const foundWeapons = weaponTerms.filter(t => all.includes(t));
+  if(foundWeapons.length){
+    issues.push({severity:'error',policy:'Prohibited Content',desc:'Ad promotes the sale of weapons or ammunition.',platforms:['Meta','Google','LinkedIn','TikTok'],fix:'Remove weapon-related sales language. Weapon sales are prohibited on all major ad platforms.',category:'prohibited'});
+    checks.push({cat:'prohibited',label:'No weapon promotion',status:'fail'});
+  } else {
+    checks.push({cat:'prohibited',label:'No weapon promotion',status:'pass'});
+  }
+
+  // Discrimination
+  const discrimTerms = ['whites only','no blacks','no muslims','no jews','no immigrants','no foreigners','racial superiority'];
+  const foundDiscrim = discrimTerms.filter(t => all.includes(t));
+  if(foundDiscrim.length){
+    issues.push({severity:'error',policy:'Prohibited Content',desc:'Ad contains discriminatory language.',platforms:['Meta','Google','LinkedIn','TikTok'],fix:'Remove all discriminatory content. Ads must not discriminate based on race, ethnicity, religion, nationality, or other protected characteristics.',category:'prohibited'});
+    checks.push({cat:'prohibited',label:'No discriminatory language',status:'fail'});
+  } else {
+    checks.push({cat:'prohibited',label:'No discriminatory language',status:'pass'});
+  }
+
+  // Adult content
+  const adultTerms = ['xxx','porn','nude','naked','sex toys','adult content','explicit content','escort service'];
+  const foundAdult = adultTerms.filter(t => all.includes(t));
+  if(foundAdult.length){
+    issues.push({severity:'error',policy:'Prohibited Content',desc:'Ad contains adult or sexually explicit content.',platforms:['Meta','Google','LinkedIn','TikTok'],fix:'Remove all adult content references. Sexually explicit material is prohibited on all ad platforms.',category:'prohibited'});
+    checks.push({cat:'prohibited',label:'No adult content',status:'fail'});
+  } else {
+    checks.push({cat:'prohibited',label:'No adult content',status:'pass'});
+  }
+
+  // Phone numbers in copy (Meta-specific)
+  const phoneRegex = /(\+?\d[\d\s\-().]{7,}\d)/;
+  if(phoneRegex.test(S.body) || phoneRegex.test(S.headline)){
+    const pls = affects('meta') ? ['Meta'] : [];
+    if(pls.length || S.platform === 'all'){
+      issues.push({severity:'error',policy:'Prohibited Content',desc:'Phone number detected in ad copy. Meta prohibits phone numbers in ad text.',platforms:['Meta'],fix:'Remove the phone number from your ad copy. Use the landing page to display contact information instead.',category:'prohibited'});
+    }
+    checks.push({cat:'prohibited',label:'No phone numbers in copy (Meta)',status:affects('meta')?'fail':'pass'});
+  } else {
+    checks.push({cat:'prohibited',label:'No phone numbers in copy (Meta)',status:'pass'});
+  }
+
+  // ---- CATEGORY 2: Misleading Claims ----
+  // Superlatives
+  const superlatives = ['best','#1','number one','fastest','cheapest','most popular','top rated','leading','world\'s best','unbeatable'];
+  const foundSuperlatives = superlatives.filter(s => new RegExp('\\b'+s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i').test(all));
+  if(foundSuperlatives.length){
+    issues.push({severity:'warning',policy:'Misleading Claims',desc:'Superlative claims found: "'+foundSuperlatives.join('", "')+'" without substantiation.',platforms:['Meta','Google','LinkedIn','TikTok'],fix:'Either remove superlative claims or add qualifying language (e.g., "voted #1 by..." or "according to...").',category:'misleading'});
+    checks.push({cat:'misleading',label:'No unsubstantiated superlatives',status:'warn'});
+  } else {
+    checks.push({cat:'misleading',label:'No unsubstantiated superlatives',status:'pass'});
+  }
+
+  // Guaranteed results
+  const guaranteeTerms = ['guaranteed results','100% guaranteed','money back guarantee','guaranteed to work','guaranteed success','guaranteed income','risk.free guarantee'];
+  const foundGuarantees = guaranteeTerms.filter(t => all.includes(t.replace('.','[-\\s]?')));
+  const guaranteeRegex = /\b(guaranteed results|100%\s*guaranteed|guaranteed to work|guaranteed success|guaranteed income)\b/i;
+  if(guaranteeRegex.test(all) || foundGuarantees.length){
+    issues.push({severity:'error',policy:'Misleading Claims',desc:'Guarantee claims detected. Most platforms prohibit absolute guarantees.',platforms:['Meta','Google','LinkedIn','TikTok'],fix:'Remove absolute guarantee language. Use softer phrasing like "satisfaction guarantee" with clear terms, or "results may vary".',category:'misleading'});
+    checks.push({cat:'misleading',label:'No absolute guarantee claims',status:'fail'});
+  } else {
+    checks.push({cat:'misleading',label:'No absolute guarantee claims',status:'pass'});
+  }
+
+  // Get rich / income claims
+  const incomeRegex = /(\$\d[\d,]*\s*(per|a|\/)\s*(day|week|hour|month)|\bmake money fast\b|\bget rich\b|\bearn \$?\d[\d,]*\b|\bfinancial freedom\b|\bpassive income\b.*\bguaranteed\b)/i;
+  if(incomeRegex.test(all)){
+    issues.push({severity:'error',policy:'Misleading Claims',desc:'Income or get-rich claims detected. Ads must not promise specific earnings or rapid wealth.',platforms:['Meta','Google','LinkedIn','TikTok'],fix:'Remove specific income claims. If promoting a business opportunity, use realistic language and include appropriate disclaimers.',category:'misleading'});
+    checks.push({cat:'misleading',label:'No income/get-rich claims',status:'fail'});
+  } else {
+    checks.push({cat:'misleading',label:'No income/get-rich claims',status:'pass'});
+  }
+
+  // Fake urgency
+  const urgencyTerms = ['last chance','ending tonight','act now or miss out','limited time only','only \\d+ left','expires today','don\'t miss out','hurry','once in a lifetime'];
+  const foundUrgency = urgencyTerms.filter(t => new RegExp(t,'i').test(all));
+  if(foundUrgency.length){
+    issues.push({severity:'warning',policy:'Misleading Claims',desc:'Potentially misleading urgency language detected: "'+foundUrgency.join('", "').replace(/\\/g,'')+'".',platforms:['Meta','Google','LinkedIn'],fix:'Ensure urgency claims are truthful. If the offer does not actually expire, remove urgency language. Google and Meta may reject ads with false scarcity.',category:'misleading'});
+    checks.push({cat:'misleading',label:'No false urgency tactics',status:'warn'});
+  } else {
+    checks.push({cat:'misleading',label:'No false urgency tactics',status:'pass'});
+  }
+
+  // Price without currency
+  const priceNoCurrency = /(?<![a-zA-Z$\u20AC\u00A3\u00A5])(\d{1,3}(,\d{3})*(\.\d{2}))\b/;
+  const hasCurrency = /[$\u20AC\u00A3\u00A5]\s*\d|USD|EUR|GBP/i;
+  if(priceNoCurrency.test(all) && !hasCurrency.test(all)){
+    issues.push({severity:'warning',policy:'Misleading Claims',desc:'Price appears without a currency symbol or code.',platforms:['Google','Meta'],fix:'Add a currency symbol ($, EUR, etc.) before price amounts to avoid confusion and policy flags.',category:'misleading'});
+    checks.push({cat:'misleading',label:'Prices include currency symbol',status:'warn'});
+  } else {
+    checks.push({cat:'misleading',label:'Prices include currency symbol',status:'pass'});
+  }
+
+  // ---- CATEGORY 3: Personal Attributes (Meta-specific) ----
+  const personalPatterns = [
+    {r:/\byour\s+(weight|obesity|fat|body\s*fat)\b/i, d:'weight'},
+    {r:/\byour\s+(debt|credit\s*score|bankruptcy|financial\s*problems?|loans?)\b/i, d:'debt/finance'},
+    {r:/\byour\s+(illness|disease|condition|disability|disorder|diagnosis|cancer|diabetes|hiv|aids)\b/i, d:'health condition'},
+    {r:/\byour\s+(race|ethnicity|skin\s*color|religion|sexual\s*orientation|gender\s*identity)\b/i, d:'identity'},
+    {r:/\byour\s+(addiction|rehab|recovery|substance\s*abuse)\b/i, d:'addiction'},
+    {r:/\byour\s+(criminal\s*record|arrest|conviction|mugshot)\b/i, d:'criminal history'}
+  ];
+  const foundPersonal = personalPatterns.filter(p => p.r.test(all));
+  if(foundPersonal.length){
+    issues.push({severity:'error',policy:'Personal Attributes',desc:'Ad directly references personal attributes: '+foundPersonal.map(p=>p.d).join(', ')+'. Meta prohibits ads that assert or imply knowledge of personal characteristics.',platforms:['Meta'],fix:'Rewrite to avoid addressing the user directly about sensitive topics. Instead of "your debt", use "people managing debt" or "debt management solutions".',category:'personal'});
+    checks.push({cat:'personal',label:'No direct personal attribute references',status:'fail'});
+  } else {
+    checks.push({cat:'personal',label:'No direct personal attribute references',status:'pass'});
+  }
+
+  // "Are you struggling with..."
+  const struggleRegex = /\bare you\s+(struggling|suffering|dealing|living|coping)\s+with\b/i;
+  if(struggleRegex.test(all)){
+    issues.push({severity:'error',policy:'Personal Attributes',desc:'"Are you struggling with..." pattern detected. Meta prohibits directly calling out user struggles.',platforms:['Meta'],fix:'Reframe the question. Instead of "Are you struggling with anxiety?", try "Discover tools for managing anxiety" or "Anxiety management solutions".',category:'personal'});
+    checks.push({cat:'personal',label:'No "Are you struggling with..." pattern',status:'fail'});
+  } else {
+    checks.push({cat:'personal',label:'No "Are you struggling with..." pattern',status:'pass'});
+  }
+
+  // "Do you have..." + sensitive
+  const doYouHaveRegex = /\bdo you\s+have\s+(debt|acne|anxiety|depression|weight|diabetes|hiv|std|herpes|addiction)\b/i;
+  if(doYouHaveRegex.test(all)){
+    issues.push({severity:'error',policy:'Personal Attributes',desc:'"Do you have [condition]?" pattern detected. This directly asserts knowledge of user attributes.',platforms:['Meta'],fix:'Avoid second-person questions about sensitive conditions. Use neutral framing: "Solutions for [condition]" rather than "Do you have [condition]?".',category:'personal'});
+    checks.push({cat:'personal',label:'No "Do you have [condition]?" pattern',status:'fail'});
+  } else {
+    checks.push({cat:'personal',label:'No "Do you have [condition]?" pattern',status:'pass'});
+  }
+
+  // ---- CATEGORY 4: Restricted Industry Rules ----
+  // Healthcare
+  if(S.industry === 'healthcare' || S.industry === 'weightloss'){
+    const healthClaims = /\b(cure|cures|cured|miracle|breakthrough treatment|clinically proven|fda approved|treats? all|eliminates? cancer|reverses? diabetes)\b/i;
+    if(healthClaims.test(all)){
+      issues.push({severity:'error',policy:'Restricted Industries',desc:'Unverified health claims detected. Ads for healthcare products must not make unsubstantiated medical claims.',platforms:['Meta','Google','LinkedIn','TikTok'],fix:'Remove absolute medical claims. Use "may help", "supports", or "consult your doctor" language. Include appropriate medical disclaimers.',category:'restricted'});
+      checks.push({cat:'restricted',label:'No unsubstantiated health claims',status:'fail'});
+    } else {
+      checks.push({cat:'restricted',label:'No unsubstantiated health claims',status:'pass'});
+    }
+    const hasDisclaimer = /\b(consult|disclaimer|side effects?|not intended to diagnose|results may vary|individual results|medical advice)\b/i;
+    if(!hasDisclaimer.test(all)){
+      issues.push({severity:'warning',policy:'Restricted Industries',desc:'Healthcare ad missing recommended disclaimer. Ads promoting health products or services should include appropriate disclaimers.',platforms:['Meta','Google','LinkedIn','TikTok'],fix:'Add a disclaimer such as "Results may vary. Consult your healthcare provider." or "This product is not intended to diagnose, treat, cure, or prevent any disease."',category:'restricted'});
+      checks.push({cat:'restricted',label:'Healthcare disclaimer present',status:'warn'});
+    } else {
+      checks.push({cat:'restricted',label:'Healthcare disclaimer present',status:'pass'});
+    }
+  }
+
+  if(S.industry === 'weightloss'){
+    const beforeAfter = /\b(before\s*(and|&)\s*after|lost?\s+\d+\s*(lbs?|kg|pounds?|kilos?))\b/i;
+    if(beforeAfter.test(all)){
+      issues.push({severity:'error',policy:'Restricted Industries',desc:'Before/after or specific weight loss claims detected. Most platforms restrict or ban these.',platforms:['Meta','Google','TikTok'],fix:'Remove specific weight loss amounts and before/after references. Focus on the product/service benefits without making specific body transformation claims.',category:'restricted'});
+      checks.push({cat:'restricted',label:'No before/after weight claims',status:'fail'});
+    } else {
+      checks.push({cat:'restricted',label:'No before/after weight claims',status:'pass'});
+    }
+  }
+
+  // Finance/Crypto
+  if(S.industry === 'finance'){
+    const riskDisclosure = /\b(risk|losses?|past performance|not guaranteed|capital at risk|may lose|no guarantee|investment risk)\b/i;
+    if(!riskDisclosure.test(all)){
+      issues.push({severity:'error',policy:'Restricted Industries',desc:'Finance/crypto ad missing required risk disclosure. Financial product ads must include risk warnings.',platforms:['Meta','Google','LinkedIn','TikTok'],fix:'Add a risk disclosure such as "Capital at risk. Past performance does not guarantee future results." or "Investments can go down as well as up."',category:'restricted'});
+      checks.push({cat:'restricted',label:'Financial risk disclosure present',status:'fail'});
+    } else {
+      checks.push({cat:'restricted',label:'Financial risk disclosure present',status:'pass'});
+    }
+    const cryptoHype = /\b(guaranteed returns?|risk.free investment|100x gains?|to the moon|next bitcoin|guaranteed profit)\b/i;
+    if(cryptoHype.test(all)){
+      issues.push({severity:'error',policy:'Restricted Industries',desc:'Prohibited financial hype language detected. Crypto/finance ads must not promise guaranteed returns.',platforms:['Meta','Google','LinkedIn','TikTok'],fix:'Remove hype language and guaranteed return claims. Financial ads require honest, balanced communication about potential returns and risks.',category:'restricted'});
+      checks.push({cat:'restricted',label:'No guaranteed return claims',status:'fail'});
+    } else {
+      checks.push({cat:'restricted',label:'No guaranteed return claims',status:'pass'});
+    }
+  }
+
+  // Alcohol
+  if(S.industry === 'alcohol'){
+    const minorTargeting = /\b(kids?|children|minors?|teens?|teenagers?|youth|underage|under\s*21|under\s*18)\b/i;
+    if(minorTargeting.test(all)){
+      issues.push({severity:'error',policy:'Restricted Industries',desc:'Alcohol ad appears to reference minors. Alcohol advertising must not target or appeal to underage audiences.',platforms:['Meta','Google','LinkedIn','TikTok'],fix:'Remove all references to minors. Alcohol ads must target adults only and include appropriate age-gating.',category:'restricted'});
+      checks.push({cat:'restricted',label:'No minor-targeting language',status:'fail'});
+    } else {
+      checks.push({cat:'restricted',label:'No minor-targeting language',status:'pass'});
+    }
+    const ageGate = /\b(21\+|18\+|must be (21|18)|legal drinking age|age gate|age verification|adults? only)\b/i;
+    if(!ageGate.test(all)){
+      issues.push({severity:'warning',policy:'Restricted Industries',desc:'Alcohol ad missing age-gate language. Most platforms recommend or require age-related disclaimers.',platforms:['Meta','Google','TikTok'],fix:'Add age verification language such as "Must be 21+" or "For adults of legal drinking age only" to your ad copy.',category:'restricted'});
+      checks.push({cat:'restricted',label:'Age-gate language present',status:'warn'});
+    } else {
+      checks.push({cat:'restricted',label:'Age-gate language present',status:'pass'});
+    }
+    const excessConsumption = /\b(binge|chug|get drunk|get wasted|get hammered|blackout|shots? shots?|drinking game)\b/i;
+    if(excessConsumption.test(all)){
+      issues.push({severity:'error',policy:'Restricted Industries',desc:'Ad promotes excessive alcohol consumption. Alcohol ads must promote responsible drinking.',platforms:['Meta','Google','LinkedIn','TikTok'],fix:'Remove references to excessive consumption. Promote responsible enjoyment of your product.',category:'restricted'});
+      checks.push({cat:'restricted',label:'No excessive consumption promotion',status:'fail'});
+    } else {
+      checks.push({cat:'restricted',label:'No excessive consumption promotion',status:'pass'});
+    }
+  }
+
+  // Political
+  if(S.industry === 'political'){
+    const paidFor = /\b(paid for by|authorized by|sponsored by|funded by|on behalf of)\b/i;
+    if(!paidFor.test(all)){
+      issues.push({severity:'error',policy:'Restricted Industries',desc:'Political ad missing "Paid for by" disclosure. Political advertising requires clear sponsor identification.',platforms:['Meta','Google'],fix:'Add "Paid for by [Organization/Candidate Name]" to your ad copy. This is legally required in most jurisdictions for political advertising.',category:'restricted'});
+      checks.push({cat:'restricted',label:'"Paid for by" disclosure present',status:'fail'});
+    } else {
+      checks.push({cat:'restricted',label:'"Paid for by" disclosure present',status:'pass'});
+    }
+  }
+
+  // Gambling
+  if(S.industry === 'gambling'){
+    const responsibleGambling = /\b(responsible gambling|gamble responsibly|18\+|21\+|gambling problem|gamble aware|begambleaware|national council|problem gambling|when the fun stops)\b/i;
+    if(!responsibleGambling.test(all)){
+      issues.push({severity:'error',policy:'Restricted Industries',desc:'Gambling ad missing responsible gambling notice. Gambling ads must include responsible gambling messaging.',platforms:['Meta','Google','TikTok'],fix:'Add a responsible gambling message such as "Please gamble responsibly. 18+" or "If you have a gambling problem, call [helpline number]."',category:'restricted'});
+      checks.push({cat:'restricted',label:'Responsible gambling notice present',status:'fail'});
+    } else {
+      checks.push({cat:'restricted',label:'Responsible gambling notice present',status:'pass'});
+    }
+  }
+
+  // Dating
+  if(S.industry === 'dating'){
+    const explicitDating = /\b(hookup|one night stand|casual sex|no strings attached|sugar daddy|sugar baby|escort|adult dating)\b/i;
+    if(explicitDating.test(all)){
+      issues.push({severity:'error',policy:'Restricted Industries',desc:'Dating ad contains explicit sexual content. Dating ads must not promote sexual encounters.',platforms:['Meta','Google','LinkedIn','TikTok'],fix:'Remove explicit sexual references. Dating ads should focus on meaningful connections and relationships.',category:'restricted'});
+      checks.push({cat:'restricted',label:'No explicit dating content',status:'fail'});
+    } else {
+      checks.push({cat:'restricted',label:'No explicit dating content',status:'pass'});
+    }
+  }
+
+  // Real Estate
+  if(S.industry === 'realestate'){
+    const fairHousing = /\b(no (families|children|disabled|handicapped|section 8)|whites only|preferred (race|religion|ethnicity))\b/i;
+    if(fairHousing.test(all)){
+      issues.push({severity:'error',policy:'Restricted Industries',desc:'Fair housing violation detected. Real estate ads must not discriminate against protected classes.',platforms:['Meta','Google','LinkedIn'],fix:'Remove all discriminatory language. Real estate ads are subject to Fair Housing Act requirements and must not exclude protected classes.',category:'restricted'});
+      checks.push({cat:'restricted',label:'Fair housing compliance',status:'fail'});
+    } else {
+      checks.push({cat:'restricted',label:'Fair housing compliance',status:'pass'});
+    }
+  }
+
+  // Legal
+  if(S.industry === 'legal'){
+    const legalGuarantees = /\b(guaranteed (settlement|verdict|outcome|win)|we always win|100% success rate|never lost a case)\b/i;
+    if(legalGuarantees.test(all)){
+      issues.push({severity:'error',policy:'Restricted Industries',desc:'Legal ad contains outcome guarantees. Legal advertising must not guarantee specific case outcomes.',platforms:['Google','Meta'],fix:'Remove outcome guarantees. Legal ads should describe services without promising specific results. Many jurisdictions require "results may vary" disclaimers.',category:'restricted'});
+      checks.push({cat:'restricted',label:'No legal outcome guarantees',status:'fail'});
+    } else {
+      checks.push({cat:'restricted',label:'No legal outcome guarantees',status:'pass'});
+    }
+  }
+
+  // Generic restricted check if no industry-specific checks ran
+  const restrictedIndustries = ['healthcare','finance','alcohol','political','gambling','dating','weightloss','realestate','legal'];
+  if(!restrictedIndustries.includes(S.industry)){
+    checks.push({cat:'restricted',label:'No restricted industry selected',status:'pass'});
+  }
+
+  // ---- CATEGORY 5: Grammar & Quality ----
+  // All caps words (more than 2 consecutive)
+  const capsRegex = /\b[A-Z]{2,}(?:\s+[A-Z]{2,}){2,}\b/;
+  const allCapsWords = (S.headline + ' ' + S.body + ' ' + S.cta).match(/\b[A-Z]{2,}\b/g) || [];
+  // Filter out common acronyms
+  const commonAcronyms = ['CTA','URL','FAQ','AI','SEO','SEM','PPC','CPC','CPM','CPA','ROAS','ROI','API','HTML','CSS','PDF','CEO','COO','CFO','LLC','INC','LTD','USA','USD','EUR','GBP','GDPR','HTTPS','HTTP','SAAS','B2B','B2C','KPI'];
+  const realCapsWords = allCapsWords.filter(w => !commonAcronyms.includes(w) && w.length > 1);
+  if(realCapsWords.length > 2){
+    issues.push({severity:'warning',policy:'Grammar & Quality',desc:'Excessive ALL CAPS detected ('+realCapsWords.length+' words): "'+realCapsWords.slice(0,5).join('", "')+'"'+((realCapsWords.length>5)?'...':'')+'.',platforms:['Meta','Google','LinkedIn','TikTok'],fix:'Reduce use of all-caps words. Use normal sentence case for most text. ALL CAPS is perceived as shouting and may trigger policy review.',category:'grammar'});
+    checks.push({cat:'grammar',label:'Minimal ALL CAPS usage',status:'warn'});
+  } else {
+    checks.push({cat:'grammar',label:'Minimal ALL CAPS usage',status:'pass'});
+  }
+
+  // Excessive punctuation
+  const excessivePunct = /[!]{2,}|[?]{3,}|\.{4,}/;
+  if(excessivePunct.test(S.headline) || excessivePunct.test(S.body)){
+    issues.push({severity:'warning',policy:'Grammar & Quality',desc:'Excessive punctuation detected (!!!, ???, etc.). This can trigger automated review.',platforms:['Meta','Google','LinkedIn'],fix:'Use single punctuation marks. Replace "!!!" with "!" and "???" with "?". Clean punctuation improves ad quality scores.',category:'grammar'});
+    checks.push({cat:'grammar',label:'No excessive punctuation',status:'warn'});
+  } else {
+    checks.push({cat:'grammar',label:'No excessive punctuation',status:'pass'});
+  }
+
+  // Emoji spam (more than 5 emoji)
+  const emojiRegex = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}]/gu;
+  const emojiCount = (all.match(emojiRegex) || []).length;
+  if(emojiCount > 5){
+    issues.push({severity:'warning',policy:'Grammar & Quality',desc:'High emoji count ('+emojiCount+'). Excessive emoji use can reduce ad quality and trigger review.',platforms:['Google','LinkedIn'],fix:'Limit emoji to 1-3 per ad. Use them purposefully to draw attention to key points, not as decoration.',category:'grammar'});
+    checks.push({cat:'grammar',label:'Reasonable emoji usage (max 5)',status:'warn'});
+  } else {
+    checks.push({cat:'grammar',label:'Reasonable emoji usage (max 5)',status:'pass'});
+  }
+
+  // Spacing / readability
+  const multipleSpaces = /  {2,}/;
+  if(multipleSpaces.test(S.headline) || multipleSpaces.test(S.body)){
+    issues.push({severity:'info',policy:'Grammar & Quality',desc:'Multiple consecutive spaces detected. Clean formatting improves readability.',platforms:['Meta','Google','LinkedIn','TikTok'],fix:'Replace multiple spaces with single spaces for cleaner formatting.',category:'grammar'});
+    checks.push({cat:'grammar',label:'Clean spacing',status:'warn'});
+  } else {
+    checks.push({cat:'grammar',label:'Clean spacing',status:'pass'});
+  }
+
+  // ---- CATEGORY 6: Landing Page ----
+  if(S.url.trim()){
+    // HTTPS check
+    if(S.url.startsWith('http://') && !S.url.startsWith('http://localhost')){
+      issues.push({severity:'error',policy:'Landing Page',desc:'Landing page URL uses HTTP instead of HTTPS. Most platforms require secure landing pages.',platforms:['Google','Meta','LinkedIn','TikTok'],fix:'Use HTTPS for your landing page URL. Secure connections are required by all major ad platforms.',category:'landing'});
+      checks.push({cat:'landing',label:'HTTPS required',status:'fail'});
+    } else if(S.url.startsWith('https://') || !S.url.includes('://')){
+      checks.push({cat:'landing',label:'HTTPS required',status:'pass'});
+    } else {
+      checks.push({cat:'landing',label:'HTTPS required',status:'pass'});
+    }
+
+    // Valid URL format
+    const urlRegex = /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)(\/[\w\-.~:/?#[\]@!$&'()*+,;=%]*)?$/i;
+    const cleanUrl = S.url.replace(/^https?:\/\//,'');
+    if(cleanUrl && !urlRegex.test(S.url) && !cleanUrl.includes('.')){
+      issues.push({severity:'warning',policy:'Landing Page',desc:'URL format appears invalid. Ensure your landing page URL is a valid web address.',platforms:['Google','Meta','LinkedIn','TikTok'],fix:'Enter a valid URL format, e.g., https://example.com/landing-page.',category:'landing'});
+      checks.push({cat:'landing',label:'Valid URL format',status:'warn'});
+    } else {
+      checks.push({cat:'landing',label:'Valid URL format',status:'pass'});
+    }
+
+    // Suspicious TLDs
+    const suspiciousTlds = /\.(xyz|top|click|link|tk|ml|ga|cf|gq|buzz|rest)\b/i;
+    if(suspiciousTlds.test(S.url)){
+      issues.push({severity:'warning',policy:'Landing Page',desc:'URL uses a TLD commonly associated with low-quality sites. This may trigger extra scrutiny during ad review.',platforms:['Google','Meta'],fix:'Consider using a more established TLD (.com, .org, .net, .co) for higher approval rates.',category:'landing'});
+      checks.push({cat:'landing',label:'Trusted domain TLD',status:'warn'});
+    } else {
+      checks.push({cat:'landing',label:'Trusted domain TLD',status:'pass'});
+    }
+  } else {
+    checks.push({cat:'landing',label:'Landing page URL provided',status:'warn'});
+    if(S.hasRun){
+      issues.push({severity:'info',policy:'Landing Page',desc:'No landing page URL provided. Enter a URL to check landing page policy compliance.',platforms:['Meta','Google','LinkedIn','TikTok'],fix:'Add your landing page URL to check for HTTPS requirements and domain policy compliance.',category:'landing'});
+    }
+  }
+
+  // ---- CATEGORY 7: Character Limits ----
+  const charLimits = {
+    google: {headline:30,description:90,label:'Google Ads'},
+    meta: {headline:40,primaryText:125,label:'Meta Ads'},
+    linkedin: {headline:70,introText:150,label:'LinkedIn Ads'},
+    tiktok: {adText:100,label:'TikTok Ads'}
+  };
+
+  const platformsToCheck = S.platform === 'all' ? ['google','meta','linkedin','tiktok'] : [S.platform];
+
+  for(const p of platformsToCheck){
+    const limits = charLimits[p];
+    if(!limits) continue;
+
+    // Headline check
+    if(limits.headline && S.headline.length > limits.headline){
+      issues.push({severity:'error',policy:'Character Limits',desc:limits.label+' headline exceeds '+limits.headline+' characters (currently '+S.headline.length+').',platforms:[limits.label.split(' ')[0]],fix:'Shorten your headline to '+limits.headline+' characters or fewer for '+limits.label+'.',category:'charlimits'});
+      checks.push({cat:'charlimits',label:limits.label+' headline ('+limits.headline+' max)',status:'fail'});
+    } else if(limits.headline && S.headline.length > 0){
+      checks.push({cat:'charlimits',label:limits.label+' headline ('+S.headline.length+'/'+limits.headline+')',status:'pass'});
+    } else if(limits.headline){
+      checks.push({cat:'charlimits',label:limits.label+' headline ('+limits.headline+' max)',status:'pass'});
+    }
+
+    // Body / description / primary text check
+    if(p === 'google' && limits.description && S.body.length > limits.description){
+      issues.push({severity:'error',policy:'Character Limits',desc:limits.label+' description exceeds '+limits.description+' characters (currently '+S.body.length+').',platforms:['Google'],fix:'Shorten your ad body to '+limits.description+' characters for Google Ads description fields.',category:'charlimits'});
+      checks.push({cat:'charlimits',label:'Google description ('+S.body.length+'/'+limits.description+')',status:'fail'});
+    } else if(p === 'google' && limits.description){
+      checks.push({cat:'charlimits',label:'Google description ('+S.body.length+'/'+limits.description+')',status:'pass'});
+    }
+
+    if(p === 'meta' && limits.primaryText && S.body.length > limits.primaryText){
+      issues.push({severity:'warning',policy:'Character Limits',desc:limits.label+' primary text exceeds '+limits.primaryText+' recommended characters (currently '+S.body.length+'). Text will be truncated with "See more".',platforms:['Meta'],fix:'Keep primary text under '+limits.primaryText+' characters to avoid truncation on Meta platforms.',category:'charlimits'});
+      checks.push({cat:'charlimits',label:'Meta primary text ('+S.body.length+'/'+limits.primaryText+' rec.)',status:'warn'});
+    } else if(p === 'meta' && limits.primaryText){
+      checks.push({cat:'charlimits',label:'Meta primary text ('+S.body.length+'/'+limits.primaryText+' rec.)',status:'pass'});
+    }
+
+    if(p === 'linkedin' && limits.introText && S.body.length > limits.introText){
+      issues.push({severity:'warning',policy:'Character Limits',desc:limits.label+' intro text exceeds '+limits.introText+' recommended characters (currently '+S.body.length+').',platforms:['LinkedIn'],fix:'Keep intro text under '+limits.introText+' characters for optimal display on LinkedIn.',category:'charlimits'});
+      checks.push({cat:'charlimits',label:'LinkedIn intro text ('+S.body.length+'/'+limits.introText+' rec.)',status:'warn'});
+    } else if(p === 'linkedin' && limits.introText){
+      checks.push({cat:'charlimits',label:'LinkedIn intro text ('+S.body.length+'/'+limits.introText+' rec.)',status:'pass'});
+    }
+
+    if(p === 'tiktok' && limits.adText && S.body.length > limits.adText){
+      issues.push({severity:'error',policy:'Character Limits',desc:limits.label+' ad text exceeds '+limits.adText+' characters (currently '+S.body.length+').',platforms:['TikTok'],fix:'Shorten your ad text to '+limits.adText+' characters for TikTok Ads.',category:'charlimits'});
+      checks.push({cat:'charlimits',label:'TikTok ad text ('+S.body.length+'/'+limits.adText+')',status:'fail'});
+    } else if(p === 'tiktok' && limits.adText){
+      checks.push({cat:'charlimits',label:'TikTok ad text ('+S.body.length+'/'+limits.adText+')',status:'pass'});
+    }
+  }
+
+  S.issues = issues;
+  S.checks = checks;
+}
+
+// ============================================================
+// RENDER CONTROLS
+// ============================================================
+function buildControls(){
+  const c = document.getElementById('controls');
+  c.innerHTML = `
+  <div class="panel">
+    <div class="panel-title">Platform</div>
+    <div class="pills" id="platformPills">
+      ${PLATFORMS.map((p,i) => `<button class="pill${PLATFORM_KEYS[i]===S.platform?' active':''}" data-val="${PLATFORM_KEYS[i]}">${p}</button>`).join('')}
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Ad Type</div>
+    <div class="pills" id="adTypePills">
+      ${AD_TYPES.map((t,i) => `<button class="pill${AD_TYPE_KEYS[i]===S.adType?' active':''}" data-val="${AD_TYPE_KEYS[i]}">${t}</button>`).join('')}
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Ad Content</div>
+    <label>Headline</label>
+    <input type="text" id="inpHeadline" value="${esc(S.headline)}" placeholder="Your ad headline">
+    <div class="char-info" id="headlineCount"></div>
+    <label>Body / Primary Text</label>
+    <textarea id="inpBody" placeholder="Main ad copy — the text your audience sees">${esc(S.body)}</textarea>
+    <div class="char-info" id="bodyCount"></div>
+    <label>CTA Text</label>
+    <input type="text" id="inpCta" value="${esc(S.cta)}" placeholder="e.g. Shop Now, Learn More, Sign Up">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Landing Page</div>
+    <input type="url" id="inpUrl" value="${esc(S.url)}" placeholder="https://example.com/landing-page">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Industry</div>
+    <select id="selIndustry">
+      ${INDUSTRIES.map(ind => `<option value="${ind.v}"${ind.v===S.industry?' selected':''}>${ind.l}</option>`).join('')}
+    </select>
+  </div>
+
+  <button class="btn-check" id="btnCheck">Check Policy</button>
+  `;
+  bindControls();
+  updateCharCounts();
+}
+
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function updateCharCounts(){
+  const hc = document.getElementById('headlineCount');
+  const bc = document.getElementById('bodyCount');
+  if(!hc || !bc) return;
+  const platformsToCheck = S.platform === 'all' ? ['google','meta','linkedin','tiktok'] : [S.platform];
+  const limits = {google:{h:30,b:90},meta:{h:40,b:125},linkedin:{h:70,b:150},tiktok:{h:100,b:100}};
+  const minH = Math.min(...platformsToCheck.map(p => limits[p]?.h || 999));
+  const minB = Math.min(...platformsToCheck.map(p => limits[p]?.b || 999));
+  const hLen = S.headline.length;
+  const bLen = S.body.length;
+  const hLabel = S.platform === 'all' ? 'strictest limit' : PLATFORMS[PLATFORM_KEYS.indexOf(S.platform)];
+  const bLabel = hLabel;
+  hc.textContent = hLen + ' / ' + minH + ' (' + hLabel + ')';
+  hc.className = 'char-info' + (hLen > minH ? ' over' : '');
+  bc.textContent = bLen + ' / ' + minB + ' (' + bLabel + ')';
+  bc.className = 'char-info' + (bLen > minB ? ' over' : '');
+}
+
+// ============================================================
+// BIND CONTROLS + DEBOUNCED LIVE CHECK
+// ============================================================
+let debounceTimer = null;
+function scheduleCheck(){
+  if(!S.hasRun) return;
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(()=>{
+    runChecks();
+    renderReport();
+  }, 300);
+}
+
+function bindControls(){
+  // Platform pills
+  document.getElementById('platformPills').onclick = e => {
+    const pill = e.target.closest('.pill');
+    if(!pill) return;
+    S.platform = pill.dataset.val;
+    document.querySelectorAll('#platformPills .pill').forEach(p => p.classList.toggle('active', p.dataset.val === S.platform));
+    updateCharCounts();
+    scheduleCheck();
+  };
+
+  // Ad type pills
+  document.getElementById('adTypePills').onclick = e => {
+    const pill = e.target.closest('.pill');
+    if(!pill) return;
+    S.adType = pill.dataset.val;
+    document.querySelectorAll('#adTypePills .pill').forEach(p => p.classList.toggle('active', p.dataset.val === S.adType));
+    scheduleCheck();
+  };
+
+  // Text inputs
+  document.getElementById('inpHeadline').oninput = e => { S.headline = e.target.value; updateCharCounts(); scheduleCheck(); };
+  document.getElementById('inpBody').oninput = e => { S.body = e.target.value; updateCharCounts(); scheduleCheck(); };
+  document.getElementById('inpCta').oninput = e => { S.cta = e.target.value; scheduleCheck(); };
+  document.getElementById('inpUrl').oninput = e => { S.url = e.target.value; scheduleCheck(); };
+  document.getElementById('selIndustry').onchange = e => { S.industry = e.target.value; scheduleCheck(); };
+
+  // Check button
+  document.getElementById('btnCheck').onclick = () => {
+    S.hasRun = true;
+    runChecks();
+    renderReport();
+  };
+}
+
+// ============================================================
+// RENDER REPORT
+// ============================================================
+function renderReport(){
+  const r = document.getElementById('report');
+
+  if(!S.hasRun){
+    r.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-state-icon">&#9989;</div>
+      <h2>Ready to Check</h2>
+      <p>Enter your ad headline, body text, and other details in the sidebar, then click <strong>Check Policy</strong> to scan against platform advertising policies.</p>
+    </div>`;
+    return;
+  }
+
+  const errors = S.issues.filter(i => i.severity === 'error').length;
+  const warnings = S.issues.filter(i => i.severity === 'warning').length;
+  const infos = S.issues.filter(i => i.severity === 'info').length;
+  const total = errors + warnings + infos;
+
+  let scoreClass, scoreIcon, scoreLabel;
+  if(errors > 0){
+    scoreClass = 'fail';
+    scoreIcon = '&#10060;';
+    scoreLabel = errors + ' Issue' + (errors !== 1 ? 's' : '') + ' Found';
+  } else if(warnings > 0){
+    scoreClass = 'warnings';
+    scoreIcon = '&#9888;';
+    scoreLabel = warnings + ' Warning' + (warnings !== 1 ? 's' : '');
+  } else {
+    scoreClass = 'pass';
+    scoreIcon = '&#10004;';
+    scoreLabel = 'PASS';
+  }
+
+  let html = '';
+
+  // Overall score
+  html += `
+  <div class="score-section">
+    <div class="score-badge ${scoreClass}">
+      <span class="score-badge-icon">${scoreIcon}</span>
+      ${scoreLabel}
+    </div>
+    <div class="score-summary">${errors} error${errors!==1?'s':''}, ${warnings} warning${warnings!==1?'s':''}, ${infos} info across ${S.platform==='all'?'all platforms':PLATFORMS[PLATFORM_KEYS.indexOf(S.platform)]}</div>
+  </div>`;
+
+  // Issue cards (only if there are issues)
+  if(total > 0){
+    html += `<div class="issues-section">
+      <div class="issues-section-title">Issues &amp; Recommendations</div>`;
+    // Sort: errors first, then warnings, then info
+    const sorted = [...S.issues].sort((a,b) => {
+      const order = {error:0,warning:1,info:2};
+      return order[a.severity] - order[b.severity];
+    });
+    for(const issue of sorted){
+      html += `
+      <div class="issue-card ${issue.severity}">
+        <div class="issue-header">
+          <span class="severity-tag ${issue.severity}">${issue.severity}</span>
+          <span class="issue-policy">${esc(issue.policy)}</span>
+        </div>
+        <div class="issue-desc">${esc(issue.desc)}</div>
+        <div class="issue-platforms">${issue.platforms.map(p => `<span class="platform-tag">${esc(p)}</span>`).join('')}</div>
+        <div class="issue-fix"><strong>Fix:</strong> ${esc(issue.fix)}</div>
+        <span class="issue-learn">Learn more</span>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+
+  // Category-by-category breakdown
+  const categories = [
+    {key:'prohibited',label:'Prohibited Content',desc:'Drugs, weapons, discrimination, adult content, phone numbers'},
+    {key:'misleading',label:'Misleading Claims',desc:'Superlatives, guarantees, fake urgency, income claims'},
+    {key:'personal',label:'Personal Attributes',desc:'Calling out user traits directly (Meta-specific)'},
+    {key:'restricted',label:'Restricted Industries',desc:'Industry-specific requirements and disclaimers'},
+    {key:'grammar',label:'Grammar & Quality',desc:'ALL CAPS, punctuation, emoji usage, spacing'},
+    {key:'landing',label:'Landing Page',desc:'URL validation, HTTPS, domain trust'},
+    {key:'charlimits',label:'Character Limits',desc:'Per-platform headline and body limits'}
+  ];
+
+  html += `<div class="breakdown-section">
+    <div class="breakdown-title">Category Breakdown</div>`;
+
+  for(const cat of categories){
+    const catChecks = S.checks.filter(c => c.cat === cat.key);
+    if(catChecks.length === 0) continue;
+    const hasFail = catChecks.some(c => c.status === 'fail');
+    const hasWarn = catChecks.some(c => c.status === 'warn');
+    const catStatus = hasFail ? 'fail' : hasWarn ? 'warn' : 'pass';
+    const failCount = catChecks.filter(c => c.status === 'fail').length;
+    const warnCount = catChecks.filter(c => c.status === 'warn').length;
+    const passCount = catChecks.filter(c => c.status === 'pass').length;
+
+    let countLabel = '';
+    if(failCount) countLabel += failCount + ' fail';
+    if(warnCount) countLabel += (countLabel ? ', ' : '') + warnCount + ' warn';
+    countLabel += (countLabel ? ', ' : '') + passCount + ' pass';
+
+    html += `
+    <div class="category-block" data-cat="${cat.key}">
+      <div class="category-header" onclick="toggleCategory(this)">
+        <span class="cat-icon ${catStatus}"></span>
+        ${esc(cat.label)}
+        <span class="cat-count">${countLabel}</span>
+        <span class="chevron">&#9656;</span>
+      </div>
+      <div class="category-body">`;
+
+    for(const check of catChecks){
+      const icon = check.status === 'pass' ? '&#10003;' : check.status === 'fail' ? '&#10007;' : '&#9888;';
+      html += `
+        <div class="check-row">
+          <div class="check-icon ${check.status}">${icon}</div>
+          <div class="check-label${check.status === 'pass' ? ' muted' : ''}">${esc(check.label)}</div>
+        </div>`;
+    }
+
+    html += `</div></div>`;
+  }
+
+  html += `</div>`;
+
+  r.innerHTML = html;
+
+  // Auto-expand categories with issues
+  document.querySelectorAll('.category-block').forEach(block => {
+    const header = block.querySelector('.category-header');
+    const body = block.querySelector('.category-body');
+    const hasIssues = block.querySelector('.check-icon.fail, .check-icon.warn');
+    if(hasIssues){
+      header.classList.add('open');
+      body.classList.add('open');
+    }
+  });
+}
+
+// Toggle category
+function toggleCategory(header){
+  header.classList.toggle('open');
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildControls();
+renderReport();
+</script>
+</body>
+</html>

@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ad Budget Calculator - FreeAdStore</title>
+<meta name="description" content="Plan ad budgets across Google, Meta, LinkedIn, TikTok & more. Real industry benchmarks, per-platform breakdowns, exportable reports. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:#fef2f2;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#22c55e;--blue:#3b82f6;--purple:#8b5cf6;--orange:#f97316;--cyan:#06b6d4;--pink:#ec4899;--yellow:#eab308;--teal:#14b8a6}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 16px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px;font-family:'Fraunces',serif}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-width:0;background:var(--bg);padding:0}
+
+/* PANELS */
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+.panel-title svg{width:14px;height:14px;color:var(--muted)}
+label{font-size:.7rem;color:var(--muted);display:block;margin:6px 0 3px;font-weight:500}
+select,input[type=number]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;color:var(--text)}
+select:focus,input[type=number]:focus{border-color:var(--accent)}
+
+/* PILLS */
+.pill-row{display:flex;gap:4px;flex-wrap:wrap}
+.pill{padding:5px 12px;border:1px solid var(--line);border-radius:6px;font-size:.72rem;font-weight:600;cursor:pointer;background:var(--panel);font-family:inherit;transition:all .12s;color:var(--text)}
+.pill:hover{border-color:var(--accent)}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* CHECKBOXES */
+.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.check-item{display:flex;align-items:center;gap:6px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;cursor:pointer;font-size:.72rem;font-weight:500;transition:all .12s;user-select:none}
+.check-item:hover{border-color:var(--accent)}
+.check-item.active{border-color:var(--accent);background:var(--accent-light)}
+.check-item .dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.check-item input[type=checkbox]{display:none}
+
+/* BUTTONS */
+.btn{padding:9px 18px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .12s;width:100%}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{filter:brightness(1.1)}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+
+/* MAIN CONTENT */
+.results{padding:24px;max-width:960px;margin:0 auto;width:100%}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;color:var(--muted);text-align:center;gap:12px}
+.empty-state svg{width:64px;height:64px;color:var(--line)}
+.empty-state h2{font-size:1.1rem;font-weight:700;color:var(--text)}
+.empty-state p{font-size:.82rem;max-width:360px}
+
+/* SUMMARY CARD */
+.summary-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px 28px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+.summary-item{text-align:center}
+.summary-item .label{font-size:.68rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.summary-item .value{font-size:1.8rem;font-weight:800;font-family:'Fraunces',serif;color:var(--accent)}
+.summary-item .sub{font-size:.72rem;color:var(--muted);margin-top:2px}
+.summary-item:first-child .value{font-size:2.4rem}
+
+/* BREAKDOWN TABLE */
+.breakdown{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px;overflow-x:auto}
+.breakdown h3{font-size:.82rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.breakdown table{width:100%;border-collapse:collapse;font-size:.78rem}
+.breakdown th{text-align:left;font-size:.66rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:8px 10px;border-bottom:2px solid var(--line)}
+.breakdown td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.breakdown tr:last-child td{border-bottom:none}
+.breakdown .platform-cell{display:flex;align-items:center;gap:8px;font-weight:600}
+.breakdown .platform-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.6rem;font-weight:800;flex-shrink:0}
+.breakdown .pct-cell{font-weight:700;color:var(--accent)}
+.breakdown tfoot td{font-weight:700;border-top:2px solid var(--line);padding-top:12px}
+
+/* CHART */
+.chart-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px}
+.chart-card h3{font-size:.82rem;font-weight:700;margin-bottom:14px}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.bar-label{width:110px;font-size:.72rem;font-weight:600;text-align:right;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:28px;background:var(--bg);border-radius:6px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:6px;transition:width .4s ease;display:flex;align-items:center;padding:0 8px;min-width:fit-content}
+.bar-fill span{font-size:.65rem;font-weight:700;color:#fff;white-space:nowrap}
+.bar-value{width:90px;font-size:.72rem;font-weight:600;color:var(--muted);flex-shrink:0;font-variant-numeric:tabular-nums}
+
+/* TIPS */
+.tips-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px}
+.tips-card h3{font-size:.82rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.tip{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:.78rem;line-height:1.5}
+.tip:last-child{border-bottom:none}
+.tip-icon{width:28px;height:28px;border-radius:6px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.75rem}
+
+/* EXPORT ROW */
+.export-row{display:flex;gap:8px;margin-bottom:20px}
+.export-row .btn{width:auto;padding:8px 16px}
+
+/* PRINT STYLES */
+@media print{
+  .sidebar,.export-row,.back,a.back{display:none!important}
+  .app{display:block}
+  .main{overflow:visible}
+  .results{padding:0;max-width:100%}
+  .summary-card,.breakdown,.chart-card,.tips-card{break-inside:avoid;border:1px solid #ddd;box-shadow:none}
+  body{background:#fff}
+  @page{margin:1.5cm}
+}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .summary-card{grid-template-columns:1fr}
+  .check-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Controls -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&#8592; FreeAdStore</a>
+      <h1>Ad Budget Calculator</h1>
+      <p>Plan ad spend across platforms with real industry benchmarks.</p>
+    </div>
+    <div class="sidebar-scroll">
+      <!-- Campaign Goal -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>Campaign Goal</div>
+        <div class="pill-row" id="goalRow"></div>
+      </div>
+
+      <!-- Platform Selector -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Platforms</div>
+        <div class="check-grid" id="platformGrid"></div>
+      </div>
+
+      <!-- Industry -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7v14m6-14v14m6-14v14m6-14v14M6 3l6-1 6 1"/></svg>Industry</div>
+        <select id="industrySelect"></select>
+      </div>
+
+      <!-- Target Number -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Target <span id="targetUnit" style="color:var(--accent);font-weight:700;text-transform:lowercase"></span></div>
+        <input type="number" id="targetInput" min="1" step="1" placeholder="e.g. 1000">
+      </div>
+
+      <!-- Campaign Duration -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Campaign Duration</div>
+        <select id="durationSelect"></select>
+      </div>
+
+      <!-- Currency -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Currency</div>
+        <select id="currencySelect"></select>
+      </div>
+
+      <!-- Calculate Button -->
+      <button class="btn btn-primary" id="btnCalc" style="margin-top:4px">Calculate Budget</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: Results -->
+  <div class="main">
+    <div class="results" id="results">
+      <div class="empty-state" id="emptyState">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 7H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-3"/><path d="M9 15h3l8.5-8.5a2.121 2.121 0 0 0-3-3L9 12v3"/><line x1="16" y1="5" x2="19" y2="8"/></svg>
+        <h2>Configure your campaign</h2>
+        <p>Select platforms, set your goal and target number, then hit Calculate to see your budget breakdown.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA: Benchmarks, Industries, Platforms
+// ============================================================
+const GOALS = [
+  { id: 'impressions', label: 'Impressions', unit: 'impressions' },
+  { id: 'clicks', label: 'Clicks', unit: 'clicks' },
+  { id: 'conversions', label: 'Conversions', unit: 'conversions' },
+  { id: 'leads', label: 'Leads', unit: 'leads' }
+];
+
+const PLATFORMS = [
+  { id: 'google-search', name: 'Google Search', color: '#4285f4', abbr: 'G', cpc: [1.00, 6.50], ctr: [0.03, 0.06], cpm: [15, 45] },
+  { id: 'google-display', name: 'Google Display', color: '#34a853', abbr: 'GD', cpc: [0.50, 2.00], ctr: [0.005, 0.01], cpm: [3, 12] },
+  { id: 'meta', name: 'Meta/Facebook', color: '#1877f2', abbr: 'M', cpc: [0.60, 3.50], ctr: [0.01, 0.03], cpm: [8, 25] },
+  { id: 'instagram', name: 'Instagram', color: '#e4405f', abbr: 'IG', cpc: [0.80, 4.00], ctr: [0.008, 0.025], cpm: [10, 30] },
+  { id: 'linkedin', name: 'LinkedIn', color: '#0a66c2', abbr: 'LI', cpc: [3.00, 12.00], ctr: [0.004, 0.01], cpm: [25, 80] },
+  { id: 'tiktok', name: 'TikTok', color: '#010101', abbr: 'TT', cpc: [0.50, 2.50], ctr: [0.01, 0.03], cpm: [6, 20] },
+  { id: 'x-twitter', name: 'X / Twitter', color: '#1d9bf0', abbr: 'X', cpc: [0.50, 3.00], ctr: [0.005, 0.02], cpm: [6, 20] },
+  { id: 'youtube', name: 'YouTube', color: '#ff0000', abbr: 'YT', cpc: [0.01, 0.30], ctr: [0.15, 0.30], cpm: [5, 30] }
+];
+
+const INDUSTRIES = [
+  { id: 'technology', name: 'Technology', mult: 1.2 },
+  { id: 'ecommerce', name: 'E-commerce', mult: 0.8 },
+  { id: 'finance', name: 'Finance', mult: 2.5 },
+  { id: 'healthcare', name: 'Healthcare', mult: 1.8 },
+  { id: 'education', name: 'Education', mult: 0.9 },
+  { id: 'real-estate', name: 'Real Estate', mult: 1.6 },
+  { id: 'travel', name: 'Travel', mult: 1.1 },
+  { id: 'food', name: 'Food & Beverage', mult: 0.7 },
+  { id: 'automotive', name: 'Automotive', mult: 1.5 },
+  { id: 'legal', name: 'Legal', mult: 3.0 },
+  { id: 'b2b-saas', name: 'B2B SaaS', mult: 2.0 },
+  { id: 'other', name: 'Other', mult: 1.0 }
+];
+
+const DURATIONS = [
+  { days: 7, label: '7 days' },
+  { days: 14, label: '14 days' },
+  { days: 30, label: '30 days' },
+  { days: 60, label: '60 days' },
+  { days: 90, label: '90 days' }
+];
+
+const CURRENCIES = [
+  { code: 'USD', symbol: '$', rate: 1 },
+  { code: 'EUR', symbol: '\u20AC', rate: 0.92 },
+  { code: 'GBP', symbol: '\u00A3', rate: 0.79 },
+  { code: 'CAD', symbol: 'CA$', rate: 1.36 },
+  { code: 'AUD', symbol: 'A$', rate: 1.53 }
+];
+
+// Platform-specific weights for how budget should be allocated
+// (relative effectiveness per goal)
+const GOAL_WEIGHTS = {
+  impressions: {
+    'google-search': 0.8, 'google-display': 1.5, 'meta': 1.3, 'instagram': 1.2,
+    'linkedin': 0.6, 'tiktok': 1.4, 'x-twitter': 1.0, 'youtube': 1.3
+  },
+  clicks: {
+    'google-search': 1.5, 'google-display': 0.7, 'meta': 1.2, 'instagram': 1.0,
+    'linkedin': 0.6, 'tiktok': 1.1, 'x-twitter': 0.8, 'youtube': 0.9
+  },
+  conversions: {
+    'google-search': 1.8, 'google-display': 0.5, 'meta': 1.3, 'instagram': 0.9,
+    'linkedin': 1.0, 'tiktok': 0.7, 'x-twitter': 0.5, 'youtube': 0.8
+  },
+  leads: {
+    'google-search': 1.6, 'google-display': 0.4, 'meta': 1.2, 'instagram': 0.7,
+    'linkedin': 1.8, 'tiktok': 0.5, 'x-twitter': 0.4, 'youtube': 0.6
+  }
+};
+
+// Conversion rate assumptions (from click to conversion/lead)
+const CONV_RATES = {
+  'google-search': 0.04, 'google-display': 0.005, 'meta': 0.025, 'instagram': 0.015,
+  'linkedin': 0.03, 'tiktok': 0.012, 'x-twitter': 0.008, 'youtube': 0.018
+};
+
+// Tips database
+const TIPS_DB = {
+  'google-search': 'Google Search has the highest purchase intent. Focus budget here for bottom-of-funnel conversions.',
+  'google-display': 'Google Display is best for brand awareness at low CPM. Use compelling visuals and remarketing lists.',
+  'meta': 'Meta/Facebook excels at detailed audience targeting. Lookalike audiences from your customer list can dramatically lower CPA.',
+  'instagram': 'Instagram performs best with high-quality visual content. Stories and Reels typically have 2-3x better engagement than feed posts.',
+  'linkedin': 'LinkedIn has higher CPC but delivers better B2B conversion rates. Ideal for reaching decision-makers and generating qualified leads.',
+  'tiktok': 'TikTok offers the lowest CPM for reaching Gen Z and Millennials. Native-feeling content outperforms polished ads by 3x.',
+  'x-twitter': 'X/Twitter works well for real-time engagement and trending topics. Best for tech, media, and B2B audiences.',
+  'youtube': 'YouTube CPV is very low. Pre-roll and in-stream ads build brand recall. Aim for view rates above 20%.'
+};
+
+const GOAL_TIPS = {
+  impressions: 'For awareness campaigns, prioritize platforms with the lowest CPM. Google Display and TikTok typically offer the best impression volume per dollar.',
+  clicks: 'To maximize clicks, focus on platforms with high CTR and low CPC. Google Search and Meta usually deliver the most cost-effective traffic.',
+  conversions: 'Conversion campaigns benefit from retargeting. Allocate 20-30% of budget to remarketing across Google Display and Meta.',
+  leads: 'Lead generation works best with dedicated landing pages. LinkedIn Lead Gen Forms have 2-5x higher conversion rates than standard landing pages.'
+};
+
+const INDUSTRY_TIPS = {
+  'technology': 'Tech audiences respond well to LinkedIn and Google Search. Consider allocating extra budget to these channels for qualified leads.',
+  'ecommerce': 'E-commerce benefits from visual platforms like Instagram and TikTok. Dynamic product ads on Meta can deliver 3-5x ROAS.',
+  'finance': 'Financial services face strict ad policies. Build in extra time for ad review. Google Search captures high-intent searches effectively.',
+  'healthcare': 'Healthcare advertising requires compliance review. Focus on educational content and use Google Search for symptom-related queries.',
+  'education': 'Education marketing peaks during enrollment seasons. YouTube and Instagram Stories perform well for course/program promotion.',
+  'real-estate': 'Real estate ads perform best with location targeting. Meta and Instagram carousel ads showcase properties effectively.',
+  'travel': 'Travel campaigns benefit from seasonal timing and visual storytelling. Instagram and YouTube drive aspirational bookings.',
+  'food': 'Food & Beverage brands see strong results on visual platforms. TikTok and Instagram Reels are particularly effective for restaurant promotion.',
+  'automotive': 'Automotive buyers have a long research phase. Use YouTube for consideration and Google Search for purchase-intent queries.',
+  'legal': 'Legal has the highest CPC across all industries. Focus on Google Search with tight keyword targeting to control spend.',
+  'b2b-saas': 'B2B SaaS benefits most from LinkedIn and Google Search. Content marketing + retargeting creates an efficient pipeline.',
+  'other': 'Start with a balanced split across 2-3 platforms, test for 2 weeks, then reallocate budget to top performers.'
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let S = {
+  goal: 'clicks',
+  platforms: new Set(['google-search', 'meta']),
+  industry: 'technology',
+  target: 1000,
+  duration: 30,
+  currency: 'USD',
+  calculated: false
+};
+
+// ============================================================
+// BUILD CONTROLS
+// ============================================================
+function buildControls() {
+  // Goals
+  const goalRow = document.getElementById('goalRow');
+  goalRow.innerHTML = GOALS.map(g =>
+    `<button class="pill${S.goal === g.id ? ' active' : ''}" data-goal="${g.id}">${g.label}</button>`
+  ).join('');
+  goalRow.onclick = e => {
+    const el = e.target.closest('[data-goal]');
+    if (!el) return;
+    S.goal = el.dataset.goal;
+    goalRow.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p.dataset.goal === S.goal));
+    document.getElementById('targetUnit').textContent = GOALS.find(g => g.id === S.goal).unit;
+    document.getElementById('targetInput').placeholder = S.goal === 'impressions' ? 'e.g. 50000' : S.goal === 'clicks' ? 'e.g. 1000' : 'e.g. 100';
+    if (S.calculated) calculate();
+  };
+
+  // Platforms
+  const platformGrid = document.getElementById('platformGrid');
+  platformGrid.innerHTML = PLATFORMS.map(p => {
+    const active = S.platforms.has(p.id);
+    return `<div class="check-item${active ? ' active' : ''}" data-pid="${p.id}">
+      <div class="dot" style="background:${p.color}"></div>
+      <span>${p.name}</span>
+    </div>`;
+  }).join('');
+  platformGrid.onclick = e => {
+    const el = e.target.closest('[data-pid]');
+    if (!el) return;
+    const pid = el.dataset.pid;
+    if (S.platforms.has(pid)) S.platforms.delete(pid);
+    else S.platforms.add(pid);
+    el.classList.toggle('active', S.platforms.has(pid));
+    if (S.calculated) calculate();
+  };
+
+  // Industry
+  const industrySelect = document.getElementById('industrySelect');
+  industrySelect.innerHTML = INDUSTRIES.map(i =>
+    `<option value="${i.id}"${S.industry === i.id ? ' selected' : ''}>${i.name}</option>`
+  ).join('');
+  industrySelect.onchange = e => {
+    S.industry = e.target.value;
+    if (S.calculated) calculate();
+  };
+
+  // Target unit label
+  document.getElementById('targetUnit').textContent = GOALS.find(g => g.id === S.goal).unit;
+
+  // Target input
+  const targetInput = document.getElementById('targetInput');
+  targetInput.value = S.target || '';
+  targetInput.oninput = e => {
+    S.target = Math.max(0, parseInt(e.target.value) || 0);
+    if (S.calculated) calculate();
+  };
+
+  // Duration
+  const durationSelect = document.getElementById('durationSelect');
+  durationSelect.innerHTML = DURATIONS.map(d =>
+    `<option value="${d.days}"${S.duration === d.days ? ' selected' : ''}>${d.label}</option>`
+  ).join('');
+  durationSelect.onchange = e => {
+    S.duration = parseInt(e.target.value);
+    if (S.calculated) calculate();
+  };
+
+  // Currency
+  const currencySelect = document.getElementById('currencySelect');
+  currencySelect.innerHTML = CURRENCIES.map(c =>
+    `<option value="${c.code}"${S.currency === c.code ? ' selected' : ''}>${c.code} (${c.symbol})</option>`
+  ).join('');
+  currencySelect.onchange = e => {
+    S.currency = e.target.value;
+    if (S.calculated) calculate();
+  };
+
+  // Calculate button
+  document.getElementById('btnCalc').onclick = () => {
+    S.calculated = true;
+    calculate();
+  };
+}
+
+// ============================================================
+// CALCULATION ENGINE
+// ============================================================
+function calculate() {
+  const results = document.getElementById('results');
+  const selectedPlatforms = PLATFORMS.filter(p => S.platforms.has(p.id));
+
+  if (selectedPlatforms.length === 0 || !S.target || S.target <= 0) {
+    results.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v2m0 4h.01M5.07 19H19a2 2 0 0 0 1.75-2.97L13.73 4.99a2 2 0 0 0-3.46 0L3.34 16.03A2 2 0 0 0 5.07 19z"/></svg>
+      <h2>Missing inputs</h2>
+      <p>Select at least one platform and enter a target number greater than zero.</p>
+    </div>`;
+    return;
+  }
+
+  const currency = CURRENCIES.find(c => c.code === S.currency);
+  const industry = INDUSTRIES.find(i => i.id === S.industry);
+  const mult = industry.mult;
+
+  // Calculate per-platform metrics
+  const platformData = selectedPlatforms.map(p => {
+    const weight = GOAL_WEIGHTS[S.goal][p.id] || 1;
+    const avgCpc = ((p.cpc[0] + p.cpc[1]) / 2) * mult;
+    const avgCpm = ((p.cpm[0] + p.cpm[1]) / 2) * mult;
+    const avgCtr = (p.ctr[0] + p.ctr[1]) / 2;
+    const convRate = CONV_RATES[p.id] * (mult > 1.5 ? 0.8 : mult < 0.9 ? 1.2 : 1);
+
+    return { ...p, weight, avgCpc, avgCpm, avgCtr, convRate };
+  });
+
+  // Normalize weights for budget allocation
+  const totalWeight = platformData.reduce((sum, p) => sum + p.weight, 0);
+  platformData.forEach(p => { p.share = p.weight / totalWeight; });
+
+  // Calculate costs and results per platform based on goal
+  let totalBudget = 0;
+  platformData.forEach(p => {
+    const platformTarget = S.target * p.share;
+
+    if (S.goal === 'impressions') {
+      p.budget = (platformTarget / 1000) * p.avgCpm;
+      p.estResults = Math.round(platformTarget);
+      p.costMetric = p.avgCpm;
+      p.costLabel = 'CPM';
+    } else if (S.goal === 'clicks') {
+      p.budget = platformTarget * p.avgCpc;
+      p.estResults = Math.round(platformTarget);
+      p.costMetric = p.avgCpc;
+      p.costLabel = 'CPC';
+    } else if (S.goal === 'conversions') {
+      // Need clicks to get conversions: conversions = clicks * convRate
+      const clicksNeeded = platformTarget / p.convRate;
+      p.budget = clicksNeeded * p.avgCpc;
+      p.estResults = Math.round(platformTarget);
+      p.costMetric = p.avgCpc / p.convRate;
+      p.costLabel = 'CPA';
+    } else if (S.goal === 'leads') {
+      const clicksNeeded = platformTarget / (p.convRate * 0.8); // leads slightly harder than conversions
+      p.budget = clicksNeeded * p.avgCpc;
+      p.estResults = Math.round(platformTarget);
+      p.costMetric = p.avgCpc / (p.convRate * 0.8);
+      p.costLabel = 'CPL';
+    }
+
+    p.budget = Math.max(p.budget, 1); // minimum $1
+    totalBudget += p.budget;
+  });
+
+  // Recalculate percentages based on actual budget
+  platformData.forEach(p => { p.pct = (p.budget / totalBudget) * 100; });
+
+  const dailyBudget = totalBudget / S.duration;
+  const costPerResult = totalBudget / S.target;
+
+  // Convert to selected currency
+  const rate = currency.rate;
+  const sym = currency.symbol;
+
+  const fmt = (n) => {
+    const converted = n * rate;
+    if (converted >= 1000000) return sym + (converted / 1000000).toFixed(1) + 'M';
+    if (converted >= 1000) return sym + (converted / 1000).toFixed(1) + 'K';
+    return sym + converted.toFixed(2);
+  };
+  const fmtFull = (n) => {
+    const converted = n * rate;
+    return sym + converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+  const fmtInt = (n) => n.toLocaleString('en-US');
+
+  // Build tips
+  const tips = [];
+  tips.push({ icon: '\u{1F3AF}', text: GOAL_TIPS[S.goal] });
+  tips.push({ icon: '\u{1F3ED}', text: INDUSTRY_TIPS[S.industry] });
+  selectedPlatforms.forEach(p => {
+    if (TIPS_DB[p.id]) tips.push({ icon: '\u{1F4A1}', text: TIPS_DB[p.id] });
+  });
+  if (S.duration <= 14) {
+    tips.push({ icon: '\u23F0', text: 'Short campaigns (under 14 days) have less time for algorithm optimization. Consider extending to 30 days for better performance.' });
+  }
+  if (totalBudget * rate < 500 && selectedPlatforms.length > 3) {
+    tips.push({ icon: '\u26A0\uFE0F', text: 'Your budget is spread thin across many platforms. Consider focusing on 2-3 top performers to avoid underdelivery.' });
+  }
+
+  // Max bar width
+  const maxPct = Math.max(...platformData.map(p => p.pct));
+
+  // Render
+  results.innerHTML = `
+    <!-- Export Row -->
+    <div class="export-row">
+      <button class="btn btn-outline" id="btnPrint">Export as PDF</button>
+    </div>
+
+    <!-- Summary Card -->
+    <div class="summary-card">
+      <div class="summary-item">
+        <div class="label">Total Estimated Budget</div>
+        <div class="value">${fmt(totalBudget)}</div>
+        <div class="sub">${S.duration}-day campaign</div>
+      </div>
+      <div class="summary-item">
+        <div class="label">Daily Budget</div>
+        <div class="value" style="font-size:1.6rem">${fmt(dailyBudget)}</div>
+        <div class="sub">across ${selectedPlatforms.length} platform${selectedPlatforms.length > 1 ? 's' : ''}</div>
+      </div>
+      <div class="summary-item">
+        <div class="label">Cost per ${GOALS.find(g => g.id === S.goal).label.slice(0, -1)}</div>
+        <div class="value" style="font-size:1.6rem">${fmt(costPerResult)}</div>
+        <div class="sub">${fmtInt(S.target)} ${S.goal} target</div>
+      </div>
+    </div>
+
+    <!-- Breakdown Table -->
+    <div class="breakdown">
+      <h3><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M6 20V4M18 20v-6"/></svg> Per-Platform Breakdown</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>${platformData[0]?.costLabel || 'Cost'}</th>
+            <th>Daily Budget</th>
+            <th>Est. ${GOALS.find(g => g.id === S.goal).label}</th>
+            <th>% of Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${platformData.map(p => `
+          <tr>
+            <td>
+              <div class="platform-cell">
+                <div class="platform-icon" style="background:${p.color}">${p.abbr}</div>
+                ${p.name}
+              </div>
+            </td>
+            <td>${fmtFull(p.costMetric)}</td>
+            <td>${fmtFull(p.budget / S.duration)}</td>
+            <td>${fmtInt(p.estResults)}</td>
+            <td class="pct-cell">${p.pct.toFixed(1)}%</td>
+          </tr>`).join('')}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Total</td>
+            <td></td>
+            <td>${fmtFull(dailyBudget)}</td>
+            <td>${fmtInt(S.target)}</td>
+            <td class="pct-cell">100%</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Budget Split Chart -->
+    <div class="chart-card">
+      <h3>Budget Allocation</h3>
+      ${platformData.map(p => {
+        const barWidth = Math.max(4, (p.pct / maxPct) * 100);
+        return `<div class="bar-row">
+          <div class="bar-label">${p.name}</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:${barWidth}%;background:${p.color}">
+              <span>${p.pct.toFixed(1)}%</span>
+            </div>
+          </div>
+          <div class="bar-value">${fmtFull(p.budget)}</div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- Tips -->
+    <div class="tips-card">
+      <h3><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Budget Tips &amp; Insights</h3>
+      ${tips.map(t => `<div class="tip">
+        <div class="tip-icon">${t.icon}</div>
+        <div>${t.text}</div>
+      </div>`).join('')}
+    </div>
+  `;
+
+  // Bind export
+  document.getElementById('btnPrint').onclick = () => window.print();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildControls();
+</script>
+</body>
+</html>

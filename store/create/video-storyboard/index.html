@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Ad Storyboard - FreeAdStore</title>
+<meta name="description" content="Plan video ads scene-by-scene for YouTube, TikTok, Meta, and Instagram. Drag-to-reorder storyboard with templates and PDF export. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:rgba(239,68,68,.08);--accent-hover:#dc2626;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#22c55e;--yellow:#eab308;--red:#ef4444}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:600;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+a.back span{font-weight:400;color:var(--muted)}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 20px 20px}
+.sidebar-head{padding:16px 20px 0;flex-shrink:0}
+.sidebar-head h1{font-family:'Fraunces',serif;font-size:1.35rem;font-weight:700;margin-bottom:2px;color:var(--text)}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:14px;line-height:1.4}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--bg)}
+.main-header{padding:16px 24px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.main-header h2{font-size:.85rem;font-weight:700;color:var(--text)}
+.main-scroll{flex:1;overflow-y:auto;padding:16px 24px 24px}
+
+/* PANELS */
+.panel{margin-bottom:16px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 4px;font-weight:500}
+input[type=text],input[type=number],textarea,select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;transition:border-color .15s}
+input[type=text]:focus,input[type=number]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:60px}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+
+/* PILLS */
+.pill-row{display:flex;gap:5px;flex-wrap:wrap}
+.pill{padding:5px 12px;border:1px solid var(--line);border-radius:8px;font-size:.72rem;font-weight:600;cursor:pointer;background:var(--panel);font-family:inherit;transition:all .12s;color:var(--text)}
+.pill:hover{border-color:var(--accent);color:var(--accent)}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* BUTTONS */
+.btn{padding:10px 20px;border-radius:var(--radius);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff;width:100%}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(239,68,68,.3)}
+.btn-primary:active{transform:translateY(0)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line);padding:7px 14px;font-size:.75rem;font-weight:600}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:6px 12px;font-size:.72rem}
+
+/* RANGE SLIDER */
+input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;height:6px;-webkit-appearance:none;background:var(--line);border-radius:3px;outline:none;margin:8px 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.range-label{display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:var(--muted)}
+.range-label .range-val{font-weight:700;color:var(--accent);font-size:.82rem}
+
+/* SEPARATOR */
+.sep{height:1px;background:var(--line);margin:16px 0}
+
+/* TIMELINE BAR */
+.timeline{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px}
+.timeline-label{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em}
+.timeline-bar{display:flex;height:32px;border-radius:6px;overflow:hidden;background:var(--bg);border:1px solid var(--line)}
+.timeline-seg{display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;transition:all .2s;position:relative;min-width:20px}
+.timeline-seg span{white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.timeline-info{display:flex;justify-content:space-between;margin-top:6px;font-size:.68rem;color:var(--muted)}
+.timeline-info strong{color:var(--text)}
+
+/* SCENE CARDS */
+.scene-list{display:flex;flex-direction:column;gap:12px}
+.scene-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:all .2s}
+.scene-card:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.scene-card.dragging{opacity:.5;border-color:var(--accent);box-shadow:0 8px 24px rgba(239,68,68,.15)}
+.scene-card.drag-over{border-color:var(--accent);border-style:dashed}
+.scene-head{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;cursor:grab}
+.scene-head:active{cursor:grabbing}
+.scene-num{font-size:.82rem;font-weight:800;color:var(--accent);display:flex;align-items:center;gap:8px}
+.scene-num .grip{color:var(--muted);display:flex;align-items:center}
+.scene-actions{display:flex;gap:4px}
+.scene-actions button{background:none;border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:.68rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--muted);transition:all .12s}
+.scene-actions button:hover{border-color:var(--accent);color:var(--accent)}
+.scene-actions button.del:hover{border-color:var(--red);color:var(--red)}
+.scene-body{padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.scene-body .full{grid-column:1/-1}
+.scene-field label{margin:0 0 4px}
+.scene-field input,.scene-field textarea,.scene-field select{font-size:.8rem;padding:8px 10px}
+.scene-field textarea{min-height:50px}
+.scene-dur{display:flex;align-items:center;gap:6px}
+.scene-dur input[type=number]{width:60px;text-align:center;padding:8px 6px}
+.scene-dur span{font-size:.72rem;color:var(--muted)}
+
+/* EMPTY STATE */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:400px;text-align:center;padding:40px}
+.empty-icon{width:80px;height:80px;border-radius:20px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.empty-icon svg{width:36px;height:36px;color:var(--accent)}
+.empty-state h3{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;margin-bottom:6px}
+.empty-state p{font-size:.82rem;color:var(--muted);max-width:320px;line-height:1.5}
+
+/* EXPORT BAR */
+.export-bar{padding:12px 24px;border-top:1px solid var(--line);background:var(--panel);display:flex;gap:8px;flex-shrink:0;align-items:center;justify-content:flex-end}
+.export-bar .count{font-size:.72rem;color:var(--muted);margin-right:auto}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;padding:10px 20px;border-radius:10px;font-size:.78rem;font-weight:600;opacity:0;transition:all .3s ease;z-index:1000;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* TEMPLATE PILLS */
+.tmpl-row{display:flex;flex-direction:column;gap:6px}
+.tmpl-pill{padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:.72rem;font-weight:600;cursor:pointer;background:var(--panel);font-family:inherit;transition:all .12s;color:var(--text);text-align:left;display:flex;justify-content:space-between;align-items:center}
+.tmpl-pill:hover{border-color:var(--accent);color:var(--accent)}
+.tmpl-pill span{font-weight:400;color:var(--muted);font-size:.68rem}
+
+/* ADD SCENE */
+.add-scene-btn{width:100%;padding:14px;border:2px dashed var(--line);border-radius:12px;background:transparent;font-size:.82rem;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.add-scene-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+
+/* SCENE COLORS */
+.sc1{background:#ef4444}.sc2{background:#f97316}.sc3{background:#eab308}.sc4{background:#22c55e}.sc5{background:#06b6d4}.sc6{background:#8b5cf6}.sc7{background:#ec4899}.sc8{background:#64748b}
+
+/* PRINT */
+@media print{
+  .sidebar,.export-bar,.main-header,.toast,.add-scene-btn,.scene-actions,.scene-head .grip{display:none!important}
+  .app{display:block;height:auto}
+  .main{overflow:visible}
+  .main-scroll{overflow:visible;padding:20px}
+  .scene-card{break-inside:avoid;page-break-inside:avoid;border:1px solid #ccc}
+  .scene-head{cursor:default}
+  .timeline{break-inside:avoid}
+  @page{margin:1.5cm}
+}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:none}
+  .main{min-height:60vh}
+  .scene-body{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/"><span>&larr;</span> FreeAdStore</a>
+      <h1>Video Ad Storyboard</h1>
+      <p>Plan video ads scene-by-scene. Drag to reorder, export as PDF.</p>
+    </div>
+    <div class="sidebar-scroll" id="controls"></div>
+  </div>
+  <div class="main">
+    <div class="main-header" id="mainHeader" style="display:none">
+      <h2 id="resultsTitle">Storyboard</h2>
+      <div style="display:flex;gap:6px">
+        <button class="btn-outline btn-sm" id="btnClearAll">Clear All</button>
+      </div>
+    </div>
+    <div class="main-scroll" id="mainContent">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+        </div>
+        <h3>Ready to storyboard</h3>
+        <p>Set your brand and video specs in the sidebar, then click "Create Storyboard" or pick a template to get started.</p>
+      </div>
+      <div id="storyboardArea" style="display:none">
+        <div class="timeline" id="timeline"></div>
+        <div class="scene-list" id="sceneList"></div>
+        <button class="add-scene-btn" id="btnAddScene">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Scene
+        </button>
+      </div>
+    </div>
+    <div class="export-bar" id="exportBar" style="display:none">
+      <span class="count" id="exportCount"></span>
+      <button class="btn-outline btn-sm" id="btnCopyText">Copy as Text</button>
+      <button class="btn-outline btn-sm" id="btnPrint">Export PDF (Print)</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SCENE_COLORS = ['sc1','sc2','sc3','sc4','sc5','sc6','sc7','sc8'];
+const SHOT_TYPES = ['Wide','Medium','Close-up','Product','Text Overlay','B-Roll','Transition'];
+const PLATFORMS = ['YouTube','TikTok','Meta Reels','Instagram Reels'];
+const DURATIONS = [{label:'15s',val:15},{label:'30s',val:30},{label:'60s',val:60}];
+
+const TEMPLATES = {
+  'Product Demo': {
+    scenes: [
+      {shot:'Wide',desc:'Opening hook — attention-grabbing statement or visual',vo:'Hook line that stops scrolling',music:'Upbeat, energetic intro'},
+      {shot:'Product',desc:'Product reveal — show the product clearly',vo:'Introduce the product name and what it does',music:'Continue upbeat'},
+      {shot:'Close-up',desc:'Key feature demo — show the product in action',vo:'Explain the main benefit',music:'Maintain energy'},
+      {shot:'Medium',desc:'Social proof or results — testimonial clip or stats',vo:'Quote or data point',music:'Softer, trust-building'},
+      {shot:'Text Overlay',desc:'Call to action with brand logo and URL',vo:'Clear CTA with urgency',music:'Resolve to brand jingle/sting'},
+    ]
+  },
+  'Testimonial': {
+    scenes: [
+      {shot:'Medium',desc:'Customer introduces themselves, states their problem',vo:'I used to struggle with...',music:'Gentle, relatable background'},
+      {shot:'Close-up',desc:'Customer describes discovering the product',vo:'Then I found [Brand]...',music:'Building anticipation'},
+      {shot:'Product',desc:'Show product being used by the customer',vo:'Now I can... / It changed...',music:'Positive, uplifting'},
+      {shot:'Text Overlay',desc:'CTA with star rating, brand logo, and offer',vo:'Try it yourself — [CTA]',music:'Confident outro sting'},
+    ]
+  },
+  'Before/After': {
+    scenes: [
+      {shot:'Wide',desc:'Show the "before" state — the problem or pain point',vo:'Before: describe the frustration',music:'Tense, slightly negative'},
+      {shot:'Transition',desc:'Transition moment — product introduction',vo:'Until [Brand] changed everything',music:'Transition beat drop'},
+      {shot:'Product',desc:'Show the product solving the problem',vo:'With [Brand], you get...',music:'Upbeat, positive shift'},
+      {shot:'Text Overlay',desc:'Side-by-side comparison + CTA',vo:'See the difference. [CTA]',music:'Triumphant resolve'},
+    ]
+  },
+  'How-To': {
+    scenes: [
+      {shot:'Text Overlay',desc:'Title card: "How to [achieve result] in [timeframe]"',vo:'Want to [result]? Here\'s how.',music:'Curious, tutorial vibe'},
+      {shot:'Medium',desc:'Step 1 — first action the viewer should take',vo:'Step 1: [action]',music:'Steady instructional beat'},
+      {shot:'Close-up',desc:'Step 2 — demonstrate the key technique or feature',vo:'Step 2: [action]',music:'Continue steady'},
+      {shot:'Product',desc:'Step 3 — show the product making it easy',vo:'Step 3: Use [Brand] to [action]',music:'Building confidence'},
+      {shot:'Medium',desc:'Show the final result',vo:'And that\'s it! You\'ve [achieved result]',music:'Uplifting payoff'},
+      {shot:'Text Overlay',desc:'CTA with link and brand logo',vo:'Get started free at [URL]',music:'Outro sting'},
+    ]
+  },
+};
+
+let S = {
+  brand: '',
+  platform: 'YouTube',
+  totalDuration: 30,
+  numScenes: 4,
+  scenes: [],
+  dragIdx: -1,
+};
+
+function buildControls() {
+  const c = document.getElementById('controls');
+  c.innerHTML = `
+  <div class="panel">
+    <div class="panel-title">Brand</div>
+    <label>Brand / Company Name</label>
+    <input type="text" id="inpBrand" value="${esc(S.brand)}" placeholder="e.g. Acme, Nike, Stripe">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Video Specs</div>
+    <label>Platform</label>
+    <select id="selPlatform">
+      ${PLATFORMS.map(p => `<option${p===S.platform?' selected':''}>${p}</option>`).join('')}
+    </select>
+    <label>Total Duration</label>
+    <div class="pill-row" id="durRow">
+      ${DURATIONS.map(d => `<button class="pill${d.val===S.totalDuration?' active':''}" data-dur="${d.val}">${d.label}</button>`).join('')}
+    </div>
+    <label>Number of Scenes</label>
+    <div class="range-label"><span>3</span><span class="range-val" id="numScenesVal">${S.numScenes}</span><span>8</span></div>
+    <input type="range" id="rangeScenes" min="3" max="8" value="${S.numScenes}">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Templates</div>
+    <div class="tmpl-row">
+      ${Object.entries(TEMPLATES).map(([name,t]) => `<button class="tmpl-pill" data-tmpl="${name}">${name} <span>${t.scenes.length} scenes</span></button>`).join('')}
+    </div>
+  </div>
+
+  <div class="sep"></div>
+
+  <button class="btn btn-primary" id="btnCreate">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+    Create Storyboard
+  </button>
+  `;
+  bindControls();
+}
+
+function esc(s) { return s.replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+function escHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+function bindControls() {
+  const $ = id => document.getElementById(id);
+  $('inpBrand').oninput = e => { S.brand = e.target.value; };
+  $('selPlatform').onchange = e => { S.platform = e.target.value; };
+  $('rangeScenes').oninput = e => {
+    S.numScenes = +e.target.value;
+    $('numScenesVal').textContent = S.numScenes;
+  };
+  $('durRow').onclick = e => {
+    const el = e.target.closest('[data-dur]');
+    if (!el) return;
+    S.totalDuration = +el.dataset.dur;
+    document.querySelectorAll('#durRow .pill').forEach(p => p.classList.toggle('active', +p.dataset.dur === S.totalDuration));
+  };
+  document.querySelector('.tmpl-row').onclick = e => {
+    const el = e.target.closest('[data-tmpl]');
+    if (!el) return;
+    applyTemplate(el.dataset.tmpl);
+  };
+  $('btnCreate').onclick = createBlank;
+}
+
+function applyTemplate(name) {
+  const tmpl = TEMPLATES[name];
+  if (!tmpl) return;
+  S.numScenes = tmpl.scenes.length;
+  const perScene = Math.floor(S.totalDuration / tmpl.scenes.length);
+  const remainder = S.totalDuration - perScene * tmpl.scenes.length;
+  S.scenes = tmpl.scenes.map((sc, i) => ({
+    shot: sc.shot,
+    desc: sc.desc,
+    vo: sc.vo,
+    music: sc.music,
+    duration: perScene + (i === tmpl.scenes.length - 1 ? remainder : 0),
+  }));
+  renderStoryboard();
+}
+
+function createBlank() {
+  const perScene = Math.floor(S.totalDuration / S.numScenes);
+  const remainder = S.totalDuration - perScene * S.numScenes;
+  S.scenes = Array.from({length: S.numScenes}, (_, i) => ({
+    shot: 'Medium',
+    desc: '',
+    vo: '',
+    music: '',
+    duration: perScene + (i === S.numScenes - 1 ? remainder : 0),
+  }));
+  renderStoryboard();
+}
+
+function renderStoryboard() {
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('storyboardArea').style.display = 'block';
+  document.getElementById('mainHeader').style.display = 'flex';
+  document.getElementById('exportBar').style.display = 'flex';
+
+  const brand = S.brand.trim() || 'Untitled';
+  document.getElementById('resultsTitle').textContent = `${brand} - ${S.platform} ${S.totalDuration}s`;
+  document.getElementById('exportCount').textContent = `${S.scenes.length} scenes, ${S.totalDuration}s total`;
+
+  renderTimeline();
+  renderScenes();
+
+  document.getElementById('btnClearAll').onclick = () => {
+    S.scenes = [];
+    document.getElementById('emptyState').style.display = 'flex';
+    document.getElementById('storyboardArea').style.display = 'none';
+    document.getElementById('mainHeader').style.display = 'none';
+    document.getElementById('exportBar').style.display = 'none';
+  };
+  document.getElementById('btnAddScene').onclick = addScene;
+  document.getElementById('btnCopyText').onclick = copyText;
+  document.getElementById('btnPrint').onclick = () => window.print();
+}
+
+function renderTimeline() {
+  const total = S.scenes.reduce((a, s) => a + s.duration, 0);
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = `
+    <div class="timeline-label">Timeline</div>
+    <div class="timeline-bar">
+      ${S.scenes.map((sc, i) => {
+        const pct = total > 0 ? (sc.duration / total * 100) : (100 / S.scenes.length);
+        return `<div class="timeline-seg ${SCENE_COLORS[i % SCENE_COLORS.length]}" style="width:${pct}%"><span>S${i+1} ${sc.duration}s</span></div>`;
+      }).join('')}
+    </div>
+    <div class="timeline-info">
+      <span>Allocated: <strong>${total}s</strong> / ${S.totalDuration}s target</span>
+      <span>${total !== S.totalDuration ? `<strong style="color:var(--${total > S.totalDuration ? 'red' : 'yellow'})">${total > S.totalDuration ? '+' : ''}${total - S.totalDuration}s</strong>` : '<strong style="color:var(--green)">On target</strong>'}</span>
+    </div>
+  `;
+}
+
+function renderScenes() {
+  const list = document.getElementById('sceneList');
+  list.innerHTML = S.scenes.map((sc, i) => `
+    <div class="scene-card" data-idx="${i}" draggable="true">
+      <div class="scene-head">
+        <div class="scene-num">
+          <span class="grip"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="2"/><circle cx="16" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/></svg></span>
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:2px" class="${SCENE_COLORS[i % SCENE_COLORS.length]}"></span>
+          Scene ${i + 1}
+        </div>
+        <div class="scene-actions">
+          <button onclick="moveScene(${i},-1)" title="Move up">&uarr;</button>
+          <button onclick="moveScene(${i},1)" title="Move down">&darr;</button>
+          <button onclick="dupScene(${i})" title="Duplicate">Dup</button>
+          <button class="del" onclick="delScene(${i})" title="Delete">&times;</button>
+        </div>
+      </div>
+      <div class="scene-body">
+        <div class="scene-field">
+          <label>Duration</label>
+          <div class="scene-dur">
+            <input type="number" min="1" max="60" value="${sc.duration}" onchange="updScene(${i},'duration',+this.value)">
+            <span>seconds</span>
+          </div>
+        </div>
+        <div class="scene-field">
+          <label>Shot Type</label>
+          <select onchange="updScene(${i},'shot',this.value)">
+            ${SHOT_TYPES.map(st => `<option${st===sc.shot?' selected':''}>${st}</option>`).join('')}
+          </select>
+        </div>
+        <div class="scene-field full">
+          <label>Scene Description</label>
+          <textarea placeholder="What happens visually in this scene..." oninput="updScene(${i},'desc',this.value)">${escHtml(sc.desc)}</textarea>
+        </div>
+        <div class="scene-field full">
+          <label>Voiceover / Text Overlay</label>
+          <textarea placeholder="Spoken words or on-screen text..." oninput="updScene(${i},'vo',this.value)">${escHtml(sc.vo)}</textarea>
+        </div>
+        <div class="scene-field full">
+          <label>Music / SFX</label>
+          <input type="text" placeholder="e.g. Upbeat electronic, whoosh transition..." value="${esc(sc.music)}" oninput="updScene(${i},'music',this.value)">
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  // Drag events
+  list.querySelectorAll('.scene-card').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      S.dragIdx = +card.dataset.idx;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      list.querySelectorAll('.scene-card').forEach(c => c.classList.remove('drag-over'));
+      S.dragIdx = -1;
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      card.classList.add('drag-over');
+    });
+    card.addEventListener('dragleave', () => {
+      card.classList.remove('drag-over');
+    });
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      const to = +card.dataset.idx;
+      if (S.dragIdx !== -1 && S.dragIdx !== to) {
+        const [moved] = S.scenes.splice(S.dragIdx, 1);
+        S.scenes.splice(to, 0, moved);
+        renderTimeline();
+        renderScenes();
+      }
+    });
+  });
+}
+
+function updScene(i, key, val) {
+  S.scenes[i][key] = val;
+  if (key === 'duration') renderTimeline();
+}
+
+function moveScene(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= S.scenes.length) return;
+  [S.scenes[i], S.scenes[j]] = [S.scenes[j], S.scenes[i]];
+  renderTimeline();
+  renderScenes();
+}
+
+function dupScene(i) {
+  if (S.scenes.length >= 8) { showToast('Maximum 8 scenes'); return; }
+  S.scenes.splice(i + 1, 0, {...S.scenes[i]});
+  renderTimeline();
+  renderScenes();
+}
+
+function delScene(i) {
+  if (S.scenes.length <= 1) { showToast('Need at least 1 scene'); return; }
+  S.scenes.splice(i, 1);
+  renderTimeline();
+  renderScenes();
+  document.getElementById('exportCount').textContent = `${S.scenes.length} scenes, ${S.scenes.reduce((a,s)=>a+s.duration,0)}s total`;
+}
+
+function addScene() {
+  if (S.scenes.length >= 8) { showToast('Maximum 8 scenes'); return; }
+  S.scenes.push({shot:'Medium',desc:'',vo:'',music:'',duration:5});
+  renderTimeline();
+  renderScenes();
+  document.getElementById('exportCount').textContent = `${S.scenes.length} scenes, ${S.scenes.reduce((a,s)=>a+s.duration,0)}s total`;
+  const list = document.getElementById('sceneList');
+  list.lastElementChild.scrollIntoView({behavior:'smooth'});
+}
+
+function copyText() {
+  const brand = S.brand.trim() || 'Untitled';
+  const lines = [
+    `VIDEO AD STORYBOARD`,
+    `Brand: ${brand}`,
+    `Platform: ${S.platform}`,
+    `Duration: ${S.totalDuration}s`,
+    `Scenes: ${S.scenes.length}`,
+    `${'='.repeat(50)}`,
+  ];
+  S.scenes.forEach((sc, i) => {
+    lines.push('');
+    lines.push(`--- Scene ${i+1} (${sc.duration}s) ---`);
+    lines.push(`Shot: ${sc.shot}`);
+    if (sc.desc) lines.push(`Visual: ${sc.desc}`);
+    if (sc.vo) lines.push(`VO/Text: ${sc.vo}`);
+    if (sc.music) lines.push(`Music/SFX: ${sc.music}`);
+  });
+  navigator.clipboard.writeText(lines.join('\n')).then(() => showToast('Copied storyboard to clipboard'));
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+buildControls();
+</script>
+</body>
+</html>

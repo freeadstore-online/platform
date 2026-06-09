@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Persona to Targeting - FreeAdStore</title>
+<meta name="description" content="Convert buyer personas into platform-specific ad targeting. Meta, Google, LinkedIn, TikTok targeting recommendations. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#ef4444;--accent-light:#fef2f2;--accent-dark:#dc2626;--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--panel:#ffffff;--line:#e5e7eb;--green:#10b981;--yellow:#f59e0b;--blue:#3b82f6;--purple:#8b5cf6}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+.top-bar{display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+.back{font-size:13px;font-weight:500;color:var(--accent);white-space:nowrap}
+.back:hover{text-decoration:underline}
+.top-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:700;flex:1}
+.top-title span{color:var(--accent)}
+
+.layout{display:flex;height:calc(100vh - 45px);overflow:hidden}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);overflow-y:auto;display:flex;flex-direction:column}
+.main{flex:1;overflow-y:auto;padding:24px 32px;background:var(--bg)}
+
+.sidebar-header{padding:16px 16px 0;border-bottom:1px solid var(--line);padding-bottom:12px}
+.sidebar-header h2{font-size:15px;font-weight:800;margin-bottom:4px}
+.sidebar-header p{font-size:11px;color:var(--muted);line-height:1.4}
+.sidebar-content{padding:16px;flex:1;overflow-y:auto}
+
+.section{margin-bottom:20px}
+.section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.section-title::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px}
+
+.field{margin-bottom:12px}
+.field-label{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;display:block}
+
+.text-input{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg)}
+.text-input:focus{outline:none;border-color:var(--accent)}
+
+.select{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg);color:var(--text);cursor:pointer}
+.select:focus{outline:none;border-color:var(--accent)}
+
+.pills{display:flex;flex-wrap:wrap;gap:5px}
+.pill{padding:5px 12px;border-radius:99px;border:1px solid var(--line);background:var(--panel);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;color:var(--muted)}
+.pill:hover{border-color:var(--accent);color:var(--text)}
+.pill.active{background:var(--accent);border-color:var(--accent);color:white}
+
+textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;font-family:'Manrope',system-ui,sans-serif;background:var(--bg);resize:vertical;min-height:60px;line-height:1.5}
+textarea:focus{outline:none;border-color:var(--accent)}
+
+.generate-btn{width:100%;padding:10px;border-radius:8px;background:var(--accent);color:white;font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:inherit;transition:all .15s;margin-top:6px}
+.generate-btn:hover{background:var(--accent-dark)}
+
+.reset-btn{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);font-family:inherit;transition:all .15s;margin-top:6px}
+.reset-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Platform cards */
+.platform-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.platform-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.p-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;color:white;font-weight:800;flex-shrink:0}
+.p-name{font-size:15px;font-weight:800}
+.p-sub{font-size:11px;color:var(--muted)}
+.copy-card-btn{margin-left:auto;padding:5px 12px;border-radius:6px;border:1px solid var(--line);background:var(--panel);font-size:11px;font-weight:600;cursor:pointer;color:var(--muted);font-family:inherit;transition:all .15s}
+.copy-card-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+.targeting-section{margin-bottom:12px}
+.targeting-section:last-child{margin-bottom:0}
+.targeting-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);margin-bottom:6px}
+.targeting-pills{display:flex;flex-wrap:wrap;gap:4px}
+.t-pill{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;background:var(--bg);border:1px solid var(--line);color:var(--text);cursor:pointer;transition:all .15s;font-family:inherit}
+.t-pill:hover{border-color:var(--accent);background:var(--accent-light)}
+.t-pill.copied{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
+
+.targeting-note{font-size:11px;color:var(--muted);line-height:1.5;padding:8px 10px;background:var(--bg);border-radius:6px;margin-top:8px}
+
+/* Persona summary */
+.persona-summary{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.persona-summary h3{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;margin-bottom:10px}
+.persona-traits{display:flex;flex-wrap:wrap;gap:6px}
+.persona-trait{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;background:var(--accent-light);color:var(--accent);border:1px solid transparent}
+
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-state h3{font-size:16px;font-weight:700;margin-bottom:8px;color:var(--text)}
+.empty-state p{font-size:13px;line-height:1.5}
+
+.export-bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.export-btn{padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .15s}
+.export-primary{background:var(--accent);color:white}
+.export-primary:hover{background:var(--accent-dark)}
+.export-secondary{background:var(--panel);color:var(--text);border:1px solid var(--line)}
+.export-secondary:hover{border-color:var(--accent)}
+.copied-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:white;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transition:all .3s ease;z-index:999;pointer-events:none}
+.copied-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+@media(max-width:768px){
+  .layout{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;max-height:55vh;border-right:none;border-bottom:1px solid var(--line)}
+  .main{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a class="back" href="/">&larr; FreeAdStore</a>
+  <div class="top-title">Persona to <span>Targeting</span></div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>Define Your Persona</h2>
+      <p>Describe your ideal customer. We'll map it to platform-specific targeting parameters.</p>
+    </div>
+
+    <div class="sidebar-content">
+      <div class="section">
+        <div class="section-title">Identity</div>
+
+        <div class="field">
+          <div class="field-label">Persona Name</div>
+          <input type="text" class="text-input" id="personaName" placeholder="e.g. Startup Steve, Marketing Mary" value="Tech-Savvy Professional">
+        </div>
+
+        <div class="field">
+          <div class="field-label">Age Range</div>
+          <div class="pills" id="agePills">
+            <button class="pill" data-value="18-24">18-24</button>
+            <button class="pill active" data-value="25-34">25-34</button>
+            <button class="pill active" data-value="35-44">35-44</button>
+            <button class="pill" data-value="45-54">45-54</button>
+            <button class="pill" data-value="55-64">55-64</button>
+            <button class="pill" data-value="65+">65+</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Gender</div>
+          <div class="pills single" id="genderPills">
+            <button class="pill active" data-value="all">All</button>
+            <button class="pill" data-value="male">Male</button>
+            <button class="pill" data-value="female">Female</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Professional</div>
+
+        <div class="field">
+          <div class="field-label">Job Titles (comma-separated)</div>
+          <input type="text" class="text-input" id="jobTitles" placeholder="e.g. Product Manager, CTO, Founder" value="Product Manager, Software Engineer, CTO">
+        </div>
+
+        <div class="field">
+          <div class="field-label">Income Level</div>
+          <div class="pills single" id="incomePills">
+            <button class="pill" data-value="low">Low</button>
+            <button class="pill" data-value="medium">Medium</button>
+            <button class="pill active" data-value="high">High</button>
+            <button class="pill" data-value="very-high">Very High</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Psychographics</div>
+
+        <div class="field">
+          <div class="field-label">Interests / Hobbies (comma-separated)</div>
+          <input type="text" class="text-input" id="interests" placeholder="e.g. AI, SaaS, investing" value="SaaS, AI, startup culture, investing, productivity tools">
+        </div>
+
+        <div class="field">
+          <div class="field-label">Pain Points (comma-separated)</div>
+          <input type="text" class="text-input" id="painPoints" placeholder="e.g. time management, scaling team" value="scaling operations, hiring talent, automating workflows">
+        </div>
+
+        <div class="field">
+          <div class="field-label">Where They Spend Time Online</div>
+          <textarea id="onlineTime" placeholder="e.g. LinkedIn, Twitter/X, Hacker News, tech podcasts">LinkedIn, Twitter/X, Hacker News, Product Hunt, tech podcasts, YouTube tech channels</textarea>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Buying Behavior</div>
+          <div class="pills single" id="buyingPills">
+            <button class="pill" data-value="impulse">Impulse</button>
+            <button class="pill active" data-value="research">Researches first</button>
+            <button class="pill" data-value="committee">Committee/team</button>
+            <button class="pill" data-value="price">Price-driven</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="generate-btn" onclick="generate()">Generate Targeting</button>
+      <button class="reset-btn" onclick="resetAll()">Reset</button>
+    </div>
+  </div>
+
+  <div class="main" id="mainContent">
+    <div class="empty-state" id="emptyState">
+      <h3>Define your persona to get started</h3>
+      <p>Fill in persona details in the sidebar and click "Generate Targeting" to see platform-specific recommendations.</p>
+    </div>
+
+    <div id="results" style="display:none">
+      <!-- Persona Summary -->
+      <div class="persona-summary" id="personaSummary"></div>
+
+      <!-- Platform cards generated by JS -->
+      <div id="platformCards"></div>
+
+      <div class="export-bar">
+        <button class="export-btn export-primary" onclick="copyAll()">Copy All Targeting</button>
+        <button class="export-btn export-secondary" onclick="exportJSON()">Export JSON</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="copied-toast" id="toast">Copied to clipboard</div>
+
+<script>
+(function(){
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+
+  // Multi-select age pills
+  document.querySelectorAll('#agePills .pill').forEach(pill => {
+    pill.addEventListener('click', () => pill.classList.toggle('active'));
+  });
+
+  // Single-select pills
+  document.querySelectorAll('.pills.single').forEach(container => {
+    container.querySelectorAll('.pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        container.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+      });
+    });
+  });
+
+  function getPersona() {
+    const ages = [];
+    document.querySelectorAll('#agePills .pill.active').forEach(p => ages.push(p.dataset.value));
+    return {
+      name: $('personaName').value.trim() || 'Unnamed Persona',
+      ages,
+      gender: document.querySelector('#genderPills .pill.active')?.dataset.value || 'all',
+      jobTitles: $('jobTitles').value.split(',').map(s => s.trim()).filter(Boolean),
+      income: document.querySelector('#incomePills .pill.active')?.dataset.value || 'medium',
+      interests: $('interests').value.split(',').map(s => s.trim()).filter(Boolean),
+      painPoints: $('painPoints').value.split(',').map(s => s.trim()).filter(Boolean),
+      onlineTime: $('onlineTime').value.trim(),
+      buying: document.querySelector('#buyingPills .pill.active')?.dataset.value || 'research'
+    };
+  }
+
+  // Mapping engines
+  const INTEREST_TO_META = {
+    'saas': ['SaaS', 'Cloud computing', 'Software as a service'],
+    'ai': ['Artificial intelligence', 'Machine learning', 'ChatGPT', 'AI technology'],
+    'startup': ['Startups', 'Entrepreneurship', 'Venture capital', 'Y Combinator'],
+    'startup culture': ['Startups', 'Entrepreneurship', 'Venture capital'],
+    'investing': ['Investing', 'Stock market', 'Angel investing', 'Cryptocurrency'],
+    'productivity': ['Productivity', 'Time management', 'Notion', 'Asana'],
+    'productivity tools': ['Productivity', 'Notion', 'Asana', 'Project management software'],
+    'marketing': ['Digital marketing', 'Social media marketing', 'Content marketing', 'Marketing automation'],
+    'ecommerce': ['E-commerce', 'Shopify', 'Online shopping', 'Dropshipping'],
+    'e-commerce': ['E-commerce', 'Shopify', 'Online shopping'],
+    'fitness': ['Fitness', 'Gym', 'Yoga', 'Running'],
+    'health': ['Health & wellness', 'Nutrition', 'Mental health'],
+    'travel': ['Travel', 'Adventure travel', 'Luxury travel'],
+    'food': ['Food & dining', 'Cooking', 'Restaurants'],
+    'fashion': ['Fashion', 'Luxury fashion', 'Streetwear'],
+    'gaming': ['Video games', 'PC gaming', 'Mobile gaming'],
+    'real estate': ['Real estate investing', 'Property management', 'Home buying'],
+    'education': ['Online education', 'Professional development', 'E-learning'],
+    'design': ['Graphic design', 'UX design', 'Web design', 'Figma'],
+    'crypto': ['Cryptocurrency', 'Bitcoin', 'DeFi', 'Web3'],
+    'sustainability': ['Sustainability', 'Eco-friendly', 'Green living'],
+    'parenting': ['Parenting', 'Family', 'Children\'s products'],
+    'technology': ['Technology', 'Consumer electronics', 'Tech news'],
+    'finance': ['Personal finance', 'Fintech', 'Banking', 'Wealth management']
+  };
+
+  const INTEREST_TO_GOOGLE = {
+    'saas': ['Technology/Business Software', 'In-Market: Business Software'],
+    'ai': ['Technology/AI & Machine Learning', 'In-Market: Enterprise Software'],
+    'startup': ['Business/Entrepreneurship', 'Affinity: Business Professionals'],
+    'startup culture': ['Business/Entrepreneurship', 'Affinity: Business Professionals'],
+    'investing': ['Finance/Investing', 'In-Market: Financial Services'],
+    'productivity': ['Technology/Productivity', 'In-Market: Productivity Software'],
+    'productivity tools': ['Technology/Productivity', 'In-Market: Project Management Tools'],
+    'marketing': ['Business/Marketing', 'In-Market: Marketing Software', 'Affinity: Marketing Professionals'],
+    'ecommerce': ['Business/E-commerce', 'In-Market: E-commerce Platforms'],
+    'e-commerce': ['Business/E-commerce', 'In-Market: E-commerce Platforms'],
+    'fitness': ['Health & Fitness', 'Affinity: Health & Fitness Buffs'],
+    'health': ['Health & Fitness', 'In-Market: Health Products'],
+    'travel': ['Travel', 'In-Market: Travel', 'Affinity: Travel Buffs'],
+    'food': ['Food & Dining', 'Affinity: Foodies'],
+    'fashion': ['Fashion & Style', 'In-Market: Apparel'],
+    'gaming': ['Games', 'Affinity: Gamers'],
+    'real estate': ['Real Estate', 'In-Market: Residential Properties'],
+    'education': ['Education', 'In-Market: Education'],
+    'design': ['Arts & Entertainment/Design', 'In-Market: Graphic Design Software'],
+    'crypto': ['Finance/Cryptocurrency', 'In-Market: Cryptocurrency'],
+    'technology': ['Technology', 'Affinity: Tech Enthusiasts'],
+    'finance': ['Finance', 'In-Market: Financial Services', 'Affinity: Financial Services']
+  };
+
+  const INTEREST_TO_TIKTOK = {
+    'saas': ['Business & Finance', 'Tech'],
+    'ai': ['Tech', 'Science & Education'],
+    'startup': ['Business & Finance', 'Entrepreneurship'],
+    'startup culture': ['Business & Finance', 'Entrepreneurship'],
+    'investing': ['Business & Finance', 'Investment'],
+    'productivity': ['Education', 'Life Hacks'],
+    'productivity tools': ['Tech', 'Life Hacks'],
+    'marketing': ['Business & Finance', 'Social Media'],
+    'ecommerce': ['Business & Finance', 'Shopping'],
+    'e-commerce': ['Business & Finance', 'Shopping'],
+    'fitness': ['Sports & Fitness', 'Gym & Workout'],
+    'health': ['Health', 'Wellness'],
+    'travel': ['Travel', 'Adventure'],
+    'food': ['Food & Beverage', 'Cooking'],
+    'fashion': ['Fashion', 'Beauty & Style'],
+    'gaming': ['Gaming', 'Esports'],
+    'real estate': ['Business & Finance', 'Real Estate'],
+    'education': ['Education', 'Learning'],
+    'design': ['Art & Design', 'Digital Art'],
+    'crypto': ['Business & Finance', 'Crypto'],
+    'technology': ['Tech', 'Gadgets'],
+    'finance': ['Business & Finance', 'Investment']
+  };
+
+  const SENIORITY_MAP = {
+    'cto': 'CXO', 'ceo': 'CXO', 'cfo': 'CXO', 'coo': 'CXO', 'cmo': 'CXO', 'cio': 'CXO',
+    'vp': 'VP', 'vice president': 'VP',
+    'director': 'Director',
+    'manager': 'Manager', 'product manager': 'Manager', 'project manager': 'Manager',
+    'lead': 'Senior', 'senior': 'Senior', 'sr': 'Senior',
+    'engineer': 'Entry/Mid', 'developer': 'Entry/Mid', 'designer': 'Entry/Mid',
+    'founder': 'Owner/Partner', 'co-founder': 'Owner/Partner', 'owner': 'Owner/Partner'
+  };
+
+  function mapMetaTargeting(persona) {
+    const interests = new Set();
+    persona.interests.forEach(i => {
+      const key = i.toLowerCase();
+      const mapped = INTEREST_TO_META[key];
+      if (mapped) mapped.forEach(m => interests.add(m));
+      else interests.add(i);
+    });
+
+    const behaviors = [];
+    if (persona.buying === 'impulse') behaviors.push('Engaged shoppers', 'Online shopping');
+    if (persona.buying === 'research') behaviors.push('Technology early adopters', 'Online shopping');
+    if (persona.income === 'high' || persona.income === 'very-high') behaviors.push('High-value purchasers');
+
+    const demographics = [];
+    if (persona.jobTitles.length) demographics.push('Job titles: ' + persona.jobTitles.join(', '));
+    if (persona.income === 'very-high') demographics.push('Household income: Top 10%');
+    else if (persona.income === 'high') demographics.push('Household income: Top 25%');
+
+    return { interests: [...interests], behaviors, demographics };
+  }
+
+  function mapGoogleTargeting(persona) {
+    const affinity = new Set();
+    const inMarket = new Set();
+    persona.interests.forEach(i => {
+      const key = i.toLowerCase();
+      const mapped = INTEREST_TO_GOOGLE[key];
+      if (mapped) mapped.forEach(m => {
+        if (m.startsWith('In-Market:')) inMarket.add(m);
+        else if (m.startsWith('Affinity:')) affinity.add(m);
+        else affinity.add(m);
+      });
+      else affinity.add(i);
+    });
+
+    const customIntent = persona.painPoints.map(p => p + ' solution');
+    return { affinity: [...affinity], inMarket: [...inMarket], customIntent };
+  }
+
+  function mapLinkedInTargeting(persona) {
+    const titles = persona.jobTitles.length ? persona.jobTitles : ['Professional'];
+    const seniorities = new Set();
+    persona.jobTitles.forEach(t => {
+      const lower = t.toLowerCase();
+      Object.keys(SENIORITY_MAP).forEach(key => {
+        if (lower.includes(key)) seniorities.add(SENIORITY_MAP[key]);
+      });
+    });
+    if (seniorities.size === 0) seniorities.add('Manager');
+
+    const industries = new Set();
+    persona.interests.forEach(i => {
+      const lower = i.toLowerCase();
+      if (lower.includes('saas') || lower.includes('software') || lower.includes('ai') || lower.includes('tech')) industries.add('Technology, Information and Internet');
+      if (lower.includes('marketing')) industries.add('Advertising Services');
+      if (lower.includes('finance') || lower.includes('investing')) industries.add('Financial Services');
+      if (lower.includes('ecommerce') || lower.includes('e-commerce')) industries.add('Retail');
+      if (lower.includes('health')) industries.add('Hospitals and Health Care');
+      if (lower.includes('education')) industries.add('Education');
+      if (lower.includes('real estate')) industries.add('Real Estate');
+      if (lower.includes('design')) industries.add('Design Services');
+    });
+    if (industries.size === 0) industries.add('Technology, Information and Internet');
+
+    const companySizes = [];
+    if (persona.income === 'very-high') companySizes.push('201-500', '501-1000', '1001-5000', '5001-10000', '10001+');
+    else if (persona.income === 'high') companySizes.push('51-200', '201-500', '501-1000', '1001-5000');
+    else companySizes.push('11-50', '51-200', '201-500');
+
+    return { jobTitles: titles, seniority: [...seniorities], industries: [...industries], companySizes };
+  }
+
+  function mapTikTokTargeting(persona) {
+    const categories = new Set();
+    persona.interests.forEach(i => {
+      const key = i.toLowerCase();
+      const mapped = INTEREST_TO_TIKTOK[key];
+      if (mapped) mapped.forEach(m => categories.add(m));
+      else categories.add(i);
+    });
+
+    const creatorTopics = [];
+    if (persona.onlineTime.toLowerCase().includes('youtube')) creatorTopics.push('Tech reviewers', 'Business creators');
+    if (persona.onlineTime.toLowerCase().includes('podcast')) creatorTopics.push('Podcast listeners', 'Long-form content');
+    if (persona.interests.some(i => i.toLowerCase().includes('startup'))) creatorTopics.push('Entrepreneurship', 'Side hustle');
+
+    return { interestCategories: [...categories], creatorTopics };
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  let lastResult = null;
+
+  window.generate = function() {
+    const persona = getPersona();
+    if (!persona.interests.length && !persona.jobTitles.length) {
+      showToast('Add at least interests or job titles');
+      return;
+    }
+
+    const meta = mapMetaTargeting(persona);
+    const google = mapGoogleTargeting(persona);
+    const linkedin = mapLinkedInTargeting(persona);
+    const tiktok = mapTikTokTargeting(persona);
+    lastResult = { persona, meta, google, linkedin, tiktok };
+
+    // Persona summary
+    const traits = [];
+    if (persona.ages.length) traits.push(persona.ages.join(', '));
+    if (persona.gender !== 'all') traits.push(persona.gender);
+    persona.jobTitles.forEach(j => traits.push(j));
+    persona.interests.slice(0, 5).forEach(i => traits.push(i));
+
+    $('personaSummary').innerHTML =
+      '<h3>' + escapeHtml(persona.name) + '</h3>' +
+      '<div class="persona-traits">' + traits.map(t => '<span class="persona-trait">' + escapeHtml(t) + '</span>').join('') + '</div>';
+
+    // Platform cards
+    let html = '';
+
+    // Meta
+    html += buildPlatformCard('Meta', '#3b82f6', 'M', 'Detailed Targeting (Interests)', [
+      { label:'Interests', items: meta.interests },
+      { label:'Behaviors', items: meta.behaviors },
+      { label:'Demographics', items: meta.demographics }
+    ], 'Use Advantage+ targeting as a comparison -- it often outperforms manual interest stacking for broad audiences.');
+
+    // Google
+    html += buildPlatformCard('Google Ads', '#10b981', 'G', 'Affinity & In-Market Audiences', [
+      { label:'Affinity Audiences', items: google.affinity },
+      { label:'In-Market Audiences', items: google.inMarket },
+      { label:'Custom Intent Keywords', items: google.customIntent }
+    ], 'Combine affinity (awareness) with in-market (intent) segments. Use custom intent for Search campaigns.');
+
+    // LinkedIn
+    html += buildPlatformCard('LinkedIn', '#0a66c2', 'Li', 'Professional Targeting', [
+      { label:'Job Titles', items: linkedin.jobTitles },
+      { label:'Seniority', items: linkedin.seniority },
+      { label:'Industries', items: linkedin.industries },
+      { label:'Company Size', items: linkedin.companySizes }
+    ], 'LinkedIn CPMs are 3-5x higher than other platforms. Use for high-value B2B offers where LTV justifies the cost.');
+
+    // TikTok
+    html += buildPlatformCard('TikTok', '#000000', 'T', 'Interest Categories', [
+      { label:'Interest Categories', items: tiktok.interestCategories },
+      { label:'Creator Topics', items: tiktok.creatorTopics }
+    ], 'TikTok\'s algorithm is strong -- broad targeting with great creative often outperforms narrow interest targeting.');
+
+    $('platformCards').innerHTML = html;
+
+    // Show results
+    $('emptyState').style.display = 'none';
+    $('results').style.display = 'block';
+  };
+
+  function buildPlatformCard(name, color, icon, subtitle, sections, note) {
+    let html = '<div class="platform-card">';
+    html += '<div class="platform-header">';
+    html += '<span class="p-icon" style="background:' + color + '">' + icon + '</span>';
+    html += '<div><div class="p-name">' + name + '</div><div class="p-sub">' + subtitle + '</div></div>';
+    html += '<button class="copy-card-btn" onclick="copyCard(\'' + name + '\')">Copy</button>';
+    html += '</div>';
+
+    sections.forEach(sec => {
+      if (!sec.items.length) return;
+      html += '<div class="targeting-section">';
+      html += '<div class="targeting-label">' + sec.label + '</div>';
+      html += '<div class="targeting-pills">';
+      sec.items.forEach(item => {
+        html += '<span class="t-pill" onclick="copyPill(this)" title="Click to copy">' + escapeHtml(item) + '</span>';
+      });
+      html += '</div></div>';
+    });
+
+    if (note) {
+      html += '<div class="targeting-note">' + note + '</div>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  window.copyPill = function(el) {
+    navigator.clipboard.writeText(el.textContent).then(() => {
+      el.classList.add('copied');
+      setTimeout(() => el.classList.remove('copied'), 1500);
+      showToast('Copied: ' + el.textContent);
+    });
+  };
+
+  window.copyCard = function(platform) {
+    if (!lastResult) return;
+    const lines = [platform.toUpperCase() + ' TARGETING', '---'];
+    let data;
+    if (platform === 'Meta') data = lastResult.meta;
+    else if (platform === 'Google Ads') data = lastResult.google;
+    else if (platform === 'LinkedIn') data = lastResult.linkedin;
+    else if (platform === 'TikTok') data = lastResult.tiktok;
+    if (!data) return;
+    Object.entries(data).forEach(([key, items]) => {
+      if (Array.isArray(items) && items.length) {
+        lines.push(key + ': ' + items.join(', '));
+      }
+    });
+    navigator.clipboard.writeText(lines.join('\n')).then(() => showToast(platform + ' targeting copied'));
+  };
+
+  window.copyAll = function() {
+    if (!lastResult) return;
+    const p = lastResult.persona;
+    const lines = ['PERSONA TO TARGETING', '---'];
+    lines.push('Persona: ' + p.name);
+    lines.push('Age: ' + p.ages.join(', '));
+    lines.push('Gender: ' + p.gender);
+    if (p.jobTitles.length) lines.push('Job Titles: ' + p.jobTitles.join(', '));
+    lines.push('Income: ' + p.income);
+    if (p.interests.length) lines.push('Interests: ' + p.interests.join(', '));
+    lines.push('');
+
+    const platforms = [
+      { name:'META', data: lastResult.meta },
+      { name:'GOOGLE ADS', data: lastResult.google },
+      { name:'LINKEDIN', data: lastResult.linkedin },
+      { name:'TIKTOK', data: lastResult.tiktok }
+    ];
+    platforms.forEach(({ name, data }) => {
+      lines.push(name);
+      Object.entries(data).forEach(([key, items]) => {
+        if (Array.isArray(items) && items.length) lines.push('  ' + key + ': ' + items.join(', '));
+      });
+      lines.push('');
+    });
+    lines.push('Generated by FreeAdStore Persona to Targeting');
+    navigator.clipboard.writeText(lines.join('\n')).then(() => showToast('All targeting copied'));
+  };
+
+  window.exportJSON = function() {
+    if (!lastResult) return;
+    const blob = new Blob([JSON.stringify(lastResult, null, 2)], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'persona-targeting.json'; a.click();
+    URL.revokeObjectURL(url);
+    showToast('JSON downloaded');
+  };
+
+  window.resetAll = function() {
+    $('personaName').value = '';
+    $('jobTitles').value = '';
+    $('interests').value = '';
+    $('painPoints').value = '';
+    $('onlineTime').value = '';
+    document.querySelectorAll('#agePills .pill').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('#genderPills .pill').forEach((p, i) => p.classList.toggle('active', i === 0));
+    document.querySelectorAll('#incomePills .pill').forEach((p, i) => p.classList.toggle('active', i === 1));
+    document.querySelectorAll('#buyingPills .pill').forEach((p, i) => p.classList.toggle('active', i === 1));
+    $('emptyState').style.display = '';
+    $('results').style.display = 'none';
+    lastResult = null;
+  };
+
+  function showToast(msg) {
+    const toast = $('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+
+  // Auto-generate on load if there's default data
+  generate();
+})();
+</script>
+</body>
+</html>

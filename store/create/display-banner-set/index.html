@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Display Banner Set Generator - FreeAdStore</title>
+<meta name="description" content="Create all IAB standard banner sizes from one design. 12 sizes, live preview, export as PNG. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:rgba(239,68,68,.08);--accent-hover:#dc2626;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#22c55e;--yellow:#eab308;--red:#ef4444}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:600;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+a.back span{font-weight:400;color:var(--muted)}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 20px 20px}
+.sidebar-head{padding:16px 20px 0;flex-shrink:0}
+.sidebar-head h1{font-family:'Fraunces',serif;font-size:1.35rem;font-weight:700;margin-bottom:2px;color:var(--text)}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:14px;line-height:1.4}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--bg)}
+.main-header{padding:16px 24px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.main-header h2{font-size:.85rem;font-weight:700;color:var(--text)}
+.main-scroll{flex:1;overflow-y:auto;padding:16px 24px 24px}
+
+/* PANELS */
+.panel{margin-bottom:16px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 4px;font-weight:500}
+input[type=text],textarea,select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;transition:border-color .15s}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+
+/* PILLS */
+.pill-row{display:flex;gap:5px;flex-wrap:wrap}
+.pill{padding:5px 12px;border:1px solid var(--line);border-radius:8px;font-size:.72rem;font-weight:600;cursor:pointer;background:var(--panel);font-family:inherit;transition:all .12s;color:var(--text)}
+.pill:hover{border-color:var(--accent);color:var(--accent)}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* BUTTONS */
+.btn{padding:10px 20px;border-radius:var(--radius);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff;width:100%}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(239,68,68,.3)}
+.btn-primary:active{transform:translateY(0)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line);padding:7px 14px;font-size:.75rem;font-weight:600}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:6px 12px;font-size:.72rem}
+
+/* COLOR INPUTS */
+.color-row{display:flex;align-items:center;gap:8px}
+.color-input{width:40px;height:32px;border:1px solid var(--line);border-radius:6px;padding:2px;cursor:pointer;background:var(--panel)}
+.color-input::-webkit-color-swatch-wrapper{padding:0}
+.color-input::-webkit-color-swatch{border:none;border-radius:4px}
+.color-hex{flex:1;font-size:.78rem;color:var(--muted);font-family:'Manrope',monospace}
+
+/* SWATCHES */
+.swatch-row{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
+.swatch{width:28px;height:28px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:all .12s}
+.swatch:hover{transform:scale(1.15)}
+.swatch.active{border-color:var(--text);box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--text)}
+
+/* DROP ZONE */
+.drop-zone{border:2px dashed var(--line);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg);position:relative}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:var(--accent-light)}
+.drop-zone-text{font-size:.72rem;color:var(--muted);line-height:1.5}
+.drop-zone-text strong{color:var(--text);display:block;margin-bottom:2px;font-size:.78rem}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.logo-preview{display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);margin-top:6px}
+.logo-preview img{width:36px;height:36px;object-fit:contain;border-radius:4px}
+.logo-preview .logo-name{flex:1;font-size:.72rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logo-preview button{background:none;border:none;cursor:pointer;color:var(--muted);font-size:.85rem;padding:4px}
+.logo-preview button:hover{color:var(--red)}
+
+/* SEPARATOR */
+.sep{height:1px;background:var(--line);margin:16px 0}
+
+/* BANNER GRID */
+.banner-grid{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.banner-item{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:all .2s;display:inline-flex;flex-direction:column}
+.banner-item:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.banner-canvas-wrap{padding:12px;display:flex;align-items:center;justify-content:center;overflow:auto;max-width:100%}
+.banner-canvas-wrap canvas{display:block}
+.banner-footer{padding:8px 12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.banner-label{font-size:.68rem;font-weight:600;color:var(--muted)}
+.banner-label strong{color:var(--text);font-weight:700}
+.banner-dl{background:none;border:1px solid var(--line);border-radius:6px;padding:4px 10px;font-size:.68rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--muted);transition:all .12s;white-space:nowrap}
+.banner-dl:hover{border-color:var(--accent);color:var(--accent)}
+
+/* EMPTY STATE */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:400px;text-align:center;padding:40px}
+.empty-icon{width:80px;height:80px;border-radius:20px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.empty-icon svg{width:36px;height:36px;color:var(--accent)}
+.empty-state h3{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;margin-bottom:6px}
+.empty-state p{font-size:.82rem;color:var(--muted);max-width:320px;line-height:1.5}
+
+/* EXPORT BAR */
+.export-bar{padding:12px 24px;border-top:1px solid var(--line);background:var(--panel);display:flex;gap:8px;flex-shrink:0;align-items:center;justify-content:flex-end}
+.export-bar .count{font-size:.72rem;color:var(--muted);margin-right:auto}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;padding:10px 20px;border-radius:10px;font-size:.78rem;font-weight:600;opacity:0;transition:all .3s ease;z-index:1000;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:none}
+  .main{min-height:60vh}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Controls -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/"><span>&larr;</span> FreeAdStore</a>
+      <h1>Display Banner Set</h1>
+      <p>Create all 12 IAB standard banner sizes from one design. Live preview, export as PNG.</p>
+    </div>
+    <div class="sidebar-scroll">
+
+      <div class="panel">
+        <div class="panel-title">Content</div>
+        <label>Brand Name</label>
+        <input type="text" id="brandName" placeholder="Acme Inc." maxlength="40">
+        <label>Headline</label>
+        <input type="text" id="headline" placeholder="Summer Sale — 50% Off" maxlength="60">
+        <label>Subtext</label>
+        <input type="text" id="subtext" placeholder="Limited time offer on all products" maxlength="80">
+        <label>CTA Button Text</label>
+        <input type="text" id="ctaText" placeholder="Learn More" maxlength="24">
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="panel">
+        <div class="panel-title">Colors</div>
+
+        <label>Background</label>
+        <div class="color-row">
+          <input type="color" class="color-input" id="bgColor" value="#1e3a5f">
+          <span class="color-hex" id="bgHex">#1e3a5f</span>
+        </div>
+        <div class="swatch-row" id="bgSwatches">
+          <div class="swatch" style="background:#1e3a5f" data-color="#1e3a5f" data-target="bgColor"></div>
+          <div class="swatch" style="background:#0f172a" data-color="#0f172a" data-target="bgColor"></div>
+          <div class="swatch" style="background:#7c3aed" data-color="#7c3aed" data-target="bgColor"></div>
+          <div class="swatch" style="background:#059669" data-color="#059669" data-target="bgColor"></div>
+          <div class="swatch" style="background:#dc2626" data-color="#dc2626" data-target="bgColor"></div>
+          <div class="swatch" style="background:#ea580c" data-color="#ea580c" data-target="bgColor"></div>
+          <div class="swatch" style="background:#ffffff" data-color="#ffffff" data-target="bgColor"></div>
+          <div class="swatch" style="background:#f8fafc" data-color="#f8fafc" data-target="bgColor"></div>
+        </div>
+
+        <label>Text Color</label>
+        <div class="color-row">
+          <input type="color" class="color-input" id="textColor" value="#ffffff">
+          <span class="color-hex" id="textHex">#ffffff</span>
+        </div>
+
+        <label>CTA Button Color</label>
+        <div class="color-row">
+          <input type="color" class="color-input" id="ctaColor" value="#ef4444">
+          <span class="color-hex" id="ctaHex">#ef4444</span>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="panel">
+        <div class="panel-title">Logo (optional)</div>
+        <div class="drop-zone" id="dropZone">
+          <input type="file" id="logoInput" accept="image/*">
+          <div class="drop-zone-text">
+            <strong>Drop logo here</strong>
+            or click to browse (PNG, SVG, JPG)
+          </div>
+        </div>
+        <div class="logo-preview" id="logoPreview" style="display:none">
+          <img id="logoThumb" src="" alt="Logo">
+          <span class="logo-name" id="logoName"></span>
+          <button id="logoRemove" title="Remove logo">&times;</button>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="panel">
+        <div class="panel-title">Typography</div>
+        <label>Font Family</label>
+        <select id="fontSelect">
+          <option value="Manrope" selected>Manrope</option>
+          <option value="Inter">Inter</option>
+          <option value="Poppins">Poppins</option>
+          <option value="Roboto">Roboto</option>
+          <option value="Montserrat">Montserrat</option>
+          <option value="Lato">Lato</option>
+        </select>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="panel">
+        <div class="panel-title">Layout Style</div>
+        <div class="pill-row" id="layoutPills">
+          <button class="pill active" data-layout="centered">Centered</button>
+          <button class="pill" data-layout="left">Left-aligned</button>
+          <button class="pill" data-layout="split">Split</button>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <button class="btn btn-primary" id="btnGenerate">Generate All Sizes</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: Banners -->
+  <div class="main">
+    <div class="main-header" id="mainHeader" style="display:none">
+      <h2>12 banner sizes</h2>
+      <div style="display:flex;gap:6px">
+        <button class="btn-outline btn-sm" id="btnDownloadAll">Download All PNGs</button>
+      </div>
+    </div>
+    <div class="main-scroll" id="mainContent">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <h3>Ready to design banners</h3>
+        <p>Enter your brand name, headline, and CTA text, pick colors, then hit Generate to create all 12 IAB standard sizes at once.</p>
+      </div>
+      <div class="banner-grid" id="bannerGrid" style="display:none"></div>
+    </div>
+    <div class="export-bar" id="exportBar" style="display:none">
+      <span class="count">12 banner sizes</span>
+      <button class="btn-outline btn-sm" id="btnDownloadAll2">Download All PNGs</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SIZES = [
+  { w: 300, h: 250, name: 'Medium Rectangle' },
+  { w: 728, h: 90,  name: 'Leaderboard' },
+  { w: 160, h: 600, name: 'Wide Skyscraper' },
+  { w: 320, h: 50,  name: 'Mobile Leaderboard' },
+  { w: 300, h: 600, name: 'Half Page' },
+  { w: 336, h: 280, name: 'Large Rectangle' },
+  { w: 970, h: 250, name: 'Billboard' },
+  { w: 970, h: 90,  name: 'Large Leaderboard' },
+  { w: 250, h: 250, name: 'Square' },
+  { w: 200, h: 200, name: 'Small Square' },
+  { w: 468, h: 60,  name: 'Full Banner' },
+  { w: 120, h: 600, name: 'Skyscraper' },
+];
+
+// State
+let logoImg = null;
+let layout = 'centered';
+let generated = false;
+const canvases = [];
+
+// DOM refs
+const brandNameEl = document.getElementById('brandName');
+const headlineEl = document.getElementById('headline');
+const subtextEl = document.getElementById('subtext');
+const ctaTextEl = document.getElementById('ctaText');
+const bgColorEl = document.getElementById('bgColor');
+const textColorEl = document.getElementById('textColor');
+const ctaColorEl = document.getElementById('ctaColor');
+const bgHexEl = document.getElementById('bgHex');
+const textHexEl = document.getElementById('textHex');
+const ctaHexEl = document.getElementById('ctaHex');
+const fontSelectEl = document.getElementById('fontSelect');
+const logoInputEl = document.getElementById('logoInput');
+const dropZoneEl = document.getElementById('dropZone');
+const logoPreviewEl = document.getElementById('logoPreview');
+const logoThumbEl = document.getElementById('logoThumb');
+const logoNameEl = document.getElementById('logoName');
+const logoRemoveEl = document.getElementById('logoRemove');
+const layoutPills = document.getElementById('layoutPills');
+const btnGenerate = document.getElementById('btnGenerate');
+const emptyState = document.getElementById('emptyState');
+const bannerGrid = document.getElementById('bannerGrid');
+const mainHeader = document.getElementById('mainHeader');
+const exportBar = document.getElementById('exportBar');
+
+// Load extra fonts for canvas usage
+function loadFont(name) {
+  if (name === 'Manrope') return; // already loaded
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css2?family=${name}:wght@400;500;600;700;800&display=swap`;
+  document.head.appendChild(link);
+}
+
+// Pre-load all selectable fonts
+['Inter','Poppins','Roboto','Montserrat','Lato'].forEach(loadFont);
+
+// Color sync
+bgColorEl.addEventListener('input', () => { bgHexEl.textContent = bgColorEl.value; updateSwatches('bgColor'); renderAll(); });
+textColorEl.addEventListener('input', () => { textHexEl.textContent = textColorEl.value; renderAll(); });
+ctaColorEl.addEventListener('input', () => { ctaHexEl.textContent = ctaColorEl.value; renderAll(); });
+
+// Swatches
+document.querySelectorAll('.swatch').forEach(sw => {
+  sw.addEventListener('click', () => {
+    const target = sw.dataset.target;
+    const color = sw.dataset.color;
+    document.getElementById(target).value = color;
+    document.getElementById(target === 'bgColor' ? 'bgHex' : target === 'textColor' ? 'textHex' : 'ctaHex').textContent = color;
+    updateSwatches(target);
+    renderAll();
+  });
+});
+
+function updateSwatches(targetId) {
+  const val = document.getElementById(targetId).value.toLowerCase();
+  document.querySelectorAll(`.swatch[data-target="${targetId}"]`).forEach(sw => {
+    sw.classList.toggle('active', sw.dataset.color.toLowerCase() === val);
+  });
+}
+updateSwatches('bgColor');
+
+// Live text input updates
+[brandNameEl, headlineEl, subtextEl, ctaTextEl, fontSelectEl].forEach(el => {
+  el.addEventListener('input', renderAll);
+});
+
+// Logo handling
+function handleLogoFile(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      logoImg = img;
+      logoThumbEl.src = e.target.result;
+      logoNameEl.textContent = file.name;
+      dropZoneEl.style.display = 'none';
+      logoPreviewEl.style.display = 'flex';
+      renderAll();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+logoInputEl.addEventListener('change', (e) => {
+  if (e.target.files[0]) handleLogoFile(e.target.files[0]);
+});
+
+dropZoneEl.addEventListener('dragover', (e) => { e.preventDefault(); dropZoneEl.classList.add('drag-over'); });
+dropZoneEl.addEventListener('dragleave', () => { dropZoneEl.classList.remove('drag-over'); });
+dropZoneEl.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZoneEl.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) handleLogoFile(e.dataTransfer.files[0]);
+});
+
+logoRemoveEl.addEventListener('click', () => {
+  logoImg = null;
+  logoInputEl.value = '';
+  dropZoneEl.style.display = '';
+  logoPreviewEl.style.display = 'none';
+  renderAll();
+});
+
+// Layout pills
+layoutPills.addEventListener('click', (e) => {
+  const pill = e.target.closest('.pill');
+  if (!pill) return;
+  layoutPills.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  layout = pill.dataset.layout;
+  renderAll();
+});
+
+// Generate
+btnGenerate.addEventListener('click', () => {
+  if (!generated) {
+    buildGrid();
+    generated = true;
+  }
+  renderAll();
+  emptyState.style.display = 'none';
+  bannerGrid.style.display = 'flex';
+  mainHeader.style.display = 'flex';
+  exportBar.style.display = 'flex';
+});
+
+function buildGrid() {
+  bannerGrid.innerHTML = '';
+  canvases.length = 0;
+  SIZES.forEach((size, i) => {
+    const item = document.createElement('div');
+    item.className = 'banner-item';
+
+    const wrap = document.createElement('div');
+    wrap.className = 'banner-canvas-wrap';
+
+    const canvas = document.createElement('canvas');
+    canvas.width = size.w;
+    canvas.height = size.h;
+    canvas.style.width = size.w + 'px';
+    canvas.style.height = size.h + 'px';
+    wrap.appendChild(canvas);
+
+    const footer = document.createElement('div');
+    footer.className = 'banner-footer';
+    footer.innerHTML = `
+      <span class="banner-label"><strong>${size.w}&times;${size.h}</strong> &mdash; ${size.name}</span>
+      <button class="banner-dl" data-idx="${i}">Download PNG</button>
+    `;
+
+    item.appendChild(wrap);
+    item.appendChild(footer);
+    bannerGrid.appendChild(item);
+    canvases.push(canvas);
+  });
+
+  // Download per-banner
+  bannerGrid.addEventListener('click', (e) => {
+    const btn = e.target.closest('.banner-dl');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.idx);
+    downloadCanvas(canvases[idx], SIZES[idx]);
+  });
+}
+
+function renderAll() {
+  if (!generated) return;
+  const config = {
+    brand: brandNameEl.value || 'Brand Name',
+    headline: headlineEl.value || 'Your Headline Here',
+    subtext: subtextEl.value || '',
+    cta: ctaTextEl.value || 'Learn More',
+    bgColor: bgColorEl.value,
+    textColor: textColorEl.value,
+    ctaColor: ctaColorEl.value,
+    font: fontSelectEl.value,
+    logo: logoImg,
+    layout: layout,
+  };
+
+  SIZES.forEach((size, i) => {
+    renderBanner(canvases[i], size, config);
+  });
+}
+
+function renderBanner(canvas, size, cfg) {
+  const ctx = canvas.getContext('2d');
+  const w = size.w;
+  const h = size.h;
+  const minDim = Math.min(w, h);
+  const isNarrow = w < 150;
+  const isShort = h < 70;
+  const isThin = h <= 90 && w > 300; // leaderboard-style
+  const isTall = h > w * 2; // skyscraper-style
+
+  // Background
+  ctx.fillStyle = cfg.bgColor;
+  ctx.fillRect(0, 0, w, h);
+
+  // Subtle border
+  ctx.strokeStyle = 'rgba(0,0,0,.12)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+
+  // Compute text contrast
+  const textCol = cfg.textColor;
+  const ctaCol = cfg.ctaColor;
+  const ctaTextCol = getContrastText(ctaCol);
+  const font = cfg.font;
+
+  // Scale factors
+  const scale = Math.min(w, h) / 250;
+  const clampedScale = Math.max(0.35, Math.min(scale, 1.8));
+
+  // Font sizes
+  const brandSize = Math.round(Math.max(8, 12 * clampedScale));
+  const headlineSize = Math.round(Math.max(10, 22 * clampedScale));
+  const subtextSize = Math.round(Math.max(7, 11 * clampedScale));
+  const ctaFontSize = Math.round(Math.max(8, 12 * clampedScale));
+
+  // Logo dimensions
+  const logoMaxH = Math.round(Math.max(14, 28 * clampedScale));
+  const logoMaxW = Math.round(Math.max(20, 60 * clampedScale));
+
+  // Padding
+  const pad = Math.round(Math.max(6, 16 * clampedScale));
+  const gap = Math.round(Math.max(3, 8 * clampedScale));
+
+  if (cfg.layout === 'split' && !isThin && !isNarrow && w >= 200 && h >= 100) {
+    renderSplit(ctx, w, h, cfg, font, textCol, ctaCol, ctaTextCol, brandSize, headlineSize, subtextSize, ctaFontSize, logoMaxH, logoMaxW, pad, gap, clampedScale);
+  } else if (cfg.layout === 'left' || isNarrow) {
+    renderLeft(ctx, w, h, cfg, font, textCol, ctaCol, ctaTextCol, brandSize, headlineSize, subtextSize, ctaFontSize, logoMaxH, logoMaxW, pad, gap, isThin, isTall, clampedScale);
+  } else {
+    renderCentered(ctx, w, h, cfg, font, textCol, ctaCol, ctaTextCol, brandSize, headlineSize, subtextSize, ctaFontSize, logoMaxH, logoMaxW, pad, gap, isThin, isTall, clampedScale);
+  }
+}
+
+function renderCentered(ctx, w, h, cfg, font, textCol, ctaCol, ctaTextCol, brandSize, headlineSize, subtextSize, ctaFontSize, logoMaxH, logoMaxW, pad, gap, isThin, isTall, scale) {
+  const cx = w / 2;
+  ctx.textAlign = 'center';
+
+  if (isThin) {
+    // Horizontal layout for leaderboards
+    const leftX = pad;
+    const rightX = w - pad;
+    ctx.textAlign = 'left';
+
+    let x = leftX;
+
+    // Logo on the left
+    if (cfg.logo) {
+      const lh = Math.min(h - pad * 2, logoMaxH);
+      const lw = Math.min(logoMaxW, cfg.logo.width * (lh / cfg.logo.height));
+      const ly = (h - lh) / 2;
+      ctx.drawImage(cfg.logo, x, ly, lw, lh);
+      x += lw + gap;
+    }
+
+    // Brand
+    ctx.font = `700 ${brandSize}px ${font}`;
+    ctx.fillStyle = textCol;
+    const brandY = h / 2 - (cfg.subtext ? gap : 0);
+    ctx.fillText(cfg.brand, x, brandY);
+
+    // Headline after brand
+    const brandW = ctx.measureText(cfg.brand).width;
+    ctx.font = `600 ${Math.max(brandSize, headlineSize * 0.7)}px ${font}`;
+    const headX = x + brandW + gap * 2;
+    const maxHeadW = rightX - headX - 100;
+    if (maxHeadW > 40) {
+      const headText = truncateText(ctx, cfg.headline, maxHeadW);
+      ctx.fillText(headText, headX, brandY);
+    }
+
+    // CTA on the right
+    const ctaPadX = Math.round(12 * scale);
+    const ctaPadY = Math.round(5 * scale);
+    ctx.font = `700 ${ctaFontSize}px ${font}`;
+    const ctaW = ctx.measureText(cfg.cta).width + ctaPadX * 2;
+    const ctaH = ctaFontSize + ctaPadY * 2;
+    const ctaX = rightX - ctaW;
+    const ctaY = (h - ctaH) / 2;
+    roundRect(ctx, ctaX, ctaY, ctaW, ctaH, Math.round(4 * scale));
+    ctx.fillStyle = ctaCol;
+    ctx.fill();
+    ctx.fillStyle = ctaTextCol;
+    ctx.textAlign = 'center';
+    ctx.fillText(cfg.cta, ctaX + ctaW / 2, ctaY + ctaH / 2 + ctaFontSize * 0.35);
+
+    return;
+  }
+
+  if (isTall) {
+    // Vertical stack for skyscrapers
+    let y = pad;
+    ctx.textAlign = 'center';
+
+    // Logo
+    if (cfg.logo) {
+      const lw = Math.min(w - pad * 2, logoMaxW);
+      const lh = Math.min(logoMaxH, cfg.logo.height * (lw / cfg.logo.width));
+      ctx.drawImage(cfg.logo, (w - lw) / 2, y, lw, lh);
+      y += lh + gap * 2;
+    }
+
+    // Brand
+    ctx.font = `700 ${brandSize}px ${font}`;
+    ctx.fillStyle = textCol;
+    y += brandSize;
+    ctx.fillText(cfg.brand, cx, y);
+    y += gap * 2;
+
+    // Headline (word-wrapped)
+    ctx.font = `700 ${headlineSize}px ${font}`;
+    const headLines = wrapText(ctx, cfg.headline, w - pad * 2);
+    headLines.forEach(line => {
+      y += headlineSize * 1.2;
+      ctx.fillText(line, cx, y);
+    });
+    y += gap * 2;
+
+    // Subtext
+    if (cfg.subtext) {
+      ctx.font = `400 ${subtextSize}px ${font}`;
+      ctx.fillStyle = textCol;
+      ctx.globalAlpha = 0.75;
+      const subLines = wrapText(ctx, cfg.subtext, w - pad * 2);
+      subLines.forEach(line => {
+        y += subtextSize * 1.3;
+        ctx.fillText(line, cx, y);
+      });
+      ctx.globalAlpha = 1;
+      y += gap;
+    }
+
+    // CTA
+    y += gap;
+    const ctaPadX = Math.round(14 * scale);
+    const ctaPadY = Math.round(6 * scale);
+    ctx.font = `700 ${ctaFontSize}px ${font}`;
+    const ctaW = Math.min(ctx.measureText(cfg.cta).width + ctaPadX * 2, w - pad * 2);
+    const ctaH = ctaFontSize + ctaPadY * 2;
+    const ctaX = (w - ctaW) / 2;
+    roundRect(ctx, ctaX, y, ctaW, ctaH, Math.round(4 * scale));
+    ctx.fillStyle = ctaCol;
+    ctx.fill();
+    ctx.fillStyle = ctaTextCol;
+    ctx.fillText(cfg.cta, cx, y + ctaH / 2 + ctaFontSize * 0.35);
+    return;
+  }
+
+  // Standard centered layout
+  let y = pad;
+
+  // Logo
+  if (cfg.logo) {
+    const lh = Math.min(logoMaxH, h * 0.15);
+    const lw = Math.min(logoMaxW, cfg.logo.width * (lh / cfg.logo.height));
+    ctx.drawImage(cfg.logo, (w - lw) / 2, y, lw, lh);
+    y += lh + gap;
+  }
+
+  // Brand
+  ctx.font = `700 ${brandSize}px ${font}`;
+  ctx.fillStyle = textCol;
+  y += brandSize;
+  ctx.fillText(cfg.brand, cx, y);
+  y += gap * 1.5;
+
+  // Headline (word-wrapped)
+  ctx.font = `700 ${headlineSize}px ${font}`;
+  const headLines = wrapText(ctx, cfg.headline, w - pad * 2);
+  const maxLines = h < 200 ? 2 : 3;
+  headLines.slice(0, maxLines).forEach(line => {
+    y += headlineSize * 1.2;
+    ctx.fillText(line, cx, y);
+  });
+  y += gap;
+
+  // Subtext
+  if (cfg.subtext && y + subtextSize * 2 + 30 < h) {
+    ctx.font = `400 ${subtextSize}px ${font}`;
+    ctx.fillStyle = textCol;
+    ctx.globalAlpha = 0.75;
+    const subLines = wrapText(ctx, cfg.subtext, w - pad * 2);
+    subLines.slice(0, 2).forEach(line => {
+      y += subtextSize * 1.3;
+      ctx.fillText(line, cx, y);
+    });
+    ctx.globalAlpha = 1;
+    y += gap;
+  }
+
+  // CTA button
+  const ctaPadX = Math.round(16 * scale);
+  const ctaPadY = Math.round(7 * scale);
+  ctx.font = `700 ${ctaFontSize}px ${font}`;
+  const ctaW = ctx.measureText(cfg.cta).width + ctaPadX * 2;
+  const ctaH = ctaFontSize + ctaPadY * 2;
+  const ctaY = Math.min(y + gap, h - ctaH - pad);
+  const ctaX = (w - ctaW) / 2;
+  roundRect(ctx, ctaX, ctaY, ctaW, ctaH, Math.round(5 * scale));
+  ctx.fillStyle = ctaCol;
+  ctx.fill();
+  ctx.fillStyle = ctaTextCol;
+  ctx.fillText(cfg.cta, cx, ctaY + ctaH / 2 + ctaFontSize * 0.35);
+}
+
+function renderLeft(ctx, w, h, cfg, font, textCol, ctaCol, ctaTextCol, brandSize, headlineSize, subtextSize, ctaFontSize, logoMaxH, logoMaxW, pad, gap, isThin, isTall, scale) {
+  ctx.textAlign = 'left';
+  const leftX = pad;
+
+  if (isThin) {
+    let x = leftX;
+
+    if (cfg.logo) {
+      const lh = Math.min(h - pad * 2, logoMaxH);
+      const lw = Math.min(logoMaxW, cfg.logo.width * (lh / cfg.logo.height));
+      ctx.drawImage(cfg.logo, x, (h - lh) / 2, lw, lh);
+      x += lw + gap;
+    }
+
+    ctx.font = `700 ${brandSize}px ${font}`;
+    ctx.fillStyle = textCol;
+    ctx.fillText(cfg.brand, x, h / 2 + brandSize * 0.35);
+
+    const brandW = ctx.measureText(cfg.brand).width;
+    ctx.font = `600 ${Math.max(brandSize, headlineSize * 0.7)}px ${font}`;
+    const headX = x + brandW + gap * 2;
+    const ctaPadX = Math.round(12 * scale);
+    ctx.font = `700 ${ctaFontSize}px ${font}`;
+    const ctaW = ctx.measureText(cfg.cta).width + ctaPadX * 2;
+    const maxHeadW = w - pad - headX - ctaW - gap * 2;
+    if (maxHeadW > 30) {
+      ctx.font = `600 ${Math.max(brandSize, headlineSize * 0.7)}px ${font}`;
+      ctx.fillText(truncateText(ctx, cfg.headline, maxHeadW), headX, h / 2 + brandSize * 0.35);
+    }
+
+    const ctaPadY = Math.round(5 * scale);
+    ctx.font = `700 ${ctaFontSize}px ${font}`;
+    const ctaH = ctaFontSize + ctaPadY * 2;
+    const ctaX = w - pad - ctaW;
+    const ctaY = (h - ctaH) / 2;
+    roundRect(ctx, ctaX, ctaY, ctaW, ctaH, Math.round(4 * scale));
+    ctx.fillStyle = ctaCol;
+    ctx.fill();
+    ctx.fillStyle = ctaTextCol;
+    ctx.textAlign = 'center';
+    ctx.fillText(cfg.cta, ctaX + ctaW / 2, ctaY + ctaH / 2 + ctaFontSize * 0.35);
+    return;
+  }
+
+  let y = pad;
+
+  if (cfg.logo) {
+    const lh = Math.min(logoMaxH, h * 0.15);
+    const lw = Math.min(logoMaxW, cfg.logo.width * (lh / cfg.logo.height));
+    ctx.drawImage(cfg.logo, leftX, y, lw, lh);
+    y += lh + gap;
+  }
+
+  ctx.font = `700 ${brandSize}px ${font}`;
+  ctx.fillStyle = textCol;
+  y += brandSize;
+  ctx.fillText(cfg.brand, leftX, y);
+  y += gap * 1.5;
+
+  ctx.font = `700 ${headlineSize}px ${font}`;
+  const headLines = wrapText(ctx, cfg.headline, w - pad * 2);
+  const maxLines = isTall ? 5 : h < 200 ? 2 : 3;
+  headLines.slice(0, maxLines).forEach(line => {
+    y += headlineSize * 1.2;
+    ctx.fillText(line, leftX, y);
+  });
+  y += gap;
+
+  if (cfg.subtext && y + subtextSize * 2 + 30 < h) {
+    ctx.font = `400 ${subtextSize}px ${font}`;
+    ctx.fillStyle = textCol;
+    ctx.globalAlpha = 0.75;
+    const subLines = wrapText(ctx, cfg.subtext, w - pad * 2);
+    subLines.slice(0, 2).forEach(line => {
+      y += subtextSize * 1.3;
+      ctx.fillText(line, leftX, y);
+    });
+    ctx.globalAlpha = 1;
+    y += gap;
+  }
+
+  const ctaPadX = Math.round(16 * scale);
+  const ctaPadY = Math.round(7 * scale);
+  ctx.font = `700 ${ctaFontSize}px ${font}`;
+  const ctaW = ctx.measureText(cfg.cta).width + ctaPadX * 2;
+  const ctaH = ctaFontSize + ctaPadY * 2;
+  const ctaY = Math.min(y + gap, h - ctaH - pad);
+  roundRect(ctx, leftX, ctaY, ctaW, ctaH, Math.round(5 * scale));
+  ctx.fillStyle = ctaCol;
+  ctx.fill();
+  ctx.fillStyle = ctaTextCol;
+  ctx.textAlign = 'center';
+  ctx.fillText(cfg.cta, leftX + ctaW / 2, ctaY + ctaH / 2 + ctaFontSize * 0.35);
+}
+
+function renderSplit(ctx, w, h, cfg, font, textCol, ctaCol, ctaTextCol, brandSize, headlineSize, subtextSize, ctaFontSize, logoMaxH, logoMaxW, pad, gap, scale) {
+  // Left half: colored accent panel, right half: text content
+  const splitX = Math.round(w * 0.4);
+
+  // Left panel (accent)
+  ctx.fillStyle = ctaCol;
+  ctx.fillRect(0, 0, splitX, h);
+
+  // Logo centered in left panel
+  if (cfg.logo) {
+    const maxLogoW = splitX - pad * 2;
+    const maxLogoH = h * 0.4;
+    let lw = cfg.logo.width;
+    let lh = cfg.logo.height;
+    const ratio = Math.min(maxLogoW / lw, maxLogoH / lh);
+    lw = Math.round(lw * ratio);
+    lh = Math.round(lh * ratio);
+    ctx.drawImage(cfg.logo, (splitX - lw) / 2, (h - lh) / 2, lw, lh);
+  } else {
+    // Decorative circle if no logo
+    ctx.beginPath();
+    const cr = Math.min(splitX, h) * 0.25;
+    ctx.arc(splitX / 2, h / 2, cr, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,.15)';
+    ctx.fill();
+  }
+
+  // Right panel content
+  ctx.textAlign = 'left';
+  const contentX = splitX + pad;
+  const contentW = w - splitX - pad * 2;
+  let y = pad;
+
+  ctx.font = `700 ${brandSize}px ${font}`;
+  ctx.fillStyle = textCol;
+  y += brandSize;
+  ctx.fillText(truncateText(ctx, cfg.brand, contentW), contentX, y);
+  y += gap * 1.5;
+
+  ctx.font = `700 ${headlineSize}px ${font}`;
+  const headLines = wrapText(ctx, cfg.headline, contentW);
+  headLines.slice(0, 3).forEach(line => {
+    y += headlineSize * 1.2;
+    ctx.fillText(line, contentX, y);
+  });
+  y += gap;
+
+  if (cfg.subtext && y + subtextSize * 2 + 30 < h) {
+    ctx.font = `400 ${subtextSize}px ${font}`;
+    ctx.fillStyle = textCol;
+    ctx.globalAlpha = 0.75;
+    const subLines = wrapText(ctx, cfg.subtext, contentW);
+    subLines.slice(0, 2).forEach(line => {
+      y += subtextSize * 1.3;
+      ctx.fillText(line, contentX, y);
+    });
+    ctx.globalAlpha = 1;
+    y += gap;
+  }
+
+  const ctaPadX = Math.round(14 * scale);
+  const ctaPadY = Math.round(7 * scale);
+  ctx.font = `700 ${ctaFontSize}px ${font}`;
+  const ctaW = Math.min(ctx.measureText(cfg.cta).width + ctaPadX * 2, contentW);
+  const ctaH = ctaFontSize + ctaPadY * 2;
+  const ctaY = Math.min(y + gap, h - ctaH - pad);
+  roundRect(ctx, contentX, ctaY, ctaW, ctaH, Math.round(5 * scale));
+  ctx.fillStyle = ctaCol;
+  ctx.fill();
+  ctx.fillStyle = ctaTextCol;
+  ctx.textAlign = 'center';
+  ctx.fillText(cfg.cta, contentX + ctaW / 2, ctaY + ctaH / 2 + ctaFontSize * 0.35);
+}
+
+// Helpers
+function wrapText(ctx, text, maxWidth) {
+  const words = text.split(' ');
+  const lines = [];
+  let line = '';
+  for (const word of words) {
+    const test = line ? line + ' ' + word : word;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines.length ? lines : [''];
+}
+
+function truncateText(ctx, text, maxWidth) {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+  let t = text;
+  while (t.length > 1 && ctx.measureText(t + '...').width > maxWidth) {
+    t = t.slice(0, -1);
+  }
+  return t + '...';
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function getContrastText(hex) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return lum > 0.55 ? '#1a1a1a' : '#ffffff';
+}
+
+// Download
+function downloadCanvas(canvas, size) {
+  canvas.toBlob((blob) => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `banner-${size.w}x${size.h}.png`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast(`Downloaded ${size.w}x${size.h} PNG`);
+  }, 'image/png');
+}
+
+function downloadAll() {
+  let idx = 0;
+  function next() {
+    if (idx >= SIZES.length) {
+      showToast(`Downloaded all ${SIZES.length} banners`);
+      return;
+    }
+    canvases[idx].toBlob((blob) => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `banner-${SIZES[idx].w}x${SIZES[idx].h}.png`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      idx++;
+      setTimeout(next, 200);
+    }, 'image/png');
+  }
+  next();
+}
+
+document.getElementById('btnDownloadAll').addEventListener('click', downloadAll);
+document.getElementById('btnDownloadAll2').addEventListener('click', downloadAll);
+
+// Toast
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>

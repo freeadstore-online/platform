@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Spend Pacing Tracker - FreeAdStore</title>
+<meta name="description" content="Track ad spend pacing vs budget. Visual bar chart, overspend/underspend alerts, projected end-of-period spend, daily recommendations. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:#fef2f2;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#22c55e;--blue:#3b82f6;--purple:#8b5cf6;--orange:#f97316;--cyan:#06b6d4;--pink:#ec4899;--yellow:#eab308;--teal:#14b8a6}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:380px;min-width:380px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 16px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px;font-family:'Fraunces',serif}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-width:0;background:var(--bg);padding:0}
+
+/* PANELS */
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+.panel-title svg{width:14px;height:14px;color:var(--muted)}
+label{font-size:.7rem;color:var(--muted);display:block;margin:6px 0 3px;font-weight:500}
+select,input[type=number],input[type=text],input[type=date]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;color:var(--text)}
+select:focus,input:focus{border-color:var(--accent)}
+textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.78rem;font-family:'Manrope',monospace;background:var(--bg);outline:none;color:var(--text);resize:vertical;min-height:60px}
+textarea:focus{border-color:var(--accent)}
+
+/* INPUT GROUP */
+.input-group{position:relative}
+.input-group .prefix{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.78rem;color:var(--muted);font-weight:600;pointer-events:none}
+.input-group input{padding-left:24px}
+
+/* DATE ROW */
+.date-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* BUTTONS */
+.btn{padding:9px 18px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .12s;width:100%}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{filter:brightness(1.1)}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line);margin-top:6px}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:6px 12px;font-size:.72rem;width:auto}
+
+/* SPEND TABLE */
+.spend-table-wrap{max-height:280px;overflow-y:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg)}
+.spend-table{width:100%;border-collapse:collapse}
+.spend-table th{position:sticky;top:0;background:var(--panel);font-size:.64rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+.spend-table td{padding:4px 8px;border-bottom:1px solid var(--line);font-size:.78rem}
+.spend-table input[type=number]{padding:4px 6px;font-size:.78rem;border:1px solid var(--line);border-radius:4px;width:80px;text-align:right}
+.spend-table .day-num{font-weight:600;color:var(--muted);font-size:.72rem;width:40px}
+.spend-table .day-date{font-size:.68rem;color:var(--muted)}
+
+/* MAIN CONTENT */
+.results{padding:24px;max-width:960px;margin:0 auto;width:100%}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;color:var(--muted);text-align:center;gap:12px}
+.empty-state svg{width:64px;height:64px;color:var(--line)}
+.empty-state h2{font-size:1.1rem;font-weight:700;color:var(--text)}
+.empty-state p{font-size:.82rem;max-width:360px}
+
+/* STATUS BANNER */
+.status-banner{border-radius:14px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;gap:16px}
+.status-banner.on-pace{background:#dcfce7;border:1px solid #86efac}
+.status-banner.underspend{background:#dbeafe;border:1px solid #93c5fd}
+.status-banner.overspend{background:#fee2e2;border:1px solid #fca5a5}
+.status-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0}
+.status-banner.on-pace .status-icon{background:#22c55e;color:#fff}
+.status-banner.underspend .status-icon{background:#3b82f6;color:#fff}
+.status-banner.overspend .status-icon{background:#ef4444;color:#fff}
+.status-text h2{font-size:1.1rem;font-weight:800;font-family:'Fraunces',serif;margin-bottom:2px}
+.status-banner.on-pace .status-text h2{color:#166534}
+.status-banner.underspend .status-text h2{color:#1e40af}
+.status-banner.overspend .status-text h2{color:#991b1b}
+.status-text p{font-size:.78rem;color:var(--text);line-height:1.5}
+
+/* METRIC CARDS */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.metric-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.metric-label{font-size:.66rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
+.metric-value{font-size:1.4rem;font-weight:800;font-family:'Fraunces',serif}
+.metric-sub{font-size:.66rem;color:var(--muted);margin-top:2px}
+.metric-value.green{color:var(--green)}
+.metric-value.blue{color:var(--blue)}
+.metric-value.red{color:var(--accent)}
+
+/* PACING CHART */
+.chart-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px}
+.chart-card h3{font-size:.82rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.chart-area{position:relative;height:260px;display:flex;align-items:flex-end;gap:2px;padding-bottom:24px;padding-left:50px}
+.chart-y-axis{position:absolute;left:0;top:0;bottom:24px;width:46px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;padding-right:6px}
+.chart-y-label{font-size:.6rem;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;position:relative;min-width:0}
+.chart-bar{width:100%;max-width:24px;border-radius:3px 3px 0 0;transition:height .3s;position:relative;min-height:1px}
+.chart-bar.actual{background:var(--accent)}
+.chart-bar.under{background:var(--blue)}
+.chart-bar.over{background:var(--accent)}
+.chart-bar.ok{background:var(--green)}
+.chart-bar.future{background:var(--line);opacity:.4}
+.chart-ideal{position:absolute;left:50px;right:0;border-top:2px dashed var(--orange);pointer-events:none}
+.chart-ideal-label{position:absolute;right:0;top:-16px;font-size:.6rem;font-weight:700;color:var(--orange)}
+.chart-x-label{font-size:.55rem;color:var(--muted);font-weight:600;margin-top:4px;white-space:nowrap}
+.chart-legend{display:flex;gap:16px;margin-top:12px;justify-content:center}
+.chart-legend-item{display:flex;align-items:center;gap:4px;font-size:.68rem;font-weight:600;color:var(--muted)}
+.chart-legend-dot{width:10px;height:10px;border-radius:2px}
+
+/* ALERTS */
+.alerts-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px}
+.alerts-card h3{font-size:.82rem;font-weight:700;margin-bottom:12px}
+.alert-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:.78rem;line-height:1.5}
+.alert-item:last-child{border-bottom:none}
+.alert-badge{padding:3px 10px;border-radius:4px;font-size:.66rem;font-weight:700;flex-shrink:0;height:fit-content}
+.alert-badge.warn{background:#fef3c7;color:#92400e}
+.alert-badge.danger{background:#fee2e2;color:#991b1b}
+.alert-badge.info{background:#dbeafe;color:#1e40af}
+.alert-badge.ok{background:#dcfce7;color:#166534}
+
+/* PRINT */
+@media print{
+  .sidebar,.back,a.back{display:none!important}
+  .app{display:block}
+  .main{overflow:visible}
+  .results{padding:0;max-width:100%}
+  .status-banner,.metric-card,.chart-card,.alerts-card{break-inside:avoid;box-shadow:none}
+  body{background:#fff}
+  @page{margin:1.5cm}
+}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:55vh}
+  .metrics{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&#8592; FreeAdStore</a>
+      <h1>Spend Pacing Tracker</h1>
+      <p>Track daily ad spend against your budget to stay on pace throughout the campaign.</p>
+    </div>
+    <div class="sidebar-scroll">
+      <!-- Campaign Name -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Campaign Name</div>
+        <input type="text" id="nameInput" placeholder="e.g. Q3 Google Search Campaign">
+      </div>
+
+      <!-- Total Budget -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Total Budget</div>
+        <div class="input-group">
+          <span class="prefix">$</span>
+          <input type="number" id="budgetInput" min="1" step="1" placeholder="e.g. 3000">
+        </div>
+      </div>
+
+      <!-- Date Range -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Campaign Dates</div>
+        <div class="date-row">
+          <div>
+            <label>Start</label>
+            <input type="date" id="startDate">
+          </div>
+          <div>
+            <label>End</label>
+            <input type="date" id="endDate">
+          </div>
+        </div>
+      </div>
+
+      <!-- Daily Spend Log -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M6 20V4M18 20v-6"/></svg>Daily Spend Log</div>
+        <div class="spend-table-wrap" id="spendTableWrap">
+          <table class="spend-table">
+            <thead><tr><th>Day</th><th>Date</th><th>Spend ($)</th></tr></thead>
+            <tbody id="spendBody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:6px">
+          <button class="btn btn-outline btn-sm" id="btnPasteCSV">Paste CSV</button>
+          <button class="btn btn-outline btn-sm" id="btnClearSpend">Clear All</button>
+          <button class="btn btn-outline btn-sm" id="btnSampleData">Sample Data</button>
+        </div>
+      </div>
+
+      <!-- CSV Paste Modal -->
+      <div class="panel" id="csvPanel" style="display:none">
+        <div class="panel-title">Paste CSV (one amount per line, or day,amount)</div>
+        <textarea id="csvInput" rows="5" placeholder="100&#10;95&#10;110&#10;or&#10;1,100&#10;2,95&#10;3,110"></textarea>
+        <button class="btn btn-primary btn-sm" id="btnApplyCSV" style="margin-top:4px;width:auto">Apply</button>
+      </div>
+
+      <button class="btn btn-primary" id="btnTrack" style="margin-top:4px">Track Pacing</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="results" id="results">
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20V10M6 20V4M18 20v-6"/></svg>
+        <h2>Set up your campaign</h2>
+        <p>Enter budget, dates, and daily spend to track your pacing against the ideal spend line.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+var S = {
+  name: '',
+  budget: 0,
+  startDate: null,
+  endDate: null,
+  dailySpend: [],
+  tracked: false
+};
+
+function daysBetween(a, b) {
+  return Math.round((b - a) / 86400000) + 1;
+}
+
+function formatDate(d) {
+  var m = d.getMonth() + 1;
+  var day = d.getDate();
+  return m + '/' + day;
+}
+
+function addDays(d, n) {
+  var r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+
+function buildSpendTable() {
+  var body = document.getElementById('spendBody');
+  if (!S.startDate || !S.endDate) {
+    body.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:12px;color:var(--muted);font-size:.76rem">Set start and end dates first</td></tr>';
+    return;
+  }
+
+  var totalDays = daysBetween(S.startDate, S.endDate);
+  if (totalDays < 1 || totalDays > 90) {
+    body.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:12px;color:var(--muted);font-size:.76rem">Campaign must be 1-90 days</td></tr>';
+    return;
+  }
+
+  // Resize array
+  while (S.dailySpend.length < totalDays) S.dailySpend.push(0);
+  if (S.dailySpend.length > totalDays) S.dailySpend.length = totalDays;
+
+  var html = '';
+  for (var i = 0; i < totalDays; i++) {
+    var dayDate = addDays(S.startDate, i);
+    html += '<tr>' +
+      '<td class="day-num">Day ' + (i + 1) + '</td>' +
+      '<td class="day-date">' + formatDate(dayDate) + '</td>' +
+      '<td><input type="number" data-day="' + i + '" value="' + (S.dailySpend[i] || '') + '" min="0" step="0.01" placeholder="0.00"></td>' +
+      '</tr>';
+  }
+  body.innerHTML = html;
+
+  // Bind inputs
+  body.querySelectorAll('input[type=number]').forEach(function(inp) {
+    inp.oninput = function() {
+      S.dailySpend[parseInt(inp.dataset.day)] = parseFloat(inp.value) || 0;
+      if (S.tracked) track();
+    };
+  });
+}
+
+function init() {
+  // Set default dates: today to 30 days from now
+  var today = new Date();
+  var end = addDays(today, 29);
+  document.getElementById('startDate').value = today.toISOString().split('T')[0];
+  document.getElementById('endDate').value = end.toISOString().split('T')[0];
+  S.startDate = today;
+  S.endDate = end;
+
+  document.getElementById('nameInput').oninput = function(e) { S.name = e.target.value; };
+  document.getElementById('budgetInput').oninput = function(e) { S.budget = parseFloat(e.target.value) || 0; if (S.tracked) track(); };
+
+  document.getElementById('startDate').onchange = function(e) {
+    S.startDate = e.target.value ? new Date(e.target.value + 'T00:00:00') : null;
+    buildSpendTable();
+    if (S.tracked) track();
+  };
+  document.getElementById('endDate').onchange = function(e) {
+    S.endDate = e.target.value ? new Date(e.target.value + 'T00:00:00') : null;
+    buildSpendTable();
+    if (S.tracked) track();
+  };
+
+  document.getElementById('btnTrack').onclick = function() { S.tracked = true; track(); };
+
+  document.getElementById('btnPasteCSV').onclick = function() {
+    var panel = document.getElementById('csvPanel');
+    panel.style.display = panel.style.display === 'none' ? '' : 'none';
+  };
+
+  document.getElementById('btnApplyCSV').onclick = function() {
+    var text = document.getElementById('csvInput').value.trim();
+    if (!text) return;
+    var lines = text.split('\n');
+    lines.forEach(function(line, idx) {
+      line = line.trim();
+      if (!line) return;
+      var parts = line.split(/[,\t]/);
+      var val, dayIdx;
+      if (parts.length >= 2) {
+        dayIdx = parseInt(parts[0]) - 1;
+        val = parseFloat(parts[1]);
+      } else {
+        dayIdx = idx;
+        val = parseFloat(parts[0]);
+      }
+      if (!isNaN(val) && dayIdx >= 0 && dayIdx < S.dailySpend.length) {
+        S.dailySpend[dayIdx] = val;
+      }
+    });
+    buildSpendTable();
+    document.getElementById('csvPanel').style.display = 'none';
+    document.getElementById('csvInput').value = '';
+    if (S.tracked) track();
+  };
+
+  document.getElementById('btnClearSpend').onclick = function() {
+    S.dailySpend = S.dailySpend.map(function() { return 0; });
+    buildSpendTable();
+    if (S.tracked) track();
+  };
+
+  document.getElementById('btnSampleData').onclick = function() {
+    if (!S.startDate || !S.endDate) return;
+    var totalDays = daysBetween(S.startDate, S.endDate);
+    var idealDaily = S.budget > 0 ? S.budget / totalDays : 100;
+    // Fill roughly first half with realistic-looking data
+    var fillDays = Math.min(Math.ceil(totalDays * 0.5), totalDays);
+    for (var i = 0; i < fillDays; i++) {
+      var variance = (Math.random() - 0.5) * 0.4;
+      S.dailySpend[i] = Math.max(0, Math.round((idealDaily * (1 + variance)) * 100) / 100);
+    }
+    for (var j = fillDays; j < totalDays; j++) {
+      S.dailySpend[j] = 0;
+    }
+    buildSpendTable();
+    if (S.tracked) track();
+  };
+
+  buildSpendTable();
+}
+
+function fmt(n) {
+  if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return '$' + (n / 1e3).toFixed(1) + 'K';
+  return '$' + n.toFixed(2);
+}
+
+function track() {
+  var results = document.getElementById('results');
+
+  if (!S.startDate || !S.endDate || S.budget <= 0) {
+    results.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v2m0 4h.01M5.07 19H19a2 2 0 0 0 1.75-2.97L13.73 4.99a2 2 0 0 0-3.46 0L3.34 16.03A2 2 0 0 0 5.07 19z"/></svg>' +
+      '<h2>Missing inputs</h2><p>Enter a budget and set valid campaign dates.</p></div>';
+    return;
+  }
+
+  var totalDays = daysBetween(S.startDate, S.endDate);
+  if (totalDays < 1 || totalDays > 90) return;
+
+  var idealDaily = S.budget / totalDays;
+
+  // Determine which days have spend logged
+  var daysWithSpend = 0;
+  var totalSpent = 0;
+  var spendByDay = [];
+  for (var i = 0; i < totalDays; i++) {
+    var val = S.dailySpend[i] || 0;
+    spendByDay.push(val);
+    if (val > 0) daysWithSpend = i + 1; // last day with spend
+    totalSpent += val;
+  }
+
+  var daysElapsed = Math.max(daysWithSpend, 1);
+  var daysRemaining = totalDays - daysElapsed;
+  var budgetRemaining = S.budget - totalSpent;
+  var idealSpentByNow = idealDaily * daysElapsed;
+  var pacingPct = idealSpentByNow > 0 ? (totalSpent / idealSpentByNow) * 100 : 0;
+
+  // Average daily spend based on logged days
+  var avgDailySpend = daysWithSpend > 0 ? totalSpent / daysWithSpend : 0;
+
+  // Recommended daily going forward
+  var recommendedDaily = daysRemaining > 0 ? budgetRemaining / daysRemaining : 0;
+
+  // Projected end spend at current rate
+  var projectedTotal = daysWithSpend > 0 ? avgDailySpend * totalDays : 0;
+  var projectedPct = S.budget > 0 ? (projectedTotal / S.budget) * 100 : 0;
+
+  // Status
+  var status, statusLabel, statusDesc;
+  if (pacingPct >= 80 && pacingPct <= 110) {
+    status = 'on-pace';
+    statusLabel = 'On Pace';
+    statusDesc = 'Your spend is within the ideal range. You\'ve spent ' + fmt(totalSpent) + ' of ' + fmt(S.budget) + ' (' + pacingPct.toFixed(1) + '% of ideal pace).';
+  } else if (pacingPct < 80) {
+    status = 'underspend';
+    statusLabel = 'Underspending';
+    statusDesc = 'You\'re behind pace at ' + pacingPct.toFixed(1) + '% of ideal. You should have spent ~' + fmt(idealSpentByNow) + ' by now but only spent ' + fmt(totalSpent) + '. Increase daily spend to ' + fmt(recommendedDaily) + '/day to finish on budget.';
+  } else {
+    status = 'overspend';
+    statusLabel = 'Overspending';
+    statusDesc = 'You\'re ahead of pace at ' + pacingPct.toFixed(1) + '% of ideal. At this rate you\'ll exhaust your budget ' + (daysRemaining > 0 ? Math.round(daysRemaining - (budgetRemaining / avgDailySpend)) + ' days early' : 'immediately') + '. Reduce daily spend to ' + fmt(Math.max(0, recommendedDaily)) + '/day.';
+  }
+
+  var statusIcon = status === 'on-pace' ? '\u2714' : status === 'underspend' ? '\u2193' : '\u2191';
+
+  // Status banner
+  var html = '<div class="status-banner ' + status + '">' +
+    '<div class="status-icon">' + statusIcon + '</div>' +
+    '<div class="status-text"><h2>' + statusLabel + '</h2><p>' + statusDesc + '</p></div></div>';
+
+  // Campaign name
+  if (S.name) {
+    html = '<div style="margin-bottom:8px;font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em">' + S.name + '</div>' + html;
+  }
+
+  // Metric cards
+  html += '<div class="metrics">' +
+    '<div class="metric-card"><div class="metric-label">Days Remaining</div><div class="metric-value">' + daysRemaining + '</div><div class="metric-sub">of ' + totalDays + ' total</div></div>' +
+    '<div class="metric-card"><div class="metric-label">Budget Remaining</div><div class="metric-value' + (budgetRemaining < 0 ? ' red' : '') + '">' + fmt(budgetRemaining) + '</div><div class="metric-sub">' + (S.budget > 0 ? ((budgetRemaining / S.budget) * 100).toFixed(1) + '% left' : '') + '</div></div>' +
+    '<div class="metric-card"><div class="metric-label">Rec. Daily Spend</div><div class="metric-value blue">' + fmt(Math.max(0, recommendedDaily)) + '</div><div class="metric-sub">to finish on budget</div></div>' +
+    '<div class="metric-card"><div class="metric-label">Projected Total</div><div class="metric-value' + (projectedPct > 110 ? ' red' : projectedPct < 80 ? ' blue' : ' green') + '">' + fmt(projectedTotal) + '</div><div class="metric-sub">' + projectedPct.toFixed(1) + '% of budget</div></div>' +
+    '</div>';
+
+  // Pacing chart
+  var maxSpend = Math.max(idealDaily, Math.max.apply(null, spendByDay.map(function(v) { return v || 0; }))) * 1.3;
+  if (maxSpend <= 0) maxSpend = 100;
+
+  var chartHeight = 220;
+  var idealLineTop = chartHeight - (idealDaily / maxSpend * chartHeight);
+
+  // Y-axis labels
+  var ySteps = 5;
+  var yLabels = '';
+  for (var yi = 0; yi <= ySteps; yi++) {
+    var yVal = (maxSpend / ySteps) * (ySteps - yi);
+    yLabels += '<div class="chart-y-label">' + fmt(yVal) + '</div>';
+  }
+
+  // Bars — show a subset if too many days
+  var showDays = totalDays;
+  var barWidth = showDays <= 31 ? '' : 'max-width:8px;';
+
+  var bars = '';
+  for (var d = 0; d < totalDays; d++) {
+    var spend = spendByDay[d] || 0;
+    var barH = spend > 0 ? Math.max(2, (spend / maxSpend) * chartHeight) : 0;
+    var isFuture = d >= daysElapsed && spend === 0;
+    var barClass = 'actual';
+    if (isFuture) { barClass = 'future'; barH = (idealDaily / maxSpend) * chartHeight; }
+    else if (spend > idealDaily * 1.1) barClass = 'over';
+    else if (spend < idealDaily * 0.8 && spend > 0) barClass = 'under';
+    else if (spend > 0) barClass = 'ok';
+
+    var showLabel = totalDays <= 31 || (d % Math.ceil(totalDays / 15) === 0) || d === totalDays - 1;
+
+    bars += '<div class="chart-bar-wrap">' +
+      '<div class="chart-bar ' + barClass + '" style="height:' + barH + 'px;' + barWidth + '"></div>' +
+      (showLabel ? '<div class="chart-x-label">' + (d + 1) + '</div>' : '') +
+      '</div>';
+  }
+
+  html += '<div class="chart-card"><h3><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10M6 20V4M18 20v-6"/></svg> Spend Pacing Chart</h3>' +
+    '<div class="chart-area" style="height:' + (chartHeight + 24) + 'px">' +
+    '<div class="chart-y-axis">' + yLabels + '</div>' +
+    bars +
+    '<div class="chart-ideal" style="bottom:' + (24 + (idealDaily / maxSpend) * chartHeight) + 'px"><div class="chart-ideal-label">Ideal: ' + fmt(idealDaily) + '/day</div></div>' +
+    '</div>' +
+    '<div class="chart-legend">' +
+    '<div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--green)"></div>On pace</div>' +
+    '<div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--blue)"></div>Under</div>' +
+    '<div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--accent)"></div>Over</div>' +
+    '<div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--line)"></div>Projected</div>' +
+    '<div class="chart-legend-item" style="border-top:2px dashed var(--orange);padding-top:0;margin-top:-4px;width:20px"></div><span style="font-size:.68rem;color:var(--muted);font-weight:600">Ideal</span>' +
+    '</div></div>';
+
+  // Alerts
+  var alerts = [];
+  if (pacingPct > 110) {
+    alerts.push({ level: 'danger', text: 'Spending at ' + pacingPct.toFixed(1) + '% of ideal pace. At current rate, you\'ll exceed budget by ' + fmt(projectedTotal - S.budget) + '.' });
+  }
+  if (pacingPct < 80 && daysWithSpend > 0) {
+    alerts.push({ level: 'warn', text: 'Spending at only ' + pacingPct.toFixed(1) + '% of ideal pace. You\'ll leave ' + fmt(S.budget - projectedTotal) + ' unspent at this rate.' });
+  }
+  if (budgetRemaining < 0) {
+    alerts.push({ level: 'danger', text: 'Budget exceeded by ' + fmt(-budgetRemaining) + '. Consider pausing campaigns to avoid further overspend.' });
+  }
+  if (recommendedDaily > idealDaily * 2 && daysRemaining > 0) {
+    alerts.push({ level: 'warn', text: 'To catch up, you need to spend ' + fmt(recommendedDaily) + '/day — that\'s ' + (recommendedDaily / idealDaily).toFixed(1) + 'x your ideal daily rate. This aggressive ramp may hurt efficiency.' });
+  }
+  if (daysRemaining <= 3 && daysRemaining > 0 && budgetRemaining > idealDaily * 2) {
+    alerts.push({ level: 'warn', text: 'Only ' + daysRemaining + ' days left with ' + fmt(budgetRemaining) + ' unspent. Consider increasing bids or expanding targeting to spend remaining budget.' });
+  }
+  if (pacingPct >= 80 && pacingPct <= 110) {
+    alerts.push({ level: 'ok', text: 'Great pacing! Your spend is tracking within 10% of the ideal daily rate. Keep current settings.' });
+  }
+  if (daysWithSpend === 0) {
+    alerts.push({ level: 'info', text: 'No spend data logged yet. Enter daily spend amounts in the sidebar or paste from a CSV.' });
+  }
+
+  if (alerts.length > 0) {
+    html += '<div class="alerts-card"><h3>Alerts & Recommendations</h3>';
+    alerts.forEach(function(a) {
+      var levelLabel = a.level === 'danger' ? 'ALERT' : a.level === 'warn' ? 'WARNING' : a.level === 'ok' ? 'OK' : 'INFO';
+      html += '<div class="alert-item"><div class="alert-badge ' + a.level + '">' + levelLabel + '</div><div>' + a.text + '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  results.innerHTML = html;
+}
+
+init();
+})();
+</script>
+</body>
+</html>

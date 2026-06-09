@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GDPR/Privacy Ad Audit - FreeAdStore</title>
+<meta name="description" content="Self-assessment GDPR and privacy compliance audit for ad landing pages. Check cookie consent, privacy policy, data collection, and more. Export as PDF. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#ef4444;--accent-light:#fef2f2;--accent-dark:#dc2626;--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--panel:#ffffff;--line:#e5e7eb;--green:#10b981;--yellow:#f59e0b;--blue:#3b82f6;--purple:#8b5cf6;--red:#ef4444}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+/* Header */
+.top-bar{display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+.back{font-size:13px;font-weight:500;color:var(--accent);white-space:nowrap}
+.back:hover{text-decoration:underline}
+.top-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:700;flex:1}
+.top-title span{color:var(--accent)}
+
+/* Layout */
+.layout{display:flex;height:calc(100vh - 45px);overflow:hidden}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);overflow-y:auto;display:flex;flex-direction:column}
+.main{flex:1;overflow-y:auto;padding:24px 32px;background:var(--bg)}
+
+/* Sidebar sections */
+.sidebar-header{padding:16px 16px 0;border-bottom:1px solid var(--line);padding-bottom:12px}
+.sidebar-header h2{font-size:15px;font-weight:800;margin-bottom:4px}
+.sidebar-header p{font-size:11px;color:var(--muted);line-height:1.4}
+.sidebar-content{padding:16px;flex:1;overflow-y:auto}
+
+/* Section */
+.section{margin-bottom:20px}
+.section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.section-title::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px}
+
+/* Form elements */
+.field{margin-bottom:12px}
+.field-label{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;display:block}
+.text-input{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg)}
+.text-input:focus{outline:none;border-color:var(--accent)}
+.select{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg);color:var(--text);cursor:pointer}
+.select:focus{outline:none;border-color:var(--accent)}
+
+/* Checkboxes */
+.check-list{display:flex;flex-direction:column;gap:4px}
+.check-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;border:1px solid var(--line);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;background:var(--panel);color:var(--muted);user-select:none}
+.check-item:hover{border-color:var(--accent);color:var(--text)}
+.check-item.active{background:var(--accent-light);border-color:var(--accent);color:var(--accent);font-weight:600}
+.check-item input[type=checkbox]{display:none}
+.check-box{width:14px;height:14px;border-radius:3px;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;font-size:9px;color:transparent}
+.check-item.active .check-box{border-color:var(--accent);background:var(--accent);color:white}
+
+/* Platform tabs */
+.platform-tabs{display:flex;gap:0;background:var(--bg);border-radius:8px;padding:3px}
+.platform-tab{flex:1;text-align:center;padding:6px 4px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;border:none;background:transparent;color:var(--muted);font-family:inherit}
+.platform-tab:hover{color:var(--text)}
+.platform-tab.active{background:var(--accent);color:white;box-shadow:0 1px 3px rgba(239,68,68,.3)}
+
+/* Pixel radio list */
+.pixel-list{display:flex;flex-direction:column;gap:3px}
+.pixel-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;border:1px solid var(--line);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;background:var(--panel);color:var(--muted);user-select:none}
+.pixel-item:hover{border-color:var(--accent);color:var(--text)}
+.pixel-item.active{background:var(--accent-light);border-color:var(--accent);color:var(--accent);font-weight:600}
+.pixel-item input{display:none}
+.pixel-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--line);flex-shrink:0;transition:all .15s}
+.pixel-item.active .pixel-dot{border-color:var(--accent);background:var(--accent)}
+
+/* Run button */
+.run-btn{width:100%;padding:10px;border-radius:8px;background:var(--accent);color:white;font-size:13px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .15s;margin-top:8px}
+.run-btn:hover{background:var(--accent-dark)}
+
+/* === MAIN AREA === */
+
+.empty-state{text-align:center;padding:80px 32px;color:var(--muted)}
+.empty-state h3{font-family:'Fraunces',serif;font-size:1.5rem;color:var(--text);margin-bottom:8px}
+.empty-state p{font-size:13px;line-height:1.5}
+
+/* Score card */
+.score-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04);text-align:center}
+.score-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+.score-ring{position:relative;width:120px;height:120px;margin:0 auto 12px}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring-bg{fill:none;stroke:var(--line);stroke-width:8}
+.score-ring-fill{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset .6s ease}
+.score-number{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Fraunces',serif;font-size:2rem;font-weight:700}
+.score-sub{font-size:13px;color:var(--muted)}
+.score-grade{display:inline-block;padding:4px 16px;border-radius:99px;font-size:13px;font-weight:700;margin-top:8px}
+
+/* Summary row */
+.summary-row{display:flex;gap:12px;margin-bottom:20px}
+.summary-stat{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.summary-stat-value{font-size:20px;font-weight:800}
+.summary-stat-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
+
+/* Audit item */
+.audit-item{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.audit-item-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.audit-status{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;color:white}
+.status-pass{background:var(--green)}
+.status-fail{background:var(--red)}
+.status-warn{background:var(--yellow)}
+.audit-item-title{font-size:14px;font-weight:700;flex:1}
+.audit-item-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 8px;border-radius:99px;flex-shrink:0}
+.tag-pass{background:#dcfce7;color:#16a34a}
+.tag-fail{background:#fef2f2;color:#dc2626}
+.tag-warn{background:#fef3c7;color:#d97706}
+.audit-explanation{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:8px}
+.audit-fix{font-size:12px;line-height:1.5;padding:8px 10px;background:var(--bg);border-radius:6px;border-left:3px solid var(--accent)}
+.audit-fix strong{color:var(--text)}
+
+/* Export bar */
+.export-bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.export-btn{padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .15s}
+.export-primary{background:var(--accent);color:white}
+.export-primary:hover{background:var(--accent-dark)}
+.export-secondary{background:var(--panel);color:var(--text);border:1px solid var(--line)}
+.export-secondary:hover{border-color:var(--accent)}
+
+/* Disclaimer banner */
+.disclaimer-banner{background:var(--accent-light);border:1px solid #fecaca;border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:11px;color:#991b1b;line-height:1.5}
+.disclaimer-banner strong{font-weight:700}
+
+/* Toast */
+.copied-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:white;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transition:all .3s ease;z-index:999;pointer-events:none}
+.copied-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* Print styles */
+@media print{
+  .top-bar,.sidebar,.export-bar{display:none!important}
+  .layout{display:block!important;height:auto!important}
+  .main{padding:20px!important;overflow:visible!important}
+  .audit-item{break-inside:avoid;page-break-inside:avoid}
+  body{background:white}
+}
+
+/* Responsive */
+@media(max-width:768px){
+  .layout{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;max-height:50vh;border-right:none;border-bottom:1px solid var(--line)}
+  .main{padding:16px}
+  .summary-row{flex-wrap:wrap}
+  .summary-stat{min-width:calc(50% - 6px)}
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a class="back" href="/">&larr; FreeAdStore</a>
+  <div class="top-title">Privacy Ad <span>Audit</span></div>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>Audit Your Landing Page</h2>
+      <p>Self-assessment tool. Answer questions about your landing page to get a GDPR/privacy compliance report.</p>
+    </div>
+
+    <div class="sidebar-content">
+      <!-- Landing Page -->
+      <div class="section">
+        <div class="section-title">Landing Page</div>
+        <div class="field">
+          <div class="field-label">Landing Page URL</div>
+          <input type="text" class="text-input" id="pageUrl" placeholder="e.g. https://example.com/offer">
+        </div>
+      </div>
+
+      <!-- Data Collected -->
+      <div class="section">
+        <div class="section-title">Data Collected</div>
+        <p style="font-size:10px;color:var(--muted);margin-bottom:8px">What does your landing page collect from visitors?</p>
+        <div class="check-list" id="dataChecks">
+          <label class="check-item" data-value="email"><input type="checkbox"><span class="check-box">&#10003;</span>Email address</label>
+          <label class="check-item" data-value="phone"><input type="checkbox"><span class="check-box">&#10003;</span>Phone number</label>
+          <label class="check-item" data-value="name"><input type="checkbox"><span class="check-box">&#10003;</span>Name</label>
+          <label class="check-item" data-value="cookies"><input type="checkbox"><span class="check-box">&#10003;</span>Cookies</label>
+          <label class="check-item" data-value="payment"><input type="checkbox"><span class="check-box">&#10003;</span>Payment info</label>
+          <label class="check-item" data-value="location"><input type="checkbox"><span class="check-box">&#10003;</span>Location data</label>
+        </div>
+      </div>
+
+      <!-- Ad Platform -->
+      <div class="section">
+        <div class="section-title">Ad Platform</div>
+        <div class="platform-tabs" id="platformTabs">
+          <button class="platform-tab active" data-platform="meta">Meta</button>
+          <button class="platform-tab" data-platform="google">Google</button>
+          <button class="platform-tab" data-platform="linkedin">LinkedIn</button>
+          <button class="platform-tab" data-platform="tiktok">TikTok</button>
+        </div>
+      </div>
+
+      <!-- Retargeting Pixel -->
+      <div class="section">
+        <div class="section-title">Retargeting Pixel</div>
+        <div class="pixel-list" id="pixelList">
+          <label class="pixel-item" data-value="meta-pixel"><input type="radio" name="pixel" value="meta-pixel"><span class="pixel-dot"></span>Meta Pixel</label>
+          <label class="pixel-item" data-value="google-tag"><input type="radio" name="pixel" value="google-tag"><span class="pixel-dot"></span>Google Tag</label>
+          <label class="pixel-item" data-value="linkedin-insight"><input type="radio" name="pixel" value="linkedin-insight"><span class="pixel-dot"></span>LinkedIn Insight</label>
+          <label class="pixel-item" data-value="tiktok-pixel"><input type="radio" name="pixel" value="tiktok-pixel"><span class="pixel-dot"></span>TikTok Pixel</label>
+          <label class="pixel-item active" data-value="none"><input type="radio" name="pixel" value="none" checked><span class="pixel-dot"></span>None</label>
+        </div>
+      </div>
+
+      <!-- Compliance Questions -->
+      <div class="section">
+        <div class="section-title">Compliance Checklist</div>
+        <p style="font-size:10px;color:var(--muted);margin-bottom:8px">Answer honestly -- does your landing page have these?</p>
+        <div class="check-list" id="complianceChecks">
+          <label class="check-item" data-check="cookie-banner"><input type="checkbox"><span class="check-box">&#10003;</span>Cookie consent banner</label>
+          <label class="check-item" data-check="privacy-link"><input type="checkbox"><span class="check-box">&#10003;</span>Privacy policy linked</label>
+          <label class="check-item" data-check="data-disclosed"><input type="checkbox"><span class="check-box">&#10003;</span>Data collection disclosed</label>
+          <label class="check-item" data-check="opt-out"><input type="checkbox"><span class="check-box">&#10003;</span>Opt-out mechanism</label>
+          <label class="check-item" data-check="third-party"><input type="checkbox"><span class="check-box">&#10003;</span>Third-party tracking disclosed</label>
+          <label class="check-item" data-check="retention"><input type="checkbox"><span class="check-box">&#10003;</span>Data retention period stated</label>
+          <label class="check-item" data-check="ccpa-link"><input type="checkbox"><span class="check-box">&#10003;</span>CCPA "Do Not Sell" link</label>
+          <label class="check-item" data-check="age-verify"><input type="checkbox"><span class="check-box">&#10003;</span>Age verification (if needed)</label>
+          <label class="check-item" data-check="https"><input type="checkbox"><span class="check-box">&#10003;</span>SSL/HTTPS on landing page</label>
+          <label class="check-item" data-check="contact-info"><input type="checkbox"><span class="check-box">&#10003;</span>Data controller contact info</label>
+        </div>
+      </div>
+
+      <button class="run-btn" onclick="runAudit()">Run Privacy Audit</button>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="main" id="mainArea">
+    <div class="empty-state" id="emptyState">
+      <h3>Configure your audit</h3>
+      <p>Enter your landing page details, select what data you collect, and answer the compliance checklist. Then click "Run Privacy Audit" to generate your report.</p>
+    </div>
+    <div id="resultsArea" style="display:none"></div>
+  </div>
+</div>
+
+<div class="copied-toast" id="toast">Copied to clipboard</div>
+
+<script>
+(function(){
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+
+  // ── Checkbox toggle ──
+  document.querySelectorAll('.check-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+      const cb = this.querySelector('input[type=checkbox]');
+      setTimeout(() => {
+        this.classList.toggle('active', cb.checked);
+      }, 0);
+    });
+  });
+
+  // ── Pixel radio ──
+  document.querySelectorAll('.pixel-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.pixel-item').forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+      this.querySelector('input').checked = true;
+    });
+  });
+
+  // ── Platform tabs ──
+  let activePlatform = 'meta';
+  document.querySelectorAll('.platform-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activePlatform = tab.dataset.platform;
+    });
+  });
+
+  // ── Audit rules ──
+  const AUDIT_ITEMS = [
+    {
+      id: 'cookie-banner',
+      title: 'Cookie Consent Banner',
+      checkField: 'cookie-banner',
+      evaluate: function(ctx) {
+        if (ctx.checks['cookie-banner']) {
+          return { status: 'pass', explanation: 'Your landing page has a cookie consent banner. This is required by GDPR (EU), PECR (UK), and increasingly expected by other jurisdictions.', fix: null };
+        }
+        if (ctx.collectsCookies || ctx.hasPixel) {
+          return { status: 'fail', explanation: 'Your page collects cookies or uses a tracking pixel but has no cookie consent banner. This violates GDPR Article 7 and ePrivacy Directive Article 5(3). Consent must be obtained BEFORE cookies are set.', fix: 'Add a cookie consent banner (e.g., Cookiebot, OneTrust, or a custom implementation) that blocks tracking scripts until the user consents. The banner must offer granular choices (accept/reject/preferences) -- a simple "OK" button is not sufficient under GDPR.' };
+        }
+        return { status: 'warn', explanation: 'No cookie consent banner detected. If your page uses any cookies (including analytics or session cookies), a consent banner is required under GDPR.', fix: 'Verify whether your page sets any cookies. If it does, implement a cookie consent banner. Even if you believe no cookies are used, it is best practice to have one.' };
+      }
+    },
+    {
+      id: 'privacy-link',
+      title: 'Privacy Policy Linked',
+      checkField: 'privacy-link',
+      evaluate: function(ctx) {
+        if (ctx.checks['privacy-link']) {
+          return { status: 'pass', explanation: 'Your landing page links to a privacy policy. This is required by GDPR Article 13, CCPA, and virtually all ad platform policies.', fix: null };
+        }
+        return { status: 'fail', explanation: 'No privacy policy link found. Every page that collects personal data must link to a privacy policy. This is a hard requirement under GDPR, CCPA, PIPEDA, and all major ad platform policies. Ads linking to pages without privacy policies can be rejected.', fix: 'Add a clearly visible link to your privacy policy in the footer of your landing page. The privacy policy must describe what data you collect, why you collect it, how it is used, and how users can exercise their rights. Use plain language.' };
+      }
+    },
+    {
+      id: 'data-disclosed',
+      title: 'Data Collection Disclosed',
+      checkField: 'data-disclosed',
+      evaluate: function(ctx) {
+        const dataTypes = ctx.dataCollected;
+        if (ctx.checks['data-disclosed']) {
+          return { status: 'pass', explanation: 'Data collection is disclosed on your landing page. GDPR Article 13 requires that you inform users about what data you collect at the point of collection.', fix: null };
+        }
+        if (dataTypes.length > 0) {
+          return { status: 'fail', explanation: 'You collect ' + dataTypes.join(', ') + ' but have not disclosed this to users on the landing page. GDPR Article 13 requires transparency about data collection at the point where data is gathered.', fix: 'Add a brief data collection notice near any forms or input fields. Example: "We collect your ' + dataTypes.join(', ') + ' to [purpose]. See our Privacy Policy for details." For payment data, also confirm PCI DSS compliance.' };
+        }
+        return { status: 'warn', explanation: 'No data types selected, but ensure any data collection is disclosed. Even analytics data (IP addresses, device info) counts as personal data under GDPR.', fix: 'Review all data your page collects, including automatic data from analytics scripts, and disclose it in your privacy policy.' };
+      }
+    },
+    {
+      id: 'opt-out',
+      title: 'Opt-Out Mechanism',
+      checkField: 'opt-out',
+      evaluate: function(ctx) {
+        if (ctx.checks['opt-out']) {
+          return { status: 'pass', explanation: 'An opt-out mechanism is available. GDPR Article 7(3) gives users the right to withdraw consent at any time. CCPA requires opt-out of data sales.', fix: null };
+        }
+        if (ctx.collectsEmail || ctx.collectsPhone) {
+          return { status: 'fail', explanation: 'You collect email or phone but offer no opt-out mechanism. Users must be able to withdraw consent and unsubscribe from communications. This is required by GDPR, CAN-SPAM Act (US), and CASL (Canada).', fix: 'Provide clear opt-out instructions: an unsubscribe link in emails, a preference center, or contact information for data deletion requests. Under GDPR, opt-out must be as easy as opt-in.' };
+        }
+        return { status: 'warn', explanation: 'No opt-out mechanism indicated. If you process any personal data, users must have a way to withdraw consent or request deletion.', fix: 'Add opt-out functionality or at minimum provide a contact email for privacy requests.' };
+      }
+    },
+    {
+      id: 'third-party',
+      title: 'Third-Party Tracking Disclosed',
+      checkField: 'third-party',
+      evaluate: function(ctx) {
+        if (ctx.checks['third-party']) {
+          return { status: 'pass', explanation: 'Third-party tracking is disclosed. GDPR requires transparency about all data recipients, including ad platforms and analytics providers.', fix: null };
+        }
+        if (ctx.hasPixel) {
+          const pixelName = { 'meta-pixel': 'Meta Pixel', 'google-tag': 'Google Tag', 'linkedin-insight': 'LinkedIn Insight Tag', 'tiktok-pixel': 'TikTok Pixel' }[ctx.pixel] || ctx.pixel;
+          return { status: 'fail', explanation: 'You use ' + pixelName + ' but have not disclosed third-party tracking. GDPR Article 13(1)(e) requires you to disclose all recipients of personal data, including ad platforms that receive tracking data.', fix: 'Disclose the use of ' + pixelName + ' in your privacy policy and cookie consent banner. List the third party (e.g., Meta Platforms, Inc.), the purpose (advertising, remarketing), and what data is shared (page views, conversions, IP address).' };
+        }
+        return { status: 'warn', explanation: 'No tracking pixel selected, but verify that no third-party scripts are embedded on your page (analytics, chat widgets, fonts, CDNs). Each counts as a third-party data transfer.', fix: 'Audit all third-party scripts on your page. Disclose each one in your privacy policy, including what data they access and why.' };
+      }
+    },
+    {
+      id: 'retention',
+      title: 'Data Retention Period Stated',
+      checkField: 'retention',
+      evaluate: function(ctx) {
+        if (ctx.checks['retention']) {
+          return { status: 'pass', explanation: 'Data retention period is stated. GDPR Article 13(2)(a) requires you to inform users about how long their data will be stored or the criteria used to determine the retention period.', fix: null };
+        }
+        if (ctx.dataCollected.length > 0) {
+          return { status: 'fail', explanation: 'You collect personal data but do not state how long it is retained. GDPR Article 5(1)(e) requires data minimization -- data must not be kept longer than necessary for its purpose.', fix: 'Add a data retention section to your privacy policy specifying how long each type of data is kept. Example: "Email addresses are retained for 24 months after last interaction. Payment data is retained for 7 years as required by tax law. You may request deletion at any time."' };
+        }
+        return { status: 'warn', explanation: 'No data retention period stated. Even if you collect minimal data, stating retention periods is a GDPR requirement and builds user trust.', fix: 'Define and publish retention periods for all data types in your privacy policy.' };
+      }
+    },
+    {
+      id: 'ccpa-link',
+      title: 'CCPA "Do Not Sell" Link',
+      checkField: 'ccpa-link',
+      evaluate: function(ctx) {
+        if (ctx.checks['ccpa-link']) {
+          return { status: 'pass', explanation: 'A "Do Not Sell My Personal Information" link is present. This is required by CCPA Section 1798.135 for businesses that sell personal information and serve California residents.', fix: null };
+        }
+        if (ctx.hasPixel) {
+          return { status: 'fail', explanation: 'You use a tracking pixel, which may constitute "selling" personal information under CCPA. If you have California visitors and share data with ad platforms, a "Do Not Sell" link is required.', fix: 'Add a "Do Not Sell or Share My Personal Information" link in your page footer. It must lead to a mechanism that allows users to opt out of data sharing with third parties. Under CPRA (amended CCPA), this extends to "sharing" data for cross-context behavioral advertising.' };
+        }
+        return { status: 'warn', explanation: 'No "Do Not Sell" link detected. If your site serves California residents and shares any personal data with third parties (including ad platforms), this link may be required.', fix: 'Evaluate whether CCPA applies to your business. If you meet the thresholds (>$25M revenue, >50K consumers/devices, or >50% revenue from selling data), add the required link.' };
+      }
+    },
+    {
+      id: 'age-verify',
+      title: 'Age Verification',
+      checkField: 'age-verify',
+      evaluate: function(ctx) {
+        if (ctx.checks['age-verify']) {
+          return { status: 'pass', explanation: 'Age verification is present. This is important for industries targeting age-restricted products (alcohol, gambling) and for COPPA compliance when children may access the site.', fix: null };
+        }
+        return { status: 'warn', explanation: 'No age verification detected. If your product or service is age-restricted, or if children under 13 (COPPA) or 16 (GDPR) may access your page, age verification may be required.', fix: 'If your industry requires age verification (alcohol: 21+ US / 18+ EU; gambling: 18+/21+; adult content), add an age gate before the main content. For general sites, consider adding age-related data processing notices to your privacy policy.' };
+      }
+    },
+    {
+      id: 'https',
+      title: 'SSL/HTTPS on Landing Page',
+      checkField: 'https',
+      evaluate: function(ctx) {
+        const url = ctx.pageUrl.toLowerCase();
+        if (ctx.checks['https'] || (url && url.startsWith('https://'))) {
+          return { status: 'pass', explanation: 'Your landing page uses HTTPS. This is essential for data security and required by GDPR Article 32 (appropriate security measures). All major ad platforms reject ads linking to non-HTTPS pages.', fix: null };
+        }
+        if (url && url.startsWith('http://')) {
+          return { status: 'fail', explanation: 'Your landing page uses HTTP, not HTTPS. This means data transmitted between the user and your server is not encrypted. Google, Meta, and other platforms will reject ads linking to non-HTTPS pages. GDPR Article 32 requires appropriate security measures for data processing.', fix: 'Install an SSL certificate on your server. Most hosting providers offer free SSL via Let\'s Encrypt. Redirect all HTTP traffic to HTTPS. Ensure all resources (images, scripts, stylesheets) also load over HTTPS to avoid mixed content warnings.' };
+        }
+        if (!ctx.checks['https']) {
+          return { status: 'fail', explanation: 'HTTPS is not confirmed for your landing page. All pages collecting personal data must use HTTPS encryption. Ad platforms will reject ads linking to insecure pages.', fix: 'Verify your page loads over HTTPS. If it does not, install an SSL certificate immediately. This is non-negotiable for any page collecting user data.' };
+        }
+        return { status: 'warn', explanation: 'Could not determine HTTPS status. Verify your landing page loads securely.', fix: 'Check that your URL starts with https:// and that the browser shows a lock icon.' };
+      }
+    },
+    {
+      id: 'contact-info',
+      title: 'Data Controller Contact Info',
+      checkField: 'contact-info',
+      evaluate: function(ctx) {
+        if (ctx.checks['contact-info']) {
+          return { status: 'pass', explanation: 'Data controller contact information is provided. GDPR Article 13(1)(a) requires the identity and contact details of the data controller. This must include a way for users to exercise their data rights.', fix: null };
+        }
+        return { status: 'fail', explanation: 'No data controller contact information found. GDPR Article 13(1)(a) requires the identity and contact details of the data controller (and DPO if applicable) to be provided to data subjects.', fix: 'Add the following to your privacy policy: company name, registered address, email for privacy inquiries (e.g., privacy@company.com), and if applicable, your Data Protection Officer\'s contact details. If you are based outside the EU but serve EU residents, you must appoint an EU representative (GDPR Article 27).' };
+      }
+    }
+  ];
+
+  // ── Get state ──
+  function getState() {
+    const dataChecked = [];
+    $('dataChecks').querySelectorAll('.check-item').forEach(item => {
+      if (item.querySelector('input').checked) dataChecked.push(item.dataset.value);
+    });
+
+    const checks = {};
+    $('complianceChecks').querySelectorAll('.check-item').forEach(item => {
+      checks[item.dataset.check] = item.querySelector('input').checked;
+    });
+
+    const pixel = document.querySelector('.pixel-item.active')?.dataset.value || 'none';
+
+    return {
+      pageUrl: $('pageUrl').value.trim(),
+      dataCollected: dataChecked,
+      collectsEmail: dataChecked.includes('email'),
+      collectsPhone: dataChecked.includes('phone'),
+      collectsCookies: dataChecked.includes('cookies'),
+      collectsPayment: dataChecked.includes('payment'),
+      collectsLocation: dataChecked.includes('location'),
+      platform: activePlatform,
+      pixel: pixel,
+      hasPixel: pixel !== 'none',
+      checks: checks
+    };
+  }
+
+  // ── Run audit ──
+  window.runAudit = function() {
+    const ctx = getState();
+    const results = AUDIT_ITEMS.map(item => {
+      const result = item.evaluate(ctx);
+      return { ...item, ...result };
+    });
+
+    const passCount = results.filter(r => r.status === 'pass').length;
+    const failCount = results.filter(r => r.status === 'fail').length;
+    const warnCount = results.filter(r => r.status === 'warn').length;
+    const total = results.length;
+    const score = passCount;
+
+    let html = '';
+
+    // Disclaimer
+    html += '<div class="disclaimer-banner"><strong>Self-Assessment Tool:</strong> This is not an automated scanner. Results are based on your answers and do not constitute legal advice. For binding compliance verification, consult a data protection attorney or certified privacy professional.</div>';
+
+    // Score card
+    const circumference = 2 * Math.PI * 50;
+    const offset = circumference - (score / total) * circumference;
+    let gradeColor, gradeText, gradeBg;
+    if (score >= 9) { gradeColor = 'var(--green)'; gradeText = 'Excellent'; gradeBg = '#dcfce7'; }
+    else if (score >= 7) { gradeColor = 'var(--blue)'; gradeText = 'Good'; gradeBg = '#dbeafe'; }
+    else if (score >= 5) { gradeColor = 'var(--yellow)'; gradeText = 'Needs Work'; gradeBg = '#fef3c7'; }
+    else { gradeColor = 'var(--red)'; gradeText = 'Critical'; gradeBg = '#fef2f2'; }
+
+    html += '<div class="score-card">';
+    html += '<div class="score-label">Compliance Score</div>';
+    html += '<div class="score-ring"><svg width="120" height="120" viewBox="0 0 120 120">';
+    html += '<circle class="score-ring-bg" cx="60" cy="60" r="50"/>';
+    html += '<circle class="score-ring-fill" cx="60" cy="60" r="50" style="stroke:' + gradeColor + ';stroke-dasharray:' + circumference + ';stroke-dashoffset:' + offset + '"/>';
+    html += '</svg><div class="score-number" style="color:' + gradeColor + '">' + score + '/' + total + '</div></div>';
+    html += '<div class="score-sub">' + (ctx.pageUrl || 'Your landing page') + '</div>';
+    html += '<div class="score-grade" style="background:' + gradeBg + ';color:' + gradeColor + '">' + gradeText + '</div>';
+    html += '</div>';
+
+    // Summary row
+    html += '<div class="summary-row">';
+    html += '<div class="summary-stat"><div class="summary-stat-value" style="color:var(--green)">' + passCount + '</div><div class="summary-stat-label">Pass</div></div>';
+    html += '<div class="summary-stat"><div class="summary-stat-value" style="color:var(--red)">' + failCount + '</div><div class="summary-stat-label">Fail</div></div>';
+    html += '<div class="summary-stat"><div class="summary-stat-value" style="color:var(--yellow)">' + warnCount + '</div><div class="summary-stat-label">Warning</div></div>';
+    html += '<div class="summary-stat"><div class="summary-stat-value" style="color:var(--muted)">' + ctx.dataCollected.length + '</div><div class="summary-stat-label">Data Types</div></div>';
+    html += '</div>';
+
+    // Audit items -- failures first, then warnings, then passes
+    const sorted = [...results].sort((a, b) => {
+      const order = { fail: 0, warn: 1, pass: 2 };
+      return (order[a.status] || 0) - (order[b.status] || 0);
+    });
+
+    sorted.forEach(item => {
+      const statusIcon = item.status === 'pass' ? '&#10003;' : item.status === 'fail' ? '&#10007;' : '!';
+      const statusClass = 'status-' + item.status;
+      const tagClass = 'tag-' + item.status;
+      const tagText = item.status === 'pass' ? 'Pass' : item.status === 'fail' ? 'Fail' : 'Warning';
+
+      html += '<div class="audit-item">';
+      html += '<div class="audit-item-header">';
+      html += '<div class="audit-status ' + statusClass + '">' + statusIcon + '</div>';
+      html += '<div class="audit-item-title">' + escapeHtml(item.title) + '</div>';
+      html += '<span class="audit-item-tag ' + tagClass + '">' + tagText + '</span>';
+      html += '</div>';
+      html += '<div class="audit-explanation">' + escapeHtml(item.explanation) + '</div>';
+      if (item.fix) {
+        html += '<div class="audit-fix"><strong>How to fix:</strong> ' + escapeHtml(item.fix) + '</div>';
+      }
+      html += '</div>';
+    });
+
+    // Export bar
+    html += '<div class="export-bar">';
+    html += '<button class="export-btn export-primary" onclick="exportPDF()">Export as PDF</button>';
+    html += '<button class="export-btn export-secondary" onclick="copyReport()">Copy Report</button>';
+    html += '</div>';
+
+    $('emptyState').style.display = 'none';
+    $('resultsArea').style.display = 'block';
+    $('resultsArea').innerHTML = html;
+    $('mainArea').scrollTop = 0;
+  };
+
+  // ── Export PDF (print) ──
+  window.exportPDF = function() {
+    window.print();
+  };
+
+  // ── Copy report ──
+  window.copyReport = function() {
+    const ctx = getState();
+    const results = AUDIT_ITEMS.map(item => {
+      const result = item.evaluate(ctx);
+      return { ...item, ...result };
+    });
+
+    const passCount = results.filter(r => r.status === 'pass').length;
+    const total = results.length;
+
+    const lines = [];
+    lines.push('GDPR / PRIVACY AD AUDIT REPORT');
+    lines.push('==============================');
+    lines.push('');
+    lines.push('Landing Page: ' + (ctx.pageUrl || 'Not specified'));
+    lines.push('Ad Platform: ' + activePlatform.charAt(0).toUpperCase() + activePlatform.slice(1));
+    lines.push('Tracking Pixel: ' + (ctx.hasPixel ? ctx.pixel : 'None'));
+    lines.push('Data Collected: ' + (ctx.dataCollected.length > 0 ? ctx.dataCollected.join(', ') : 'None specified'));
+    lines.push('');
+    lines.push('SCORE: ' + passCount + '/' + total);
+    lines.push('');
+    lines.push('---');
+
+    const sorted = [...results].sort((a, b) => {
+      const order = { fail: 0, warn: 1, pass: 2 };
+      return (order[a.status] || 0) - (order[b.status] || 0);
+    });
+
+    sorted.forEach(item => {
+      const badge = item.status === 'pass' ? '[PASS]' : item.status === 'fail' ? '[FAIL]' : '[WARN]';
+      lines.push('');
+      lines.push(badge + ' ' + item.title);
+      lines.push(item.explanation);
+      if (item.fix) {
+        lines.push('FIX: ' + item.fix);
+      }
+    });
+
+    lines.push('');
+    lines.push('---');
+    lines.push('Generated by FreeAdStore Privacy Ad Audit');
+    lines.push('This is a self-assessment tool, not legal advice.');
+
+    navigator.clipboard.writeText(lines.join('\n')).then(() => showToast('Report copied to clipboard'));
+  };
+
+  // ── Helpers ──
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function showToast(msg) {
+    const toast = $('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+})();
+</script>
+</body>
+</html>

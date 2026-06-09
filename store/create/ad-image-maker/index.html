@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ad Image Maker - FreeAdStore</title>
+<meta name="description" content="Canvas-based editor for creating ad images for any platform. Meta, Instagram, LinkedIn, Google Display, Twitter, YouTube. Export as PNG. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:rgba(239,68,68,.08);--accent-hover:#dc2626;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#22c55e;--yellow:#eab308;--red:#ef4444}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:600;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+a.back span{font-weight:400;color:var(--muted)}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 20px 20px}
+.sidebar-head{padding:16px 20px 0;flex-shrink:0}
+.sidebar-head h1{font-family:'Fraunces',serif;font-size:1.35rem;font-weight:700;margin-bottom:2px;color:var(--text)}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:14px;line-height:1.4}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--bg)}
+.main-header{padding:16px 24px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.main-header h2{font-size:.85rem;font-weight:700;color:var(--text)}
+.main-scroll{flex:1;overflow-y:auto;padding:16px 24px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+/* PANELS */
+.panel{margin-bottom:16px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 4px;font-weight:500}
+input[type=text],textarea,select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;transition:border-color .15s}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+
+/* PILLS */
+.pill-row{display:flex;gap:5px;flex-wrap:wrap}
+.pill{padding:5px 12px;border:1px solid var(--line);border-radius:8px;font-size:.72rem;font-weight:600;cursor:pointer;background:var(--panel);font-family:inherit;transition:all .12s;color:var(--text)}
+.pill:hover{border-color:var(--accent);color:var(--accent)}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* BUTTONS */
+.btn{padding:10px 20px;border-radius:var(--radius);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff;width:100%}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(239,68,68,.3)}
+.btn-primary:active{transform:translateY(0)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line);padding:7px 14px;font-size:.75rem;font-weight:600}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:6px 12px;font-size:.72rem}
+
+/* COLOR INPUTS */
+.color-row{display:flex;align-items:center;gap:8px}
+.color-input{width:40px;height:32px;border:1px solid var(--line);border-radius:6px;padding:2px;cursor:pointer;background:var(--panel)}
+.color-input::-webkit-color-swatch-wrapper{padding:0}
+.color-input::-webkit-color-swatch{border:none;border-radius:4px}
+.color-hex{flex:1;font-size:.78rem;color:var(--muted);font-family:'Manrope',monospace}
+
+/* RANGE SLIDER */
+input[type=range]{width:100%;height:4px;-webkit-appearance:none;appearance:none;background:var(--line);border-radius:2px;outline:none;margin:6px 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.range-row{display:flex;align-items:center;gap:10px}
+.range-row input[type=range]{flex:1}
+.range-val{font-size:.72rem;font-weight:600;color:var(--muted);min-width:32px;text-align:right}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;gap:10px;margin:6px 0}
+.toggle{position:relative;width:36px;height:20px;background:var(--line);border-radius:10px;cursor:pointer;transition:background .15s;flex-shrink:0}
+.toggle.active{background:var(--accent)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.toggle.active::after{transform:translateX(16px)}
+.toggle-label{font-size:.72rem;font-weight:600;color:var(--text)}
+
+/* DROP ZONE */
+.drop-zone{border:2px dashed var(--line);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg);position:relative}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:var(--accent-light)}
+.drop-zone-text{font-size:.72rem;color:var(--muted);line-height:1.5}
+.drop-zone-text strong{color:var(--text);display:block;margin-bottom:2px;font-size:.78rem}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.logo-preview{display:flex;align-items:center;gap:8px;padding:8px;background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);margin-top:6px}
+.logo-preview img{width:36px;height:36px;object-fit:contain;border-radius:4px}
+.logo-preview .logo-name{flex:1;font-size:.72rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logo-preview button{background:none;border:none;cursor:pointer;color:var(--muted);font-size:.85rem;padding:4px}
+.logo-preview button:hover{color:var(--red)}
+
+/* GRADIENT ROW */
+.gradient-row{display:flex;gap:6px;align-items:flex-end;margin-top:4px}
+.gradient-row .color-row{flex:1}
+.gradient-dir{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.gradient-dir button{width:28px;height:28px;border:1px solid var(--line);border-radius:6px;background:var(--panel);cursor:pointer;font-size:.65rem;display:flex;align-items:center;justify-content:center;transition:all .12s;color:var(--muted)}
+.gradient-dir button:hover{border-color:var(--accent);color:var(--accent)}
+.gradient-dir button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* SEPARATOR */
+.sep{height:1px;background:var(--line);margin:16px 0}
+
+/* CANVAS AREA */
+.canvas-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+.canvas-container{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.canvas-container canvas{display:block}
+.canvas-label{font-size:.72rem;font-weight:600;color:var(--muted);text-align:center}
+.canvas-label strong{color:var(--text)}
+.canvas-actions{display:flex;gap:8px;margin-top:4px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;padding:10px 20px;border-radius:10px;font-size:.78rem;font-weight:600;opacity:0;transition:all .3s ease;z-index:1000;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* BG TYPE TABS */
+.bg-tabs{display:flex;gap:0;margin-bottom:8px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.bg-tab{flex:1;padding:6px 0;text-align:center;font-size:.7rem;font-weight:600;cursor:pointer;background:var(--bg);border:none;font-family:inherit;color:var(--muted);transition:all .12s}
+.bg-tab:not(:last-child){border-right:1px solid var(--line)}
+.bg-tab.active{background:var(--accent);color:#fff}
+.bg-tab:hover:not(.active){color:var(--accent)}
+.bg-section{display:none}
+.bg-section.active{display:block}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:none}
+  .main{min-height:60vh}
+  .main-scroll{padding:16px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Controls -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/"><span>&larr;</span> FreeAdStore</a>
+      <h1>Ad Image Maker</h1>
+      <p>Canvas-based editor for creating ad images for any platform. Live preview, export as PNG.</p>
+    </div>
+    <div class="sidebar-scroll">
+
+      <div class="panel">
+        <div class="panel-title">Platform Preset</div>
+        <div class="pill-row" id="platformPills">
+          <button class="pill active" data-w="1200" data-h="628" data-name="Meta Feed">Meta Feed</button>
+          <button class="pill" data-w="1080" data-h="1920" data-name="Meta Story">Meta Story</button>
+          <button class="pill" data-w="1080" data-h="1080" data-name="Instagram">Instagram</button>
+          <button class="pill" data-w="1200" data-h="627" data-name="LinkedIn">LinkedIn</button>
+          <button class="pill" data-w="300" data-h="250" data-name="Google Display">Google Display</button>
+          <button class="pill" data-w="1200" data-h="675" data-name="Twitter">Twitter</button>
+          <button class="pill" data-w="1280" data-h="720" data-name="YouTube">YouTube</button>
+          <button class="pill" data-w="0" data-h="0" data-name="Custom">Custom</button>
+        </div>
+        <div id="customDims" style="display:none;margin-top:8px">
+          <div style="display:flex;gap:8px">
+            <div style="flex:1"><label>Width</label><input type="text" id="customW" value="1200" placeholder="1200"></div>
+            <div style="flex:1"><label>Height</label><input type="text" id="customH" value="628" placeholder="628"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="panel">
+        <div class="panel-title">Background</div>
+        <div class="bg-tabs">
+          <button class="bg-tab active" data-bg="color">Color</button>
+          <button class="bg-tab" data-bg="gradient">Gradient</button>
+          <button class="bg-tab" data-bg="image">Image</button>
+        </div>
+
+        <div class="bg-section active" id="bgColor">
+          <div class="color-row">
+            <input type="color" class="color-input" id="bgSolidColor" value="#1e3a5f">
+            <span class="color-hex" id="bgSolidHex">#1e3a5f</span>
+          </div>
+        </div>
+
+        <div class="bg-section" id="bgGradient">
+          <div class="gradient-row">
+            <div>
+              <label style="margin-top:0">Start</label>
+              <div class="color-row">
+                <input type="color" class="color-input" id="gradColor1" value="#1e3a5f">
+              </div>
+            </div>
+            <div>
+              <label style="margin-top:0">End</label>
+              <div class="color-row">
+                <input type="color" class="color-input" id="gradColor2" value="#7c3aed">
+              </div>
+            </div>
+          </div>
+          <label>Direction</label>
+          <div class="gradient-dir" id="gradDirBtns">
+            <button data-dir="to right" title="Left to Right">&rarr;</button>
+            <button data-dir="to left" title="Right to Left">&larr;</button>
+            <button data-dir="to bottom" class="active" title="Top to Bottom">&darr;</button>
+            <button data-dir="to top" title="Bottom to Top">&uarr;</button>
+            <button data-dir="to bottom right" title="Diagonal">&searr;</button>
+            <button data-dir="to top right" title="Diagonal">&nearr;</button>
+          </div>
+        </div>
+
+        <div class="bg-section" id="bgImage">
+          <div class="drop-zone" id="bgDropZone">
+            <input type="file" id="bgImageInput" accept="image/*">
+            <div class="drop-zone-text">
+              <strong>Drop background image</strong>
+              or click to browse (PNG, JPG, WebP)
+            </div>
+          </div>
+          <div class="logo-preview" id="bgImagePreview" style="display:none">
+            <img id="bgImageThumb" src="" alt="Background">
+            <span class="logo-name" id="bgImageName"></span>
+            <button id="bgImageRemove" title="Remove image">&times;</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="panel">
+        <div class="panel-title">Headline Text</div>
+        <input type="text" id="headline" value="Your Brand Here" placeholder="Headline text" maxlength="80">
+        <label>Font Size</label>
+        <div class="range-row">
+          <input type="range" id="headlineSize" min="16" max="80" value="48">
+          <span class="range-val" id="headlineSizeVal">48px</span>
+        </div>
+        <label>Color</label>
+        <div class="color-row">
+          <input type="color" class="color-input" id="headlineColor" value="#ffffff">
+          <span class="color-hex" id="headlineColorHex">#ffffff</span>
+        </div>
+        <label>Alignment</label>
+        <div class="pill-row" id="alignPills">
+          <button class="pill" data-align="left">Left</button>
+          <button class="pill active" data-align="center">Center</button>
+          <button class="pill" data-align="right">Right</button>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="panel">
+        <div class="panel-title">Subtext</div>
+        <input type="text" id="subtext" value="Compelling tagline goes here" placeholder="Subtext" maxlength="120">
+        <label>Font Size</label>
+        <div class="range-row">
+          <input type="range" id="subtextSize" min="12" max="48" value="24">
+          <span class="range-val" id="subtextSizeVal">24px</span>
+        </div>
+        <label>Color</label>
+        <div class="color-row">
+          <input type="color" class="color-input" id="subtextColor" value="#e0e0e0">
+          <span class="color-hex" id="subtextColorHex">#e0e0e0</span>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="panel">
+        <div class="panel-title">CTA Button</div>
+        <label>Text</label>
+        <input type="text" id="ctaText" value="Learn More" placeholder="Button text" maxlength="30">
+        <label>Button Color</label>
+        <div class="color-row">
+          <input type="color" class="color-input" id="ctaBtnColor" value="#ef4444">
+          <span class="color-hex" id="ctaBtnColorHex">#ef4444</span>
+        </div>
+        <label>Text Color</label>
+        <div class="color-row">
+          <input type="color" class="color-input" id="ctaTextColor" value="#ffffff">
+          <span class="color-hex" id="ctaTextColorHex">#ffffff</span>
+        </div>
+        <label>Border Radius</label>
+        <div class="range-row">
+          <input type="range" id="ctaRadius" min="0" max="40" value="8">
+          <span class="range-val" id="ctaRadiusVal">8px</span>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="panel">
+        <div class="panel-title">Brand Logo</div>
+        <div class="drop-zone" id="logoDropZone">
+          <input type="file" id="logoInput" accept="image/*">
+          <div class="drop-zone-text">
+            <strong>Drop logo here</strong>
+            or click to browse (PNG, SVG, JPG)
+          </div>
+        </div>
+        <div class="logo-preview" id="logoPreview" style="display:none">
+          <img id="logoThumb" src="" alt="Logo">
+          <span class="logo-name" id="logoName"></span>
+          <button id="logoRemove" title="Remove logo">&times;</button>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="panel">
+        <div class="panel-title">Text Position</div>
+        <div class="pill-row" id="positionPills">
+          <button class="pill" data-pos="top">Top</button>
+          <button class="pill active" data-pos="center">Center</button>
+          <button class="pill" data-pos="bottom">Bottom</button>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="panel">
+        <div class="panel-title">Overlay</div>
+        <div class="toggle-row">
+          <div class="toggle" id="overlayToggle"></div>
+          <span class="toggle-label">Dark overlay on background</span>
+        </div>
+        <div id="overlayControls" style="display:none">
+          <label>Opacity</label>
+          <div class="range-row">
+            <input type="range" id="overlayOpacity" min="10" max="90" value="40">
+            <span class="range-val" id="overlayOpacityVal">40%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="panel">
+        <div class="panel-title">Font</div>
+        <select id="fontSelect">
+          <option value="Manrope" selected>Manrope</option>
+          <option value="Inter">Inter</option>
+          <option value="Poppins">Poppins</option>
+          <option value="Montserrat">Montserrat</option>
+          <option value="Roboto">Roboto</option>
+          <option value="Lato">Lato</option>
+          <option value="Playfair Display">Playfair Display</option>
+          <option value="Bebas Neue">Bebas Neue</option>
+        </select>
+      </div>
+
+      <div class="sep"></div>
+
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" id="btnDownload" style="flex:1">Download PNG</button>
+        <button class="btn btn-outline" id="btnReset">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Canvas -->
+  <div class="main">
+    <div class="main-header">
+      <h2>Preview</h2>
+    </div>
+    <div class="main-scroll">
+      <div class="canvas-wrap">
+        <div class="canvas-container" id="canvasContainer">
+          <canvas id="adCanvas"></canvas>
+        </div>
+        <div class="canvas-label" id="canvasLabel"><strong>1200 &times; 628</strong> &mdash; Meta Feed</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Platform presets
+const PRESETS = [
+  { w: 1200, h: 628, name: 'Meta Feed' },
+  { w: 1080, h: 1920, name: 'Meta Story' },
+  { w: 1080, h: 1080, name: 'Instagram' },
+  { w: 1200, h: 627, name: 'LinkedIn' },
+  { w: 300, h: 250, name: 'Google Display' },
+  { w: 1200, h: 675, name: 'Twitter' },
+  { w: 1280, h: 720, name: 'YouTube' },
+];
+
+// State
+let canvasW = 1200, canvasH = 628, platformName = 'Meta Feed';
+let bgType = 'color';
+let gradDir = 'to bottom';
+let bgImageObj = null;
+let logoImg = null;
+let overlayOn = false;
+let textPosition = 'center';
+let textAlign = 'center';
+
+// Loaded font families (for canvas)
+const loadedFonts = new Set(['Manrope']);
+
+function ensureFont(name) {
+  if (loadedFonts.has(name)) return;
+  loadedFonts.add(name);
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css2?family=${name.replace(/ /g, '+')}:wght@400;500;600;700;800&display=swap`;
+  document.head.appendChild(link);
+}
+// Pre-load all selectable fonts
+['Inter','Poppins','Montserrat','Roboto','Lato','Playfair Display','Bebas Neue'].forEach(ensureFont);
+
+// DOM refs
+const canvas = document.getElementById('adCanvas');
+const ctx = canvas.getContext('2d');
+const canvasContainer = document.getElementById('canvasContainer');
+const canvasLabel = document.getElementById('canvasLabel');
+
+// Inputs
+const headlineEl = document.getElementById('headline');
+const headlineSizeEl = document.getElementById('headlineSize');
+const headlineSizeValEl = document.getElementById('headlineSizeVal');
+const headlineColorEl = document.getElementById('headlineColor');
+const headlineColorHexEl = document.getElementById('headlineColorHex');
+const subtextEl = document.getElementById('subtext');
+const subtextSizeEl = document.getElementById('subtextSize');
+const subtextSizeValEl = document.getElementById('subtextSizeVal');
+const subtextColorEl = document.getElementById('subtextColor');
+const subtextColorHexEl = document.getElementById('subtextColorHex');
+const ctaTextEl = document.getElementById('ctaText');
+const ctaBtnColorEl = document.getElementById('ctaBtnColor');
+const ctaBtnColorHexEl = document.getElementById('ctaBtnColorHex');
+const ctaTextColorEl = document.getElementById('ctaTextColor');
+const ctaTextColorHexEl = document.getElementById('ctaTextColorHex');
+const ctaRadiusEl = document.getElementById('ctaRadius');
+const ctaRadiusValEl = document.getElementById('ctaRadiusVal');
+const bgSolidColorEl = document.getElementById('bgSolidColor');
+const bgSolidHexEl = document.getElementById('bgSolidHex');
+const gradColor1El = document.getElementById('gradColor1');
+const gradColor2El = document.getElementById('gradColor2');
+const overlayToggle = document.getElementById('overlayToggle');
+const overlayControls = document.getElementById('overlayControls');
+const overlayOpacityEl = document.getElementById('overlayOpacity');
+const overlayOpacityValEl = document.getElementById('overlayOpacityVal');
+const fontSelectEl = document.getElementById('fontSelect');
+const customDimsEl = document.getElementById('customDims');
+const customWEl = document.getElementById('customW');
+const customHEl = document.getElementById('customH');
+
+// ---- Platform pills ----
+document.getElementById('platformPills').addEventListener('click', (e) => {
+  const pill = e.target.closest('.pill');
+  if (!pill) return;
+  document.querySelectorAll('#platformPills .pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  const w = parseInt(pill.dataset.w);
+  const h = parseInt(pill.dataset.h);
+  platformName = pill.dataset.name;
+  if (w === 0) {
+    customDimsEl.style.display = 'block';
+    canvasW = parseInt(customWEl.value) || 1200;
+    canvasH = parseInt(customHEl.value) || 628;
+  } else {
+    customDimsEl.style.display = 'none';
+    canvasW = w;
+    canvasH = h;
+  }
+  resizeAndRender();
+});
+
+customWEl.addEventListener('input', () => { canvasW = Math.max(100, Math.min(4000, parseInt(customWEl.value) || 100)); resizeAndRender(); });
+customHEl.addEventListener('input', () => { canvasH = Math.max(100, Math.min(4000, parseInt(customHEl.value) || 100)); resizeAndRender(); });
+
+// ---- Background type tabs ----
+document.querySelectorAll('.bg-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.bg-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    bgType = tab.dataset.bg;
+    document.querySelectorAll('.bg-section').forEach(s => s.classList.remove('active'));
+    document.getElementById(bgType === 'color' ? 'bgColor' : bgType === 'gradient' ? 'bgGradient' : 'bgImage').classList.add('active');
+    render();
+  });
+});
+
+// ---- Background color ----
+bgSolidColorEl.addEventListener('input', () => { bgSolidHexEl.textContent = bgSolidColorEl.value; render(); });
+
+// ---- Gradient ----
+gradColor1El.addEventListener('input', render);
+gradColor2El.addEventListener('input', render);
+document.getElementById('gradDirBtns').addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  document.querySelectorAll('#gradDirBtns button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  gradDir = btn.dataset.dir;
+  render();
+});
+
+// ---- Background image ----
+const bgDropZone = document.getElementById('bgDropZone');
+const bgImageInput = document.getElementById('bgImageInput');
+const bgImagePreview = document.getElementById('bgImagePreview');
+const bgImageThumb = document.getElementById('bgImageThumb');
+const bgImageName = document.getElementById('bgImageName');
+
+function handleBgImage(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      bgImageObj = img;
+      bgImageThumb.src = e.target.result;
+      bgImageName.textContent = file.name;
+      bgDropZone.style.display = 'none';
+      bgImagePreview.style.display = 'flex';
+      render();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+bgImageInput.addEventListener('change', (e) => { if (e.target.files[0]) handleBgImage(e.target.files[0]); });
+bgDropZone.addEventListener('dragover', (e) => { e.preventDefault(); bgDropZone.classList.add('drag-over'); });
+bgDropZone.addEventListener('dragleave', () => bgDropZone.classList.remove('drag-over'));
+bgDropZone.addEventListener('drop', (e) => { e.preventDefault(); bgDropZone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) handleBgImage(e.dataTransfer.files[0]); });
+document.getElementById('bgImageRemove').addEventListener('click', () => {
+  bgImageObj = null;
+  bgImageInput.value = '';
+  bgDropZone.style.display = '';
+  bgImagePreview.style.display = 'none';
+  render();
+});
+
+// ---- Logo ----
+const logoDropZone = document.getElementById('logoDropZone');
+const logoInput = document.getElementById('logoInput');
+const logoPreview = document.getElementById('logoPreview');
+const logoThumb = document.getElementById('logoThumb');
+const logoNameEl = document.getElementById('logoName');
+
+function handleLogoFile(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      logoImg = img;
+      logoThumb.src = e.target.result;
+      logoNameEl.textContent = file.name;
+      logoDropZone.style.display = 'none';
+      logoPreview.style.display = 'flex';
+      render();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+logoInput.addEventListener('change', (e) => { if (e.target.files[0]) handleLogoFile(e.target.files[0]); });
+logoDropZone.addEventListener('dragover', (e) => { e.preventDefault(); logoDropZone.classList.add('drag-over'); });
+logoDropZone.addEventListener('dragleave', () => logoDropZone.classList.remove('drag-over'));
+logoDropZone.addEventListener('drop', (e) => { e.preventDefault(); logoDropZone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) handleLogoFile(e.dataTransfer.files[0]); });
+document.getElementById('logoRemove').addEventListener('click', () => {
+  logoImg = null;
+  logoInput.value = '';
+  logoDropZone.style.display = '';
+  logoPreview.style.display = 'none';
+  render();
+});
+
+// ---- Text inputs + ranges + colors ----
+headlineEl.addEventListener('input', render);
+subtextEl.addEventListener('input', render);
+ctaTextEl.addEventListener('input', render);
+fontSelectEl.addEventListener('change', () => { ensureFont(fontSelectEl.value); render(); });
+
+headlineSizeEl.addEventListener('input', () => { headlineSizeValEl.textContent = headlineSizeEl.value + 'px'; render(); });
+subtextSizeEl.addEventListener('input', () => { subtextSizeValEl.textContent = subtextSizeEl.value + 'px'; render(); });
+ctaRadiusEl.addEventListener('input', () => { ctaRadiusValEl.textContent = ctaRadiusEl.value + 'px'; render(); });
+overlayOpacityEl.addEventListener('input', () => { overlayOpacityValEl.textContent = overlayOpacityEl.value + '%'; render(); });
+
+headlineColorEl.addEventListener('input', () => { headlineColorHexEl.textContent = headlineColorEl.value; render(); });
+subtextColorEl.addEventListener('input', () => { subtextColorHexEl.textContent = subtextColorEl.value; render(); });
+ctaBtnColorEl.addEventListener('input', () => { ctaBtnColorHexEl.textContent = ctaBtnColorEl.value; render(); });
+ctaTextColorEl.addEventListener('input', () => { ctaTextColorHexEl.textContent = ctaTextColorEl.value; render(); });
+
+// ---- Alignment pills ----
+document.getElementById('alignPills').addEventListener('click', (e) => {
+  const pill = e.target.closest('.pill');
+  if (!pill) return;
+  document.querySelectorAll('#alignPills .pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  textAlign = pill.dataset.align;
+  render();
+});
+
+// ---- Text position pills ----
+document.getElementById('positionPills').addEventListener('click', (e) => {
+  const pill = e.target.closest('.pill');
+  if (!pill) return;
+  document.querySelectorAll('#positionPills .pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  textPosition = pill.dataset.pos;
+  render();
+});
+
+// ---- Overlay toggle ----
+overlayToggle.addEventListener('click', () => {
+  overlayOn = !overlayOn;
+  overlayToggle.classList.toggle('active', overlayOn);
+  overlayControls.style.display = overlayOn ? 'block' : 'none';
+  render();
+});
+
+// ---- Resize + render ----
+function resizeAndRender() {
+  canvas.width = canvasW;
+  canvas.height = canvasH;
+  fitCanvas();
+  render();
+  updateLabel();
+}
+
+function fitCanvas() {
+  const container = canvasContainer;
+  const maxW = container.parentElement.clientWidth - 32;
+  const maxH = window.innerHeight - 160;
+  const scaleW = maxW / canvasW;
+  const scaleH = maxH / canvasH;
+  const scale = Math.min(scaleW, scaleH, 1);
+  canvas.style.width = Math.round(canvasW * scale) + 'px';
+  canvas.style.height = Math.round(canvasH * scale) + 'px';
+}
+
+function updateLabel() {
+  canvasLabel.innerHTML = `<strong>${canvasW} &times; ${canvasH}</strong> &mdash; ${platformName}`;
+}
+
+// ---- Canvas rendering ----
+function render() {
+  const w = canvasW;
+  const h = canvasH;
+  ctx.clearRect(0, 0, w, h);
+
+  // 1. Background
+  if (bgType === 'color') {
+    ctx.fillStyle = bgSolidColorEl.value;
+    ctx.fillRect(0, 0, w, h);
+  } else if (bgType === 'gradient') {
+    const coords = gradientCoords(gradDir, w, h);
+    const grad = ctx.createLinearGradient(coords.x0, coords.y0, coords.x1, coords.y1);
+    grad.addColorStop(0, gradColor1El.value);
+    grad.addColorStop(1, gradColor2El.value);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+  } else if (bgType === 'image' && bgImageObj) {
+    // Cover fit
+    const imgRatio = bgImageObj.width / bgImageObj.height;
+    const canvasRatio = w / h;
+    let sw, sh, sx, sy;
+    if (imgRatio > canvasRatio) {
+      sh = bgImageObj.height;
+      sw = sh * canvasRatio;
+      sx = (bgImageObj.width - sw) / 2;
+      sy = 0;
+    } else {
+      sw = bgImageObj.width;
+      sh = sw / canvasRatio;
+      sx = 0;
+      sy = (bgImageObj.height - sh) / 2;
+    }
+    ctx.drawImage(bgImageObj, sx, sy, sw, sh, 0, 0, w, h);
+  } else {
+    ctx.fillStyle = bgSolidColorEl.value;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  // 2. Overlay
+  if (overlayOn) {
+    ctx.fillStyle = `rgba(0,0,0,${parseInt(overlayOpacityEl.value) / 100})`;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  // 3. Logo (top-left)
+  const pad = Math.round(w * 0.04);
+  const logoMaxH = Math.round(h * 0.08);
+  const logoMaxW = Math.round(w * 0.15);
+  if (logoImg) {
+    const lRatio = logoImg.width / logoImg.height;
+    let lw = Math.min(logoMaxW, logoImg.width);
+    let lh = lw / lRatio;
+    if (lh > logoMaxH) { lh = logoMaxH; lw = lh * lRatio; }
+    ctx.drawImage(logoImg, pad, pad, lw, lh);
+  }
+
+  // 4. Text content
+  const font = fontSelectEl.value;
+  const hSize = parseInt(headlineSizeEl.value);
+  const sSize = parseInt(subtextSizeEl.value);
+  const hColor = headlineColorEl.value;
+  const sColor = subtextColorEl.value;
+  const headlineText = headlineEl.value || 'Your Brand Here';
+  const subtextText = subtextEl.value || '';
+  const ctaText = ctaTextEl.value || '';
+  const ctaBtnCol = ctaBtnColorEl.value;
+  const ctaTextCol = ctaTextColorEl.value;
+  const ctaRad = parseInt(ctaRadiusEl.value);
+
+  // Measure text block height
+  ctx.font = `800 ${hSize}px "${font}", sans-serif`;
+  const headLines = wrapText(ctx, headlineText, w - pad * 2);
+  const headBlockH = headLines.length * hSize * 1.2;
+
+  let subBlockH = 0;
+  let subLines = [];
+  if (subtextText) {
+    ctx.font = `400 ${sSize}px "${font}", sans-serif`;
+    subLines = wrapText(ctx, subtextText, w - pad * 2);
+    subBlockH = subLines.length * sSize * 1.35;
+  }
+
+  // CTA sizing
+  const ctaPadX = Math.round(hSize * 0.6);
+  const ctaPadY = Math.round(hSize * 0.28);
+  const ctaFontSize = Math.round(hSize * 0.38);
+  let ctaBlockH = 0;
+  let ctaW = 0, ctaH = 0;
+  if (ctaText) {
+    ctx.font = `700 ${ctaFontSize}px "${font}", sans-serif`;
+    ctaW = ctx.measureText(ctaText).width + ctaPadX * 2;
+    ctaH = ctaFontSize + ctaPadY * 2;
+    ctaBlockH = ctaH;
+  }
+
+  const gap = Math.round(h * 0.025);
+  const totalH = headBlockH + (subtextText ? gap + subBlockH : 0) + (ctaText ? gap * 1.5 + ctaBlockH : 0);
+
+  // Compute starting Y based on position
+  let startY;
+  if (textPosition === 'top') {
+    startY = pad + (logoImg ? logoMaxH + pad : 0);
+  } else if (textPosition === 'bottom') {
+    startY = h - pad - totalH;
+  } else {
+    startY = (h - totalH) / 2;
+  }
+
+  // Alignment X
+  let anchorX;
+  if (textAlign === 'left') { anchorX = pad; ctx.textAlign = 'left'; }
+  else if (textAlign === 'right') { anchorX = w - pad; ctx.textAlign = 'right'; }
+  else { anchorX = w / 2; ctx.textAlign = 'center'; }
+
+  // Draw headline
+  ctx.font = `800 ${hSize}px "${font}", sans-serif`;
+  ctx.fillStyle = hColor;
+  let y = startY;
+  headLines.forEach((line, i) => {
+    y += hSize * (i === 0 ? 1 : 1.2);
+    if (i === 0) y = startY + hSize;
+    else y = startY + hSize + i * hSize * 1.2;
+    ctx.fillText(line, anchorX, y);
+  });
+  y = startY + headBlockH;
+
+  // Draw subtext
+  if (subtextText && subLines.length) {
+    y += gap;
+    ctx.font = `400 ${sSize}px "${font}", sans-serif`;
+    ctx.fillStyle = sColor;
+    subLines.forEach((line, i) => {
+      ctx.fillText(line, anchorX, y + sSize + i * sSize * 1.35);
+    });
+    y += subBlockH;
+  }
+
+  // Draw CTA button
+  if (ctaText) {
+    y += gap * 1.5;
+    ctx.font = `700 ${ctaFontSize}px "${font}", sans-serif`;
+    let ctaX;
+    if (textAlign === 'left') ctaX = pad;
+    else if (textAlign === 'right') ctaX = w - pad - ctaW;
+    else ctaX = (w - ctaW) / 2;
+
+    roundRect(ctx, ctaX, y, ctaW, ctaH, ctaRad);
+    ctx.fillStyle = ctaBtnCol;
+    ctx.fill();
+    ctx.fillStyle = ctaTextCol;
+    ctx.textAlign = 'center';
+    ctx.fillText(ctaText, ctaX + ctaW / 2, y + ctaH / 2 + ctaFontSize * 0.35);
+  }
+}
+
+function gradientCoords(dir, w, h) {
+  switch (dir) {
+    case 'to right': return { x0: 0, y0: 0, x1: w, y1: 0 };
+    case 'to left': return { x0: w, y0: 0, x1: 0, y1: 0 };
+    case 'to bottom': return { x0: 0, y0: 0, x1: 0, y1: h };
+    case 'to top': return { x0: 0, y0: h, x1: 0, y1: 0 };
+    case 'to bottom right': return { x0: 0, y0: 0, x1: w, y1: h };
+    case 'to top right': return { x0: 0, y0: h, x1: w, y1: 0 };
+    default: return { x0: 0, y0: 0, x1: 0, y1: h };
+  }
+}
+
+function wrapText(ctx, text, maxWidth) {
+  const words = text.split(' ');
+  const lines = [];
+  let line = '';
+  for (const word of words) {
+    const test = line ? line + ' ' + word : word;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines.length ? lines : [''];
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+// ---- Download ----
+document.getElementById('btnDownload').addEventListener('click', () => {
+  canvas.toBlob((blob) => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `ad-${canvasW}x${canvasH}-${platformName.toLowerCase().replace(/\s+/g, '-')}.png`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast(`Downloaded ${canvasW}x${canvasH} PNG`);
+  }, 'image/png');
+});
+
+// ---- Reset ----
+document.getElementById('btnReset').addEventListener('click', () => {
+  // Platform
+  document.querySelectorAll('#platformPills .pill').forEach((p, i) => p.classList.toggle('active', i === 0));
+  customDimsEl.style.display = 'none';
+  canvasW = 1200; canvasH = 628; platformName = 'Meta Feed';
+
+  // Background
+  bgType = 'color';
+  document.querySelectorAll('.bg-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+  document.querySelectorAll('.bg-section').forEach((s, i) => s.classList.toggle('active', i === 0));
+  bgSolidColorEl.value = '#1e3a5f'; bgSolidHexEl.textContent = '#1e3a5f';
+  gradColor1El.value = '#1e3a5f'; gradColor2El.value = '#7c3aed';
+  gradDir = 'to bottom';
+  document.querySelectorAll('#gradDirBtns button').forEach(b => b.classList.toggle('active', b.dataset.dir === 'to bottom'));
+  bgImageObj = null; bgImageInput.value = ''; bgDropZone.style.display = ''; bgImagePreview.style.display = 'none';
+
+  // Headline
+  headlineEl.value = 'Your Brand Here';
+  headlineSizeEl.value = 48; headlineSizeValEl.textContent = '48px';
+  headlineColorEl.value = '#ffffff'; headlineColorHexEl.textContent = '#ffffff';
+  textAlign = 'center';
+  document.querySelectorAll('#alignPills .pill').forEach(p => p.classList.toggle('active', p.dataset.align === 'center'));
+
+  // Subtext
+  subtextEl.value = 'Compelling tagline goes here';
+  subtextSizeEl.value = 24; subtextSizeValEl.textContent = '24px';
+  subtextColorEl.value = '#e0e0e0'; subtextColorHexEl.textContent = '#e0e0e0';
+
+  // CTA
+  ctaTextEl.value = 'Learn More';
+  ctaBtnColorEl.value = '#ef4444'; ctaBtnColorHexEl.textContent = '#ef4444';
+  ctaTextColorEl.value = '#ffffff'; ctaTextColorHexEl.textContent = '#ffffff';
+  ctaRadiusEl.value = 8; ctaRadiusValEl.textContent = '8px';
+
+  // Logo
+  logoImg = null; logoInput.value = ''; logoDropZone.style.display = ''; logoPreview.style.display = 'none';
+
+  // Position
+  textPosition = 'center';
+  document.querySelectorAll('#positionPills .pill').forEach(p => p.classList.toggle('active', p.dataset.pos === 'center'));
+
+  // Overlay
+  overlayOn = false;
+  overlayToggle.classList.remove('active');
+  overlayControls.style.display = 'none';
+  overlayOpacityEl.value = 40; overlayOpacityValEl.textContent = '40%';
+
+  // Font
+  fontSelectEl.value = 'Manrope';
+
+  resizeAndRender();
+  showToast('Reset to defaults');
+});
+
+// ---- Toast ----
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ---- Window resize ----
+window.addEventListener('resize', fitCanvas);
+
+// ---- Initial render with default gradient background ----
+(function init() {
+  // Set gradient as default for a professional look
+  bgType = 'gradient';
+  document.querySelectorAll('.bg-tab').forEach(t => t.classList.toggle('active', t.dataset.bg === 'gradient'));
+  document.querySelectorAll('.bg-section').forEach(s => {
+    s.classList.toggle('active', s.id === 'bgGradient');
+  });
+  resizeAndRender();
+})();
+</script>
+</body>
+</html>

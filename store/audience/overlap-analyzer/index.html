@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Overlap Analyzer - FreeAdStore</title>
+<meta name="description" content="Analyze audience overlap between two targeting groups. Venn diagram visualization with merge/split recommendations. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#ef4444;--accent-light:#fef2f2;--accent-dark:#dc2626;--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--panel:#ffffff;--line:#e5e7eb;--green:#10b981;--yellow:#f59e0b;--blue:#3b82f6;--purple:#8b5cf6}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+.top-bar{display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+.back{font-size:13px;font-weight:500;color:var(--accent);white-space:nowrap}
+.back:hover{text-decoration:underline}
+.top-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:700;flex:1}
+.top-title span{color:var(--accent)}
+
+.layout{display:flex;height:calc(100vh - 45px);overflow:hidden}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);overflow-y:auto;display:flex;flex-direction:column}
+.main{flex:1;overflow-y:auto;padding:24px 32px;background:var(--bg)}
+
+.sidebar-content{padding:16px;flex:1;overflow-y:auto}
+
+.audience-block{border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px;background:var(--bg)}
+.audience-block h3{font-size:13px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.audience-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+.section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.section-title::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px}
+
+.field{margin-bottom:10px}
+.field-label{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;display:block}
+
+.text-input{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;font-family:inherit;background:var(--panel)}
+.text-input:focus{outline:none;border-color:var(--accent)}
+
+.select{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;font-family:inherit;background:var(--panel);color:var(--text);cursor:pointer}
+.select:focus{outline:none;border-color:var(--accent)}
+
+.pills{display:flex;flex-wrap:wrap;gap:4px}
+.pill{padding:4px 10px;border-radius:99px;border:1px solid var(--line);background:var(--panel);font-size:10px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;color:var(--muted)}
+.pill:hover{border-color:var(--accent);color:var(--text)}
+.pill.active{background:var(--accent);border-color:var(--accent);color:white}
+
+.interest-checks{display:flex;flex-wrap:wrap;gap:3px}
+.interest-check{display:flex;align-items:center;gap:3px;padding:3px 8px;border-radius:5px;border:1px solid var(--line);font-size:10px;font-weight:500;cursor:pointer;transition:all .15s;background:var(--panel);color:var(--muted);user-select:none}
+.interest-check:hover{border-color:var(--accent);color:var(--text)}
+.interest-check.active{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
+.interest-check input{display:none}
+
+.analyze-btn{width:100%;padding:10px;border-radius:8px;background:var(--accent);color:white;font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:inherit;transition:all .15s;margin-top:6px}
+.analyze-btn:hover{background:var(--accent-dark)}
+
+/* Venn diagram */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card h3{font-size:14px;font-weight:700;margin-bottom:14px}
+
+.venn-container{display:flex;justify-content:center;align-items:center;padding:20px 0 10px;position:relative}
+.venn-wrap{position:relative;width:380px;height:220px}
+.venn-circle{position:absolute;width:200px;height:200px;border-radius:50%;top:10px;transition:all .4s ease}
+.venn-a{left:20px;background:rgba(59,130,246,.2);border:2px solid var(--blue)}
+.venn-b{left:160px;background:rgba(239,68,68,.2);border:2px solid var(--accent)}
+.venn-label{position:absolute;font-size:12px;font-weight:700;top:-6px;white-space:nowrap}
+.venn-label-a{left:70px;color:var(--blue)}
+.venn-label-b{right:50px;color:var(--accent)}
+.venn-only{position:absolute;font-size:20px;font-weight:800;top:50%;transform:translateY(-50%)}
+.venn-only-a{left:55px;color:var(--blue)}
+.venn-only-b{right:35px;color:var(--accent)}
+.venn-overlap-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.venn-overlap-pct{font-family:'Fraunces',serif;font-size:2rem;font-weight:700;color:var(--text);line-height:1}
+.venn-overlap-text{font-size:10px;color:var(--muted);font-weight:600;margin-top:2px}
+
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+@media(max-width:700px){.stats-row{grid-template-columns:1fr}}
+.stat-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.stat-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.stat-value{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:700;line-height:1.2}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* Recommendation */
+.rec-card{border:2px solid;border-radius:14px;padding:20px;margin-bottom:20px}
+.rec-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.rec-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;color:white;flex-shrink:0}
+.rec-title{font-size:15px;font-weight:800}
+.rec-body{font-size:13px;line-height:1.6;color:var(--text)}
+.rec-body ul{margin:8px 0 0 18px}
+.rec-body li{margin-bottom:4px}
+
+/* Detail table */
+.detail-table{width:100%;border-collapse:collapse;font-size:12px}
+.detail-table th{text-align:left;font-weight:700;padding:8px 10px;border-bottom:2px solid var(--line);font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted)}
+.detail-table td{padding:8px 10px;border-bottom:1px solid var(--bg)}
+.detail-table tr:last-child td{border-bottom:none}
+.match-pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700}
+
+.export-bar{display:flex;gap:8px;flex-wrap:wrap}
+.export-btn{padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .15s}
+.export-primary{background:var(--accent);color:white}
+.export-primary:hover{background:var(--accent-dark)}
+.export-secondary{background:var(--panel);color:var(--text);border:1px solid var(--line)}
+.export-secondary:hover{border-color:var(--accent)}
+.copied-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:white;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transition:all .3s ease;z-index:999;pointer-events:none}
+.copied-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+@media(max-width:768px){
+  .layout{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;max-height:55vh;border-right:none;border-bottom:1px solid var(--line)}
+  .main{padding:16px}
+  .venn-wrap{width:300px;height:180px}
+  .venn-circle{width:160px;height:160px}
+  .venn-a{left:10px}
+  .venn-b{left:130px}
+  .stats-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a class="back" href="/">&larr; FreeAdStore</a>
+  <div class="top-title">Overlap <span>Analyzer</span></div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-content">
+      <!-- Audience A -->
+      <div class="audience-block">
+        <h3><span class="audience-dot" style="background:var(--blue)"></span> Audience A</h3>
+
+        <div class="field">
+          <div class="field-label">Name</div>
+          <input type="text" class="text-input" id="nameA" value="Prospecting" placeholder="Audience name">
+        </div>
+
+        <div class="field">
+          <div class="field-label">Age Range</div>
+          <div class="pills" id="ageA">
+            <button class="pill active" data-value="18-24">18-24</button>
+            <button class="pill active" data-value="25-34">25-34</button>
+            <button class="pill active" data-value="35-44">35-44</button>
+            <button class="pill" data-value="45-54">45-54</button>
+            <button class="pill" data-value="55-64">55-64</button>
+            <button class="pill" data-value="65+">65+</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Gender</div>
+          <div class="pills single" id="genderA">
+            <button class="pill active" data-value="all">All</button>
+            <button class="pill" data-value="male">Male</button>
+            <button class="pill" data-value="female">Female</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Interests</div>
+          <div class="interest-checks" id="interestsA">
+            <label class="interest-check active"><input type="checkbox" checked>Technology</label>
+            <label class="interest-check"><input type="checkbox">E-commerce</label>
+            <label class="interest-check active"><input type="checkbox" checked>Finance</label>
+            <label class="interest-check"><input type="checkbox">Health</label>
+            <label class="interest-check"><input type="checkbox">Travel</label>
+            <label class="interest-check"><input type="checkbox">Food</label>
+            <label class="interest-check"><input type="checkbox">Fashion</label>
+            <label class="interest-check"><input type="checkbox">Fitness</label>
+            <label class="interest-check"><input type="checkbox">Gaming</label>
+            <label class="interest-check"><input type="checkbox">Education</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Est. Size</div>
+          <select class="select" id="sizeA">
+            <option value="50000">50K</option>
+            <option value="100000">100K</option>
+            <option value="250000">250K</option>
+            <option value="500000" selected>500K</option>
+            <option value="1000000">1M</option>
+            <option value="2500000">2.5M</option>
+            <option value="5000000">5M</option>
+            <option value="10000000">10M</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Audience B -->
+      <div class="audience-block">
+        <h3><span class="audience-dot" style="background:var(--accent)"></span> Audience B</h3>
+
+        <div class="field">
+          <div class="field-label">Name</div>
+          <input type="text" class="text-input" id="nameB" value="Retargeting" placeholder="Audience name">
+        </div>
+
+        <div class="field">
+          <div class="field-label">Age Range</div>
+          <div class="pills" id="ageB">
+            <button class="pill" data-value="18-24">18-24</button>
+            <button class="pill active" data-value="25-34">25-34</button>
+            <button class="pill active" data-value="35-44">35-44</button>
+            <button class="pill active" data-value="45-54">45-54</button>
+            <button class="pill" data-value="55-64">55-64</button>
+            <button class="pill" data-value="65+">65+</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Gender</div>
+          <div class="pills single" id="genderB">
+            <button class="pill active" data-value="all">All</button>
+            <button class="pill" data-value="male">Male</button>
+            <button class="pill" data-value="female">Female</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Interests</div>
+          <div class="interest-checks" id="interestsB">
+            <label class="interest-check active"><input type="checkbox" checked>Technology</label>
+            <label class="interest-check active"><input type="checkbox" checked>E-commerce</label>
+            <label class="interest-check"><input type="checkbox">Finance</label>
+            <label class="interest-check"><input type="checkbox">Health</label>
+            <label class="interest-check"><input type="checkbox">Travel</label>
+            <label class="interest-check"><input type="checkbox">Food</label>
+            <label class="interest-check"><input type="checkbox">Fashion</label>
+            <label class="interest-check"><input type="checkbox">Fitness</label>
+            <label class="interest-check active"><input type="checkbox" checked>Gaming</label>
+            <label class="interest-check"><input type="checkbox">Education</label>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Est. Size</div>
+          <select class="select" id="sizeB">
+            <option value="50000">50K</option>
+            <option value="100000">100K</option>
+            <option value="250000">250K</option>
+            <option value="500000">500K</option>
+            <option value="1000000" selected>1M</option>
+            <option value="2500000">2.5M</option>
+            <option value="5000000">5M</option>
+            <option value="10000000">10M</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="analyze-btn" onclick="recalculate()">Analyze Overlap</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Venn Diagram -->
+    <div class="card">
+      <h3>Audience Overlap</h3>
+      <div class="venn-container">
+        <div class="venn-wrap" id="vennWrap">
+          <div class="venn-circle venn-a" id="vennA"></div>
+          <div class="venn-circle venn-b" id="vennB"></div>
+          <span class="venn-label venn-label-a" id="vennLabelA">Audience A</span>
+          <span class="venn-label venn-label-b" id="vennLabelB">Audience B</span>
+          <span class="venn-only venn-only-a" id="vennOnlyA">--</span>
+          <span class="venn-only venn-only-b" id="vennOnlyB">--</span>
+          <div class="venn-overlap-label" id="vennOverlapLabel">
+            <div class="venn-overlap-pct" id="overlapPct">--%</div>
+            <div class="venn-overlap-text">overlap</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Only in A</div>
+        <div class="stat-value" id="statOnlyA" style="color:var(--blue)">--</div>
+        <div class="stat-sub" id="statOnlyAPct">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Shared (Overlap)</div>
+        <div class="stat-value" id="statShared" style="color:var(--purple)">--</div>
+        <div class="stat-sub" id="statSharedPct">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Only in B</div>
+        <div class="stat-value" id="statOnlyB" style="color:var(--accent)">--</div>
+        <div class="stat-sub" id="statOnlyBPct">--</div>
+      </div>
+    </div>
+
+    <!-- Recommendation -->
+    <div class="rec-card" id="recCard">
+      <div class="rec-header">
+        <div class="rec-icon" id="recIcon">?</div>
+        <div class="rec-title" id="recTitle">Analyzing...</div>
+      </div>
+      <div class="rec-body" id="recBody"></div>
+    </div>
+
+    <!-- Overlap Detail -->
+    <div class="card">
+      <h3>Trait Comparison</h3>
+      <table class="detail-table">
+        <thead>
+          <tr>
+            <th>Trait</th>
+            <th>Audience A</th>
+            <th>Audience B</th>
+            <th>Match</th>
+          </tr>
+        </thead>
+        <tbody id="traitTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="export-bar">
+      <button class="export-btn export-primary" onclick="copyAnalysis()">Copy Analysis</button>
+      <button class="export-btn export-secondary" onclick="exportJSON()">Export JSON</button>
+    </div>
+  </div>
+</div>
+
+<div class="copied-toast" id="toast">Copied to clipboard</div>
+
+<script>
+(function(){
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+  const ALL_INTERESTS = ['Technology','E-commerce','Finance','Health','Travel','Food','Fashion','Fitness','Gaming','Education'];
+
+  // Multi-select pills
+  document.querySelectorAll('#ageA .pill, #ageB .pill').forEach(pill => {
+    pill.addEventListener('click', () => { pill.classList.toggle('active'); });
+  });
+
+  // Single-select pills
+  document.querySelectorAll('.pills.single').forEach(container => {
+    container.querySelectorAll('.pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        container.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+      });
+    });
+  });
+
+  // Interest checkboxes
+  document.querySelectorAll('.interest-check').forEach(label => {
+    label.addEventListener('click', function() {
+      const cb = this.querySelector('input');
+      setTimeout(() => this.classList.toggle('active', cb.checked), 0);
+    });
+  });
+
+  function getAudience(suffix) {
+    const name = $('name' + suffix).value || 'Audience ' + suffix;
+    const ages = [];
+    document.querySelectorAll('#age' + suffix + ' .pill.active').forEach(p => ages.push(p.dataset.value));
+    const gender = document.querySelector('#gender' + suffix + ' .pill.active')?.dataset.value || 'all';
+    const interests = [];
+    document.querySelectorAll('#interests' + suffix + ' input:checked').forEach((cb, i) => {
+      interests.push(ALL_INTERESTS[i]);
+    });
+    const size = parseInt($('size' + suffix).value);
+    return { name, ages, gender, interests, size };
+  }
+
+  function computeOverlap(a, b) {
+    // Age overlap
+    const ageSetA = new Set(a.ages);
+    const ageSetB = new Set(b.ages);
+    const ageShared = [...ageSetA].filter(x => ageSetB.has(x));
+    const ageUnion = new Set([...a.ages, ...b.ages]);
+    const ageOverlap = ageUnion.size > 0 ? ageShared.length / ageUnion.size : 0;
+
+    // Gender overlap
+    let genderOverlap = 1;
+    if (a.gender !== 'all' && b.gender !== 'all') {
+      genderOverlap = a.gender === b.gender ? 1 : 0;
+    } else if (a.gender !== 'all' || b.gender !== 'all') {
+      genderOverlap = 0.5;
+    }
+
+    // Interest overlap
+    const intSetA = new Set(a.interests);
+    const intSetB = new Set(b.interests);
+    const intShared = [...intSetA].filter(x => intSetB.has(x));
+    const intUnion = new Set([...a.interests, ...b.interests]);
+    const intOverlap = intUnion.size > 0 ? intShared.length / intUnion.size : 1;
+
+    // Weighted composite
+    const composite = (ageOverlap * 0.30 + genderOverlap * 0.15 + intOverlap * 0.55);
+    return {
+      total: Math.round(composite * 100),
+      age: { overlap: ageOverlap, shared: ageShared, a: a.ages, b: b.ages },
+      gender: { overlap: genderOverlap, a: a.gender, b: b.gender },
+      interest: { overlap: intOverlap, shared: intShared, a: a.interests, b: b.interests }
+    };
+  }
+
+  function fmtNum(n) {
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(0) + 'K';
+    return n.toLocaleString();
+  }
+
+  function recalculate() {
+    const a = getAudience('A');
+    const b = getAudience('B');
+    const result = computeOverlap(a, b);
+    const overlapPct = result.total;
+
+    // Venn positions: move circles closer/farther based on overlap
+    const maxDist = 160; // pixels apart when 0% overlap
+    const minDist = 0;   // pixels apart when 100% overlap
+    const dist = maxDist - (overlapPct / 100) * (maxDist - minDist);
+    const centerX = 190;
+    $('vennA').style.left = (centerX - 100 - dist / 2) + 'px';
+    $('vennB').style.left = (centerX - 100 + dist / 2) + 'px';
+
+    // Labels
+    $('vennLabelA').textContent = a.name;
+    $('vennLabelB').textContent = b.name;
+    $('overlapPct').textContent = overlapPct + '%';
+
+    // Only-in counts
+    const totalUnion = a.size + b.size - (Math.min(a.size, b.size) * overlapPct / 100);
+    const sharedCount = Math.round(Math.min(a.size, b.size) * overlapPct / 100);
+    const onlyA = a.size - sharedCount;
+    const onlyB = b.size - sharedCount;
+
+    $('vennOnlyA').textContent = fmtNum(onlyA);
+    $('vennOnlyB').textContent = fmtNum(onlyB);
+
+    $('statOnlyA').textContent = fmtNum(onlyA);
+    $('statOnlyAPct').textContent = Math.round(onlyA / totalUnion * 100) + '% of total';
+    $('statShared').textContent = fmtNum(sharedCount);
+    $('statSharedPct').textContent = overlapPct + '% overlap';
+    $('statOnlyB').textContent = fmtNum(onlyB);
+    $('statOnlyBPct').textContent = Math.round(onlyB / totalUnion * 100) + '% of total';
+
+    // Recommendation
+    const recCard = $('recCard');
+    const recIcon = $('recIcon');
+    const recTitle = $('recTitle');
+    const recBody = $('recBody');
+
+    if (overlapPct >= 50) {
+      recCard.style.borderColor = '#ef4444';
+      recCard.style.background = '#fef2f2';
+      recIcon.style.background = '#ef4444';
+      recIcon.textContent = '!';
+      recTitle.textContent = 'High Overlap -- Merge Recommended';
+      recBody.innerHTML = 'These audiences share <strong>' + overlapPct + '%</strong> of their traits. Running both simultaneously will cause:' +
+        '<ul>' +
+        '<li>Auction self-competition -- you bid against yourself, raising CPMs</li>' +
+        '<li>Frequency fatigue -- the same users see ads from both ad sets</li>' +
+        '<li>Wasted budget -- up to ' + Math.round(overlapPct * 0.6) + '% of combined spend may be redundant</li>' +
+        '</ul>' +
+        '<strong>Action:</strong> Merge into one audience combining the best traits from both, or exclude Audience B from Audience A.';
+    } else if (overlapPct >= 20) {
+      recCard.style.borderColor = '#f59e0b';
+      recCard.style.background = '#fffbeb';
+      recIcon.style.background = '#f59e0b';
+      recIcon.textContent = '~';
+      recTitle.textContent = 'Moderate Overlap -- Consolidate Targeting';
+      recBody.innerHTML = 'These audiences share <strong>' + overlapPct + '%</strong> of their traits. Some self-competition is likely.' +
+        '<ul>' +
+        '<li>Consider excluding the overlap segment from one audience</li>' +
+        '<li>Use frequency caps to limit exposure to shared users</li>' +
+        '<li>Monitor auction overlap rate in your ad platform</li>' +
+        '</ul>' +
+        '<strong>Action:</strong> Add exclusions to separate them cleanly, or test merging if performance dips.';
+    } else {
+      recCard.style.borderColor = '#10b981';
+      recCard.style.background = '#f0fdf4';
+      recIcon.style.background = '#10b981';
+      recIcon.textContent = '*';
+      recTitle.textContent = 'Low Overlap -- Keep Separate';
+      recBody.innerHTML = 'These audiences share only <strong>' + overlapPct + '%</strong> of their traits. Minimal self-competition.' +
+        '<ul>' +
+        '<li>Safe to run both ad sets simultaneously</li>' +
+        '<li>Each audience reaches a distinct user segment</li>' +
+        '<li>Good structure for A/B testing creative or messaging</li>' +
+        '</ul>' +
+        '<strong>Action:</strong> Keep as separate ad sets. Tailor creative to each audience\'s unique traits.';
+    }
+
+    // Trait comparison table
+    const tbody = $('traitTableBody');
+    let html = '';
+
+    // Age
+    const ageMatchPct = Math.round(result.age.overlap * 100);
+    html += '<tr><td style="font-weight:600">Age Ranges</td>';
+    html += '<td style="font-size:11px">' + (a.ages.length ? a.ages.join(', ') : 'All') + '</td>';
+    html += '<td style="font-size:11px">' + (b.ages.length ? b.ages.join(', ') : 'All') + '</td>';
+    html += '<td>' + matchPill(ageMatchPct) + '</td></tr>';
+
+    // Gender
+    const genderMatchPct = Math.round(result.gender.overlap * 100);
+    html += '<tr><td style="font-weight:600">Gender</td>';
+    html += '<td style="font-size:11px">' + (a.gender === 'all' ? 'All' : a.gender) + '</td>';
+    html += '<td style="font-size:11px">' + (b.gender === 'all' ? 'All' : b.gender) + '</td>';
+    html += '<td>' + matchPill(genderMatchPct) + '</td></tr>';
+
+    // Interests
+    const intMatchPct = Math.round(result.interest.overlap * 100);
+    html += '<tr><td style="font-weight:600">Interests</td>';
+    html += '<td style="font-size:11px">' + (a.interests.length ? a.interests.join(', ') : 'None') + '</td>';
+    html += '<td style="font-size:11px">' + (b.interests.length ? b.interests.join(', ') : 'None') + '</td>';
+    html += '<td>' + matchPill(intMatchPct) + '</td></tr>';
+
+    // Size
+    html += '<tr><td style="font-weight:600">Est. Size</td>';
+    html += '<td style="font-size:11px">' + fmtNum(a.size) + '</td>';
+    html += '<td style="font-size:11px">' + fmtNum(b.size) + '</td>';
+    html += '<td style="font-size:11px;color:var(--muted)">--</td></tr>';
+
+    // Shared interests
+    if (result.interest.shared.length > 0) {
+      html += '<tr><td style="font-weight:600;color:var(--purple)">Shared Interests</td>';
+      html += '<td colspan="2" style="font-size:11px">' + result.interest.shared.join(', ') + '</td>';
+      html += '<td>' + matchPill(100) + '</td></tr>';
+    }
+
+    tbody.innerHTML = html;
+  }
+
+  function matchPill(pct) {
+    let bg, color;
+    if (pct >= 70) { bg = '#fef2f2'; color = '#dc2626'; }
+    else if (pct >= 40) { bg = '#fef3c7'; color = '#d97706'; }
+    else { bg = '#dcfce7'; color = '#16a34a'; }
+    return '<span class="match-pill" style="background:' + bg + ';color:' + color + '">' + pct + '%</span>';
+  }
+
+  window.recalculate = recalculate;
+
+  window.copyAnalysis = function() {
+    const a = getAudience('A');
+    const b = getAudience('B');
+    const result = computeOverlap(a, b);
+    const lines = ['AUDIENCE OVERLAP ANALYSIS', '---'];
+    lines.push('Audience A: ' + a.name + ' (' + fmtNum(a.size) + ')');
+    lines.push('  Age: ' + a.ages.join(', '));
+    lines.push('  Gender: ' + a.gender);
+    lines.push('  Interests: ' + (a.interests.length ? a.interests.join(', ') : 'None'));
+    lines.push('');
+    lines.push('Audience B: ' + b.name + ' (' + fmtNum(b.size) + ')');
+    lines.push('  Age: ' + b.ages.join(', '));
+    lines.push('  Gender: ' + b.gender);
+    lines.push('  Interests: ' + (b.interests.length ? b.interests.join(', ') : 'None'));
+    lines.push('');
+    lines.push('OVERLAP: ' + result.total + '%');
+    const verdict = result.total >= 50 ? 'MERGE recommended' : result.total >= 20 ? 'CONSOLIDATE targeting' : 'KEEP SEPARATE';
+    lines.push('Recommendation: ' + verdict);
+    lines.push('');
+    lines.push('Generated by FreeAdStore Overlap Analyzer');
+    navigator.clipboard.writeText(lines.join('\n')).then(() => showToast('Copied to clipboard'));
+  };
+
+  window.exportJSON = function() {
+    const a = getAudience('A');
+    const b = getAudience('B');
+    const result = computeOverlap(a, b);
+    const data = { audienceA: a, audienceB: b, overlapPct: result.total, details: result };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'overlap-analysis.json'; anchor.click();
+    URL.revokeObjectURL(url);
+    showToast('JSON downloaded');
+  };
+
+  function showToast(msg) {
+    const toast = $('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+
+  recalculate();
+})();
+</script>
+</body>
+</html>

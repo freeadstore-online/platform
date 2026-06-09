@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Ad Preview - FreeAdStore</title>
+<meta name="description" content="Preview how your YouTube ads appear. Skippable In-Stream, Non-Skippable, Bumper, and Discovery formats. Real-time builder. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--panel:#ffffff;--line:#e5e7eb;--radius:10px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 24px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:#0f0f0f}
+
+/* PANELS */
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+.panel-title svg{width:14px;height:14px;color:var(--muted)}
+label{font-size:.7rem;color:var(--muted);display:block;margin:6px 0 3px;font-weight:500}
+input[type=text],input[type=number],input[type=color],select,textarea{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;resize:none}
+input[type=text]:focus,input[type=number]:focus,select:focus,textarea:focus{border-color:var(--accent)}
+input[type=color]{padding:2px 4px;height:34px;cursor:pointer}
+.input-row{position:relative}
+.char-count{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:.65rem;font-weight:600;font-variant-numeric:tabular-nums;pointer-events:none;padding:1px 5px;border-radius:4px}
+.char-count.green{color:#16a34a;background:#f0fdf4}
+.char-count.yellow{color:#ca8a04;background:#fefce8}
+.char-count.red{color:#dc2626;background:#fef2f2}
+.textarea-row{position:relative}
+.textarea-row .char-count{top:10px;transform:none}
+.color-row{display:flex;gap:8px;align-items:center}
+.color-row input[type=color]{width:48px;flex-shrink:0}
+.color-row input[type=text]{flex:1}
+
+/* FORMAT TABS */
+.format-tabs{display:flex;gap:0;margin-bottom:14px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.format-tab{flex:1;padding:8px 4px;font-size:.68rem;font-weight:600;cursor:pointer;font-family:inherit;background:var(--bg);text-align:center;transition:all .12s;border:none;border-right:1px solid var(--line);line-height:1.2}
+.format-tab:last-child{border-right:none}
+.format-tab:hover{background:#f1f1f1}
+.format-tab.active{background:var(--accent);color:#fff}
+
+/* DEVICE TOGGLE */
+.device-toggle{display:flex;gap:4px;margin-bottom:12px}
+.device-btn{flex:1;padding:8px;border:1px solid var(--line);border-radius:var(--radius);font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;background:var(--bg);text-align:center;transition:all .12s}
+.device-btn:hover{border-color:var(--accent)}
+.device-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* PREVIEW AREA */
+.preview-wrap{flex:1;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:32px 24px}
+
+/* YOUTUBE PLAYER SIMULATION */
+.yt-container{width:100%;max-width:720px;margin:0 auto;font-family:'Roboto',Arial,sans-serif}
+.yt-container.mobile{max-width:400px}
+
+/* In-stream player */
+.yt-player{position:relative;width:100%;background:#000;border-radius:12px;overflow:hidden}
+.yt-player-inner{position:relative;width:100%;padding-top:56.25%}
+.yt-video-area{position:absolute;top:0;left:0;width:100%;height:100%;background:#181818;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.yt-play-btn{width:68px;height:48px;background:rgba(255,0,0,.8);border-radius:12px;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.yt-video-area:hover .yt-play-btn{background:rgba(255,0,0,1)}
+.yt-play-icon{width:0;height:0;border-style:solid;border-width:10px 0 10px 18px;border-color:transparent transparent transparent #fff;margin-left:3px}
+
+/* Ad badge + timer */
+.yt-ad-badge{position:absolute;bottom:40px;left:0;background:rgba(0,0,0,.75);color:#fff;font-size:12px;padding:4px 12px;font-family:'Roboto',Arial,sans-serif;display:flex;align-items:center;gap:6px;border-radius:0 4px 4px 0}
+.yt-ad-badge .yt-ad-label{background:#f2c200;color:#000;font-weight:700;font-size:10px;padding:1px 5px;border-radius:2px;letter-spacing:.3px}
+
+/* Progress bar */
+.yt-progress-bar{position:absolute;bottom:0;left:0;width:100%;height:4px;background:rgba(255,255,255,.2)}
+.yt-progress-fill{height:100%;background:#f2c200;transition:width .3s}
+
+/* Skip button */
+.yt-skip-btn{position:absolute;bottom:56px;right:0;background:rgba(0,0,0,.7);color:#fff;font-size:14px;font-family:'Roboto',Arial,sans-serif;padding:10px 16px;border:1px solid rgba(255,255,255,.3);border-right:none;border-radius:4px 0 0 4px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s}
+.yt-skip-btn:hover{background:rgba(0,0,0,.9)}
+.yt-skip-icon{display:inline-block;width:0;height:0;border-style:solid;border-width:5px 0 5px 8px;border-color:transparent transparent transparent #fff}
+.yt-skip-wall{border-right:2px solid #fff;height:12px;margin-left:-4px}
+
+/* Non-skippable message */
+.yt-nonskip-msg{position:absolute;bottom:56px;right:0;background:rgba(0,0,0,.7);color:#fff;font-size:13px;font-family:'Roboto',Arial,sans-serif;padding:8px 14px;border-radius:4px 0 0 4px;border:1px solid rgba(255,255,255,.15);border-right:none}
+
+/* CTA overlay */
+.yt-cta-overlay{position:absolute;bottom:56px;left:12px;display:flex;align-items:center;gap:10px;max-width:60%}
+.yt-cta-text-wrap{background:rgba(0,0,0,.8);border-radius:4px;padding:8px 12px;max-width:280px}
+.yt-cta-headline{color:#fff;font-size:14px;font-weight:500;font-family:'Roboto',Arial,sans-serif;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.yt-cta-btn{padding:8px 18px;border-radius:4px;font-size:14px;font-weight:500;font-family:'Roboto',Arial,sans-serif;color:#fff;border:none;cursor:pointer;white-space:nowrap;text-decoration:none;display:inline-block;flex-shrink:0}
+
+/* Companion banner */
+.yt-companion{margin-top:8px;background:#1a1a1a;border:1px solid #303030;border-radius:4px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.yt-companion-text{color:#fff;font-size:13px;font-family:'Roboto',Arial,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.yt-companion-cta{font-size:12px;font-weight:500;font-family:'Roboto',Arial,sans-serif;padding:5px 12px;border-radius:2px;color:#fff;border:none;cursor:pointer;white-space:nowrap;flex-shrink:0}
+
+/* Channel info row (below player) */
+.yt-channel-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #303030}
+.yt-channel-avatar{width:40px;height:40px;border-radius:50%;background:#303030;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#aaa;flex-shrink:0;text-transform:uppercase}
+.yt-channel-info{flex:1;min-width:0}
+.yt-channel-name{color:#fff;font-size:16px;font-weight:500;font-family:'Roboto',Arial,sans-serif}
+.yt-channel-meta{color:#aaa;font-size:12px;font-family:'Roboto',Arial,sans-serif;margin-top:1px}
+
+/* Discovery format */
+.yt-discovery-wrap{width:100%}
+.yt-search-bar{background:#121212;border:1px solid #303030;border-radius:40px;padding:8px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.yt-search-bar input{border:none;outline:none;font-size:14px;font-family:'Roboto',Arial,sans-serif;flex:1;background:transparent;color:#fff}
+.yt-search-bar input::placeholder{color:#717171}
+.yt-search-bar .yt-search-icon{color:#fff;flex-shrink:0;cursor:pointer;background:#303030;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center}
+
+/* Discovery result card */
+.yt-disc-results{display:flex;flex-direction:column;gap:12px}
+.yt-disc-card{display:flex;gap:12px;cursor:pointer;border-radius:8px;padding:4px;transition:background .12s}
+.yt-disc-card:hover{background:#1a1a1a}
+.yt-disc-card.ad-card-disc{background:#1a1a1a;border:1px solid #303030;border-radius:8px;padding:8px}
+.yt-disc-thumb{width:246px;min-width:246px;aspect-ratio:16/9;background:#1a1a1a;border-radius:8px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
+.yt-container.mobile .yt-disc-card{flex-direction:column}
+.yt-container.mobile .yt-disc-thumb{width:100%;min-width:0}
+.yt-disc-thumb img{width:100%;height:100%;object-fit:cover}
+.yt-disc-thumb-placeholder{color:#555;font-size:40px}
+.yt-disc-thumb-duration{position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.8);color:#fff;font-size:11px;font-family:'Roboto',Arial,sans-serif;padding:2px 6px;border-radius:3px;font-weight:500}
+.yt-disc-info{flex:1;min-width:0;padding-top:2px}
+.yt-disc-ad-badge{display:inline-block;background:#f2c200;color:#000;font-size:10px;font-weight:700;padding:1px 5px;border-radius:2px;margin-bottom:4px;letter-spacing:.3px}
+.yt-disc-title{color:#fff;font-size:14px;font-weight:500;font-family:'Roboto',Arial,sans-serif;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:4px}
+.yt-disc-channel{color:#aaa;font-size:12px;font-family:'Roboto',Arial,sans-serif;display:flex;align-items:center;gap:4px}
+.yt-disc-views{color:#aaa;font-size:12px;font-family:'Roboto',Arial,sans-serif;margin-top:1px}
+.yt-disc-desc-line{color:#aaa;font-size:12px;font-family:'Roboto',Arial,sans-serif;line-height:1.4;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Organic discovery results (faded) */
+.yt-disc-card.organic{opacity:.5}
+
+/* Thumbnail upload area */
+.thumb-upload{border:2px dashed var(--line);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:border-color .12s;margin-top:4px}
+.thumb-upload:hover{border-color:var(--accent)}
+.thumb-upload.has-image{border-style:solid;padding:4px}
+.thumb-upload img{width:100%;border-radius:6px;display:block}
+.thumb-upload p{font-size:.72rem;color:var(--muted);margin-top:4px}
+
+/* Export bar */
+.export-bar{border-top:1px solid var(--line);padding:12px 16px;background:var(--panel);flex-shrink:0;display:flex;gap:6px;flex-wrap:wrap}
+.btn{padding:7px 14px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;border:none;transition:all .12s}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{filter:brightness(1.1)}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:5px 10px;font-size:.72rem}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .preview-wrap{min-height:60vh}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Controls -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&larr; FreeAdStore</a>
+      <h1>YouTube Ad Preview</h1>
+      <p>Preview your YouTube ad across all formats. Free, no signup.</p>
+    </div>
+    <div class="sidebar-scroll" id="controls"></div>
+    <div class="export-bar">
+      <button class="btn btn-primary btn-sm" id="btnCopyText">Copy Ad Text</button>
+      <button class="btn btn-outline btn-sm" id="btnScreenshot">Screenshot</button>
+      <button class="btn btn-outline btn-sm" id="btnReset">Reset</button>
+    </div>
+  </div>
+  <!-- RIGHT: Preview -->
+  <div class="main">
+    <div class="preview-wrap">
+      <div class="yt-container" id="ytPreview"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const DEFAULTS = {
+  format: 'skippable',
+  channel: 'Acme Brand',
+  headline: 'Try Acme Free Today',
+  ctaText: 'Learn More',
+  ctaUrl: 'https://acme.com',
+  ctaColor: '#3b82f6',
+  companionText: 'Acme - The All-in-One Platform',
+  videoDuration: 30,
+  // Discovery fields
+  thumbData: '',
+  discTitle: 'How Acme Helps You Build Faster',
+  discDesc1: 'See how teams save 10+ hours a week',
+  discDesc2: 'Start your free trial today at acme.com',
+  device: 'desktop'
+};
+
+let S = {...DEFAULTS};
+
+const LIMITS = {
+  headline: 40,
+  ctaText: 15,
+  discTitle: 100,
+  discDesc1: 35,
+  discDesc2: 35
+};
+
+// ============================================================
+// HELPERS
+// ============================================================
+function esc(s) { return s.replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+function escHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function charClass(len, max) {
+  if (len > max) return 'red';
+  if (len >= max * 0.8) return 'yellow';
+  return 'green';
+}
+function charLabel(len, max) { return len + '/' + max; }
+function fmtTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+// ============================================================
+// BUILD CONTROLS
+// ============================================================
+function buildControls() {
+  const c = document.getElementById('controls');
+  const isInStream = S.format !== 'discovery';
+  const isDiscovery = S.format === 'discovery';
+
+  c.innerHTML = `
+  <div class="panel">
+    <div class="panel-title">Brand / Channel Name</div>
+    <input type="text" id="inpChannel" value="${esc(S.channel)}" placeholder="Your brand or channel name">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Ad Format</div>
+    <div class="format-tabs">
+      <button class="format-tab${S.format === 'skippable' ? ' active' : ''}" data-fmt="skippable">Skippable In-Stream</button>
+      <button class="format-tab${S.format === 'nonskippable' ? ' active' : ''}" data-fmt="nonskippable">Non-Skippable</button>
+      <button class="format-tab${S.format === 'bumper' ? ' active' : ''}" data-fmt="bumper">Bumper (6s)</button>
+      <button class="format-tab${S.format === 'discovery' ? ' active' : ''}" data-fmt="discovery">Discovery</button>
+    </div>
+  </div>
+
+  ${isInStream ? `
+  <div class="panel">
+    <div class="panel-title">Headline Overlay</div>
+    <div class="input-row">
+      <input type="text" id="inpHeadline" value="${esc(S.headline)}" placeholder="Overlay text on the video" maxlength="60">
+      <span class="char-count ${charClass(S.headline.length, LIMITS.headline)}" id="cntHeadline">${charLabel(S.headline.length, LIMITS.headline)}</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Call-to-Action</div>
+    <label>CTA Text</label>
+    <div class="input-row">
+      <input type="text" id="inpCtaText" value="${esc(S.ctaText)}" placeholder="Learn More" maxlength="30">
+      <span class="char-count ${charClass(S.ctaText.length, LIMITS.ctaText)}" id="cntCtaText">${charLabel(S.ctaText.length, LIMITS.ctaText)}</span>
+    </div>
+    <label>CTA URL</label>
+    <input type="text" id="inpCtaUrl" value="${esc(S.ctaUrl)}" placeholder="https://example.com">
+    <label>CTA Color</label>
+    <div class="color-row">
+      <input type="color" id="inpCtaColor" value="${S.ctaColor}">
+      <input type="text" id="inpCtaColorText" value="${esc(S.ctaColor)}" placeholder="#3b82f6">
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Companion Banner</div>
+    <input type="text" id="inpCompanion" value="${esc(S.companionText)}" placeholder="Text shown in companion banner">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Video Duration (seconds)</div>
+    <input type="number" id="inpDuration" value="${S.videoDuration}" min="6" max="600" step="1">
+    ${S.format === 'bumper' ? '<div style="font-size:.62rem;color:var(--muted);margin-top:3px">Bumper ads are max 6 seconds</div>' : ''}
+  </div>
+  ` : ''}
+
+  ${isDiscovery ? `
+  <div class="panel">
+    <div class="panel-title">Thumbnail</div>
+    <div class="thumb-upload${S.thumbData ? ' has-image' : ''}" id="thumbUpload">
+      ${S.thumbData ? `<img src="${S.thumbData}" alt="Thumbnail">` : '<p>Click to upload thumbnail<br><span style="font-size:.65rem;color:#aaa">or leave empty for placeholder</span></p>'}
+    </div>
+    <input type="file" id="thumbFile" accept="image/*" style="display:none">
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Title</div>
+    <div class="input-row">
+      <input type="text" id="inpDiscTitle" value="${esc(S.discTitle)}" placeholder="Video title (100 chars)" maxlength="120">
+      <span class="char-count ${charClass(S.discTitle.length, LIMITS.discTitle)}" id="cntDiscTitle">${charLabel(S.discTitle.length, LIMITS.discTitle)}</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Description</div>
+    <label>Line 1</label>
+    <div class="input-row">
+      <input type="text" id="inpDiscDesc1" value="${esc(S.discDesc1)}" placeholder="35 characters max" maxlength="50">
+      <span class="char-count ${charClass(S.discDesc1.length, LIMITS.discDesc1)}" id="cntDiscDesc1">${charLabel(S.discDesc1.length, LIMITS.discDesc1)}</span>
+    </div>
+    <label>Line 2</label>
+    <div class="input-row">
+      <input type="text" id="inpDiscDesc2" value="${esc(S.discDesc2)}" placeholder="35 characters max" maxlength="50">
+      <span class="char-count ${charClass(S.discDesc2.length, LIMITS.discDesc2)}" id="cntDiscDesc2">${charLabel(S.discDesc2.length, LIMITS.discDesc2)}</span>
+    </div>
+  </div>
+  ` : ''}
+
+  <div class="panel">
+    <div class="panel-title">Device Preview</div>
+    <div class="device-toggle">
+      <button class="device-btn${S.device === 'desktop' ? ' active' : ''}" data-device="desktop">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:4px"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Desktop
+      </button>
+      <button class="device-btn${S.device === 'mobile' ? ' active' : ''}" data-device="mobile">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;margin-right:4px"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>Mobile
+      </button>
+    </div>
+  </div>
+  `;
+
+  bindControls();
+}
+
+// ============================================================
+// BIND EVENTS
+// ============================================================
+function bindControls() {
+  const $ = id => document.getElementById(id);
+
+  function bindInput(id, key, countId, limit) {
+    const el = $(id);
+    if (!el) return;
+    el.oninput = e => {
+      S[key] = e.target.value;
+      if (countId && limit) {
+        const cnt = $(countId);
+        if (cnt) {
+          cnt.textContent = charLabel(S[key].length, limit);
+          cnt.className = 'char-count ' + charClass(S[key].length, limit);
+        }
+      }
+      render();
+    };
+  }
+
+  bindInput('inpChannel', 'channel');
+  bindInput('inpHeadline', 'headline', 'cntHeadline', LIMITS.headline);
+  bindInput('inpCtaText', 'ctaText', 'cntCtaText', LIMITS.ctaText);
+  bindInput('inpCtaUrl', 'ctaUrl');
+  bindInput('inpCompanion', 'companionText');
+  bindInput('inpDiscTitle', 'discTitle', 'cntDiscTitle', LIMITS.discTitle);
+  bindInput('inpDiscDesc1', 'discDesc1', 'cntDiscDesc1', LIMITS.discDesc1);
+  bindInput('inpDiscDesc2', 'discDesc2', 'cntDiscDesc2', LIMITS.discDesc2);
+
+  // Duration
+  const durEl = $('inpDuration');
+  if (durEl) {
+    durEl.oninput = e => {
+      let v = parseInt(e.target.value, 10);
+      if (S.format === 'bumper') v = Math.min(v, 6);
+      S.videoDuration = isNaN(v) ? 15 : v;
+      render();
+    };
+  }
+
+  // CTA color
+  const colorPicker = $('inpCtaColor');
+  const colorText = $('inpCtaColorText');
+  if (colorPicker) {
+    colorPicker.oninput = e => {
+      S.ctaColor = e.target.value;
+      if (colorText) colorText.value = e.target.value;
+      render();
+    };
+  }
+  if (colorText) {
+    colorText.oninput = e => {
+      S.ctaColor = e.target.value;
+      if (colorPicker && /^#[0-9a-fA-F]{6}$/.test(e.target.value)) {
+        colorPicker.value = e.target.value;
+      }
+      render();
+    };
+  }
+
+  // Format tabs
+  document.querySelectorAll('.format-tab').forEach(tab => {
+    tab.onclick = () => {
+      S.format = tab.dataset.fmt;
+      if (S.format === 'bumper') {
+        S.videoDuration = 6;
+      } else if (S.format === 'nonskippable') {
+        S.videoDuration = Math.max(S.videoDuration, 15);
+        if (S.videoDuration > 20) S.videoDuration = 15;
+      }
+      buildControls();
+      render();
+    };
+  });
+
+  // Device toggle
+  document.querySelectorAll('.device-btn').forEach(btn => {
+    btn.onclick = () => {
+      S.device = btn.dataset.device;
+      document.querySelectorAll('.device-btn').forEach(b => b.classList.toggle('active', b.dataset.device === S.device));
+      render();
+    };
+  });
+
+  // Thumbnail upload
+  const thumbUpload = $('thumbUpload');
+  const thumbFile = $('thumbFile');
+  if (thumbUpload && thumbFile) {
+    thumbUpload.onclick = () => thumbFile.click();
+    thumbFile.onchange = e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        S.thumbData = ev.target.result;
+        buildControls();
+        render();
+      };
+      reader.readAsDataURL(file);
+    };
+  }
+
+  // Export buttons
+  $('btnCopyText').onclick = copyAdText;
+  $('btnScreenshot').onclick = takeScreenshot;
+  $('btnReset').onclick = () => { S = {...DEFAULTS}; buildControls(); render(); };
+}
+
+// ============================================================
+// RENDER PREVIEW
+// ============================================================
+function render() {
+  const wrap = document.getElementById('ytPreview');
+  const isMobile = S.device === 'mobile';
+  wrap.className = 'yt-container' + (isMobile ? ' mobile' : '');
+
+  if (S.format === 'discovery') {
+    renderDiscovery(wrap, isMobile);
+  } else {
+    renderInStream(wrap, isMobile);
+  }
+}
+
+function renderInStream(wrap, isMobile) {
+  const dur = S.format === 'bumper' ? 6 : S.videoDuration;
+  const isSkippable = S.format === 'skippable';
+  const isBumper = S.format === 'bumper';
+  const isNonSkip = S.format === 'nonskippable';
+  const initial = S.channel.charAt(0).toUpperCase() || 'A';
+
+  // Simulated playback position (about 1/3 through for visual interest)
+  const simPos = Math.floor(dur * 0.33);
+  const progressPct = (simPos / dur) * 100;
+
+  let html = '';
+
+  // Player
+  html += `<div class="yt-player">`;
+  html += `<div class="yt-player-inner">`;
+  html += `<div class="yt-video-area">`;
+  html += `<div class="yt-play-btn"><div class="yt-play-icon"></div></div>`;
+  html += `</div>`;
+
+  // CTA overlay (bottom left of video) - only for in-stream formats
+  if (S.headline.trim() || S.ctaText.trim()) {
+    html += `<div class="yt-cta-overlay">`;
+    if (S.headline.trim()) {
+      html += `<div class="yt-cta-text-wrap"><div class="yt-cta-headline">${escHtml(S.headline)}</div></div>`;
+    }
+    if (S.ctaText.trim()) {
+      html += `<a class="yt-cta-btn" href="javascript:void(0)" style="background:${escHtml(S.ctaColor)}">${escHtml(S.ctaText)}</a>`;
+    }
+    html += `</div>`;
+  }
+
+  // Skip button (only for skippable, appears after 5s)
+  if (isSkippable && simPos >= 5) {
+    html += `<div class="yt-skip-btn">`;
+    html += `Skip Ad <span class="yt-skip-icon"></span><span class="yt-skip-wall"></span>`;
+    html += `</div>`;
+  }
+
+  // Non-skippable end message
+  if (isNonSkip) {
+    const remain = dur - simPos;
+    html += `<div class="yt-nonskip-msg">Ad will end in ${remain}s</div>`;
+  }
+
+  // Ad badge + timer
+  html += `<div class="yt-ad-badge">`;
+  html += `<span class="yt-ad-label">Ad</span>`;
+  html += `${fmtTime(simPos)} / ${fmtTime(dur)}`;
+  html += `</div>`;
+
+  // Progress bar
+  html += `<div class="yt-progress-bar"><div class="yt-progress-fill" style="width:${progressPct}%"></div></div>`;
+
+  html += `</div>`; // player-inner
+  html += `</div>`; // player
+
+  // Companion banner (desktop only)
+  if (!isMobile && S.companionText.trim()) {
+    html += `<div class="yt-companion">`;
+    html += `<span class="yt-companion-text">${escHtml(S.companionText)}</span>`;
+    if (S.ctaText.trim()) {
+      html += `<button class="yt-companion-cta" style="background:${escHtml(S.ctaColor)}">${escHtml(S.ctaText)}</button>`;
+    }
+    html += `</div>`;
+  }
+
+  // Channel info below player
+  html += `<div class="yt-channel-row">`;
+  html += `<div class="yt-channel-avatar">${initial}</div>`;
+  html += `<div class="yt-channel-info">`;
+  html += `<div class="yt-channel-name">${escHtml(S.channel || 'Channel Name')}</div>`;
+  html += `<div class="yt-channel-meta">Sponsored</div>`;
+  html += `</div>`;
+  html += `</div>`;
+
+  wrap.innerHTML = html;
+}
+
+function renderDiscovery(wrap, isMobile) {
+  const initial = S.channel.charAt(0).toUpperCase() || 'A';
+
+  let html = '';
+
+  // Search bar
+  html += `<div class="yt-search-bar">`;
+  html += `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#717171" stroke-width="2" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
+  html += `<input type="text" value="${esc(S.channel.toLowerCase().replace(/\s+/g, ' '))}" readonly placeholder="Search">`;
+  html += `<div class="yt-search-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>`;
+  html += `</div>`;
+
+  // Discovery results
+  html += `<div class="yt-disc-results">`;
+
+  // The ad card
+  html += `<div class="yt-disc-card ad-card-disc">`;
+  html += `<div class="yt-disc-thumb">`;
+  if (S.thumbData) {
+    html += `<img src="${S.thumbData}" alt="Ad thumbnail">`;
+  } else {
+    html += `<div class="yt-disc-thumb-placeholder"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="8" cy="8" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>`;
+  }
+  html += `<div class="yt-disc-thumb-duration">3:24</div>`;
+  html += `</div>`;
+  html += `<div class="yt-disc-info">`;
+  html += `<div class="yt-disc-ad-badge">Ad</div>`;
+  html += `<div class="yt-disc-title">${escHtml(S.discTitle || 'Video Title')}</div>`;
+  html += `<div class="yt-disc-channel">${escHtml(S.channel || 'Channel Name')}</div>`;
+  if (S.discDesc1.trim()) {
+    html += `<div class="yt-disc-desc-line">${escHtml(S.discDesc1)}</div>`;
+  }
+  if (S.discDesc2.trim()) {
+    html += `<div class="yt-disc-desc-line">${escHtml(S.discDesc2)}</div>`;
+  }
+  html += `</div>`;
+  html += `</div>`;
+
+  // Organic results (faded)
+  const organics = [
+    { title: 'Getting Started with Digital Marketing in 2026', channel: 'Marketing Hub', views: '245K views', time: '12:34' },
+    { title: 'Top 10 Advertising Strategies That Actually Work', channel: 'BizGrowth', views: '89K views', time: '8:17' },
+    { title: 'How to Create Effective Video Ads - Complete Guide', channel: 'AdSchool', views: '512K views', time: '21:05' }
+  ];
+
+  organics.forEach(o => {
+    html += `<div class="yt-disc-card organic">`;
+    html += `<div class="yt-disc-thumb">`;
+    html += `<div class="yt-disc-thumb-placeholder"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`;
+    html += `<div class="yt-disc-thumb-duration">${o.time}</div>`;
+    html += `</div>`;
+    html += `<div class="yt-disc-info">`;
+    html += `<div class="yt-disc-title">${escHtml(o.title)}</div>`;
+    html += `<div class="yt-disc-channel">${escHtml(o.channel)}</div>`;
+    html += `<div class="yt-disc-views">${o.views} &middot; 2 weeks ago</div>`;
+    html += `</div>`;
+    html += `</div>`;
+  });
+
+  html += `</div>`; // disc-results
+
+  wrap.innerHTML = html;
+}
+
+// ============================================================
+// EXPORT FUNCTIONS
+// ============================================================
+function copyAdText() {
+  let text = 'YouTube Ad\n' + '='.repeat(40) + '\n\n';
+  text += 'Format: ' + {skippable:'Skippable In-Stream',nonskippable:'Non-Skippable In-Stream',bumper:'Bumper (6s)',discovery:'Discovery'}[S.format] + '\n';
+  text += 'Channel: ' + S.channel + '\n\n';
+
+  if (S.format === 'discovery') {
+    text += 'Title: ' + S.discTitle + ' (' + S.discTitle.length + '/' + LIMITS.discTitle + ')\n';
+    text += 'Description Line 1: ' + S.discDesc1 + ' (' + S.discDesc1.length + '/' + LIMITS.discDesc1 + ')\n';
+    text += 'Description Line 2: ' + S.discDesc2 + ' (' + S.discDesc2.length + '/' + LIMITS.discDesc2 + ')\n';
+  } else {
+    text += 'Headline: ' + S.headline + ' (' + S.headline.length + '/' + LIMITS.headline + ')\n';
+    text += 'CTA Text: ' + S.ctaText + ' (' + S.ctaText.length + '/' + LIMITS.ctaText + ')\n';
+    text += 'CTA URL: ' + S.ctaUrl + '\n';
+    text += 'CTA Color: ' + S.ctaColor + '\n';
+    text += 'Companion: ' + S.companionText + '\n';
+    text += 'Duration: ' + S.videoDuration + 's\n';
+  }
+
+  const warnings = [];
+  if (S.format === 'discovery') {
+    if (S.discTitle.length > LIMITS.discTitle) warnings.push('Title over limit (' + S.discTitle.length + '/' + LIMITS.discTitle + ')');
+    if (S.discDesc1.length > LIMITS.discDesc1) warnings.push('Desc 1 over limit (' + S.discDesc1.length + '/' + LIMITS.discDesc1 + ')');
+    if (S.discDesc2.length > LIMITS.discDesc2) warnings.push('Desc 2 over limit (' + S.discDesc2.length + '/' + LIMITS.discDesc2 + ')');
+  } else {
+    if (S.headline.length > LIMITS.headline) warnings.push('Headline over limit (' + S.headline.length + '/' + LIMITS.headline + ')');
+    if (S.ctaText.length > LIMITS.ctaText) warnings.push('CTA over limit (' + S.ctaText.length + '/' + LIMITS.ctaText + ')');
+  }
+  if (warnings.length) {
+    text += '\nWARNINGS:\n';
+    warnings.forEach(w => text += '  - ' + w + '\n');
+  }
+
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('btnCopyText');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy Ad Text', 1500);
+  });
+}
+
+async function takeScreenshot() {
+  const btn = document.getElementById('btnScreenshot');
+  btn.textContent = 'Capturing...';
+  btn.disabled = true;
+
+  try {
+    const el = document.getElementById('ytPreview');
+    const canvas = document.createElement('canvas');
+    const rect = el.getBoundingClientRect();
+    const scale = 2;
+    canvas.width = rect.width * scale;
+    canvas.height = rect.height * scale;
+
+    const data = new XMLSerializer().serializeToString(el);
+    const styles = '<style>' + document.querySelector('style').textContent + '</style>';
+    const svgStr = '<svg xmlns="http://www.w3.org/2000/svg" width="' + (rect.width * scale) + '" height="' + (rect.height * scale) + '">' +
+      '<foreignObject width="' + rect.width + '" height="' + rect.height + '" transform="scale(' + scale + ')">' +
+      '<div xmlns="http://www.w3.org/1999/xhtml" style="background:#0f0f0f;padding:0">' +
+      styles + data +
+      '</div></foreignObject></svg>';
+
+    const img = new Image();
+    const blob = new Blob([svgStr], {type: 'image/svg+xml;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+
+    img.onload = () => {
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#0f0f0f';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+
+      canvas.toBlob(pngBlob => {
+        if (pngBlob) {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(pngBlob);
+          a.download = 'youtube-ad-preview.png';
+          a.click();
+          URL.revokeObjectURL(a.href);
+        }
+        btn.textContent = 'Screenshot';
+        btn.disabled = false;
+      }, 'image/png');
+    };
+
+    img.onerror = () => {
+      navigator.clipboard.writeText(el.outerHTML).then(() => {
+        btn.textContent = 'HTML Copied';
+        setTimeout(() => { btn.textContent = 'Screenshot'; btn.disabled = false; }, 1500);
+      });
+    };
+
+    img.src = url;
+  } catch (e) {
+    btn.textContent = 'Screenshot';
+    btn.disabled = false;
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildControls();
+render();
+</script>
+</body>
+</html>

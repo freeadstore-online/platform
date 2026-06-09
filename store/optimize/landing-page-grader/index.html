@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Landing Page Grader — FreeAdStore</title>
+<meta name="description" content="Grade your landing page with a 12-point self-assessment checklist. Get a score, letter grade, and actionable improvement tips. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#ef4444;--accent-hover:#dc2626;--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--panel:#ffffff;--line:#e5e7eb;--green:#16a34a;--yellow:#f59e0b;--red:#ef4444;--sidebar-w:360px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+/* Layout */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--panel);border-right:1px solid var(--line);padding:1.25rem;overflow-y:auto;display:flex;flex-direction:column;gap:.1rem}
+.main{flex:1;padding:1.5rem 2rem;overflow-y:auto;max-height:100vh}
+
+/* Back link */
+.back{display:inline-flex;align-items:center;gap:.35rem;font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:.75rem}
+.back:hover{color:var(--accent);text-decoration:none}
+
+/* Sidebar heading */
+.sidebar h1{font-family:'Fraunces',serif;font-size:1.25rem;font-weight:700;margin-bottom:.15rem}
+.sidebar .subtitle{font-size:.72rem;color:var(--muted);line-height:1.45;margin-bottom:.85rem}
+
+/* Section title */
+.section-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:.5rem;margin-top:.5rem}
+
+/* Checklist items */
+.check-item{padding:.55rem 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:.3rem}
+.check-item:last-child{border-bottom:none}
+.check-question{font-size:.78rem;font-weight:600;line-height:1.4;color:var(--text)}
+.check-options{display:flex;gap:.3rem}
+.check-opt{padding:.3rem .55rem;border:1px solid var(--line);border-radius:99px;font-size:.68rem;font-weight:600;cursor:pointer;background:var(--panel);color:var(--muted);transition:all .15s;font-family:inherit}
+.check-opt:hover{border-color:var(--accent);color:var(--text)}
+.check-opt.yes{background:var(--green);border-color:var(--green);color:#fff}
+.check-opt.no{background:var(--red);border-color:var(--red);color:#fff}
+.check-opt.na{background:var(--muted);border-color:var(--muted);color:#fff}
+
+/* Calculate button */
+.btn-calc{width:100%;padding:.65rem;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;transition:background .15s;margin-top:.75rem}
+.btn-calc:hover{background:var(--accent-hover)}
+
+/* Main area */
+.main h2{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;margin-bottom:1rem}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;text-align:center;color:var(--muted)}
+.empty-state .icon{font-size:3rem;margin-bottom:1rem;opacity:.4}
+.empty-state p{font-size:.88rem;max-width:340px;line-height:1.5}
+
+/* Cards */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:1.1rem;margin-bottom:.85rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card h3{font-size:.88rem;font-weight:700;margin-bottom:.65rem;display:flex;align-items:center;gap:.4rem}
+.card h3 .card-icon{color:var(--accent)}
+
+/* Grade hero */
+.grade-hero{text-align:center;padding:1.6rem 1rem;border-radius:14px;border:1px solid var(--line);background:var(--panel);margin-bottom:1rem;position:relative}
+.grade-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:.3rem}
+.grade-score{font-family:'Fraunces',serif;font-size:3.6rem;font-weight:700;line-height:1}
+.grade-letter{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;margin-top:.25rem}
+.grade-score.a{color:var(--green)}.grade-letter.a{color:var(--green)}
+.grade-score.b{color:#22c55e}.grade-letter.b{color:#22c55e}
+.grade-score.c{color:var(--yellow)}.grade-letter.c{color:var(--yellow)}
+.grade-score.d{color:#f97316}.grade-letter.d{color:#f97316}
+.grade-score.f{color:var(--red)}.grade-letter.f{color:var(--red)}
+.grade-percentile{font-size:.78rem;color:var(--muted);margin-top:.5rem;line-height:1.5}
+.grade-percentile strong{color:var(--text)}
+
+/* Score ring */
+.ring-container{display:flex;justify-content:center;margin-bottom:.5rem}
+.ring-svg{width:160px;height:160px}
+.ring-bg{fill:none;stroke:var(--line);stroke-width:12}
+.ring-fill{fill:none;stroke-width:12;stroke-linecap:round;transition:stroke-dashoffset .6s ease,stroke .3s}
+.ring-text{font-family:'Fraunces',serif;font-weight:700;fill:var(--text)}
+
+/* Breakdown */
+.breakdown-item{display:flex;align-items:flex-start;gap:.65rem;padding:.7rem 0;border-bottom:1px solid var(--line)}
+.breakdown-item:last-child{border-bottom:none}
+.bd-status{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.78rem;font-weight:700;color:#fff}
+.bd-status.pass{background:var(--green)}
+.bd-status.fail{background:var(--red)}
+.bd-status.skip{background:var(--muted)}
+.bd-content{flex:1}
+.bd-question{font-size:.78rem;font-weight:700;margin-bottom:.15rem}
+.bd-tip{font-size:.72rem;color:var(--muted);line-height:1.45}
+.bd-tip strong{color:var(--text)}
+
+/* Priority list */
+.priority-list{list-style:none;padding:0;counter-reset:priority}
+.priority-list li{counter-increment:priority;display:flex;align-items:flex-start;gap:.6rem;padding:.6rem 0;border-bottom:1px solid var(--line);font-size:.78rem;line-height:1.5}
+.priority-list li:last-child{border-bottom:none}
+.priority-list li::before{content:counter(priority);display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:.68rem;font-weight:700;flex-shrink:0}
+
+/* Toast */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:#fff;padding:.65rem 1.1rem;border-radius:8px;font-size:.78rem;font-weight:600;opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none;z-index:999}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* Responsive */
+@media(max-width:900px){
+  .layout{flex-direction:column}
+  .sidebar{width:100%;min-width:unset;border-right:none;border-bottom:1px solid var(--line);max-height:unset}
+  .main{max-height:unset;padding:1.25rem}
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <a href="/" class="back">&larr; FreeAdStore</a>
+    <h1>Landing Page Grader</h1>
+    <p class="subtitle">Self-assess your landing page against 12 proven conversion criteria. Get a score, letter grade, and specific improvement tips.</p>
+
+    <div class="section-title">Answer Each Question</div>
+
+    <div id="checklistContainer"></div>
+
+    <button class="btn-calc" onclick="grade()">Grade My Page</button>
+  </aside>
+
+  <!-- Main -->
+  <main class="main" id="mainArea">
+    <div class="empty-state" id="emptyState">
+      <div class="icon">&#9989;</div>
+      <p>Answer the checklist questions about your landing page, then click <strong>Grade My Page</strong> to get your score and improvement recommendations.</p>
+    </div>
+
+    <div id="results" style="display:none">
+      <h2>Landing Page Score</h2>
+
+      <!-- Grade hero -->
+      <div class="grade-hero">
+        <div class="grade-label">Your Score</div>
+        <div class="ring-container">
+          <svg class="ring-svg" viewBox="0 0 160 160">
+            <circle cx="80" cy="80" r="68" class="ring-bg"/>
+            <circle cx="80" cy="80" r="68" class="ring-fill" id="ringFill"
+              stroke-dasharray="427.26"
+              stroke-dashoffset="427.26"
+              transform="rotate(-90 80 80)"/>
+            <text x="80" y="72" text-anchor="middle" class="ring-text" font-size="38" id="ringScore">0</text>
+            <text x="80" y="96" text-anchor="middle" class="ring-text" font-size="16" id="ringOutOf">/100</text>
+          </svg>
+        </div>
+        <div class="grade-letter" id="gradeLetter">--</div>
+        <div class="grade-percentile" id="gradePercentile"></div>
+      </div>
+
+      <!-- Breakdown -->
+      <div class="card">
+        <h3><span class="card-icon">&#9632;</span> Detailed Breakdown</h3>
+        <div id="breakdownList"></div>
+      </div>
+
+      <!-- Top priorities -->
+      <div class="card" id="priorityCard" style="display:none">
+        <h3><span class="card-icon">&#9670;</span> Top Priorities to Fix</h3>
+        <ol class="priority-list" id="priorityList"></ol>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var questions = [
+    {
+      id: 'speed',
+      question: 'Does the page load in under 3 seconds?',
+      weight: 10,
+      options: ['Yes', 'No'],
+      invertNo: false,
+      passTip: 'Good. Fast load times reduce bounce rates by up to 32%.',
+      failTip: 'Slow pages kill conversions. Compress images, enable browser caching, use a CDN. Every 1-second delay drops conversions by ~7%.',
+      priority: 'Optimize page speed: compress images (WebP), defer non-critical JS, enable GZIP. Target under 2 seconds for mobile.'
+    },
+    {
+      id: 'headline',
+      question: 'Is the headline clear and matches the ad?',
+      weight: 12,
+      options: ['Yes', 'No'],
+      invertNo: false,
+      passTip: 'Message match between ad and landing page is one of the strongest conversion signals.',
+      failTip: 'When visitors click an ad and see a different message, they bounce. Your headline should directly reflect the promise in your ad.',
+      priority: 'Rewrite your headline to mirror the exact language and promise from your ad. Message match can improve conversions by 25-40%.'
+    },
+    {
+      id: 'cta',
+      question: 'Is there a clear CTA above the fold?',
+      weight: 12,
+      options: ['Yes', 'No'],
+      invertNo: false,
+      passTip: 'A visible CTA above the fold helps capture high-intent visitors immediately.',
+      failTip: 'Your primary call-to-action must be visible without scrolling. Use contrasting colors and action-oriented text (e.g., "Start Free Trial" not "Submit").',
+      priority: 'Add a prominent CTA button above the fold with action-oriented text and a contrasting color.'
+    },
+    {
+      id: 'mobile',
+      question: 'Is the page mobile-responsive?',
+      weight: 10,
+      options: ['Yes', 'No'],
+      invertNo: false,
+      passTip: '60%+ of ad clicks come from mobile. Responsive design is essential.',
+      failTip: 'Over 60% of ad traffic is mobile. A non-responsive page loses the majority of your visitors. Test on multiple devices.',
+      priority: 'Make your page fully responsive. Test on iOS Safari and Android Chrome. Ensure tap targets are at least 44px.'
+    },
+    {
+      id: 'social',
+      question: 'Is there social proof (testimonials, logos, reviews)?',
+      weight: 8,
+      options: ['Yes', 'No'],
+      invertNo: false,
+      passTip: 'Social proof reduces friction and builds trust. Testimonials with names and photos work best.',
+      failTip: 'Add real testimonials, client logos, review scores, or case studies. Social proof can increase conversions by 15-20%.',
+      priority: 'Add 2-3 testimonials with real names and photos, or display recognizable client logos and review scores.'
+    },
+    {
+      id: 'form',
+      question: 'Is the form short (5 fields or fewer)?',
+      weight: 8,
+      options: ['Yes', 'No', 'N/A'],
+      invertNo: false,
+      passTip: 'Short forms convert better. Every additional field reduces completion rates.',
+      failTip: 'Each extra form field reduces conversions by ~4%. Only ask for what you absolutely need at this stage. Collect more info later.',
+      priority: 'Reduce form fields to 3-5 maximum. Remove any field not critical for the initial conversion. You can ask for more info later.'
+    },
+    {
+      id: 'https',
+      question: 'Does the page have HTTPS?',
+      weight: 6,
+      options: ['Yes', 'No'],
+      invertNo: false,
+      passTip: 'HTTPS is table stakes for trust and SEO. Browsers flag non-HTTPS pages as "Not Secure."',
+      failTip: 'Browsers show a "Not Secure" warning on HTTP pages. This kills trust instantly. Get an SSL certificate (free with Let\'s Encrypt or Cloudflare).',
+      priority: 'Enable HTTPS immediately. Use free SSL from Cloudflare or Let\'s Encrypt. Google also penalizes HTTP pages in rankings.'
+    },
+    {
+      id: 'privacy',
+      question: 'Is there a privacy policy link?',
+      weight: 5,
+      options: ['Yes', 'No'],
+      invertNo: false,
+      passTip: 'A visible privacy policy builds trust and is legally required in most jurisdictions.',
+      failTip: 'A privacy policy link is legally required in the EU (GDPR), California (CCPA), and most jurisdictions. It also signals legitimacy.',
+      priority: 'Add a privacy policy link in your footer. Use a generator if needed, but make sure it covers your data collection practices.'
+    },
+    {
+      id: 'distractions',
+      question: 'Are there distracting navigation links?',
+      weight: 8,
+      options: ['Yes', 'No'],
+      invertNo: true,
+      passTip: 'Removing navigation on landing pages keeps focus on the conversion. Attention ratio should be 1:1.',
+      failTip: 'Navigation menus give visitors escape routes. Remove all nav links and keep a single focused CTA. Ideal attention ratio is 1:1.',
+      priority: 'Remove top navigation, sidebar links, and footer links. Every link that isn\'t your CTA is a conversion leak.'
+    },
+    {
+      id: 'match',
+      question: 'Does the content match the ad promise?',
+      weight: 10,
+      options: ['Yes', 'No'],
+      invertNo: false,
+      passTip: 'Content-to-ad consistency keeps visitors engaged and signals relevance to the ad platform (improving Quality Score).',
+      failTip: 'If your ad promises "50% off" but the page doesn\'t mention the discount, visitors feel misled. Ensure every ad promise is clearly reinforced on the page.',
+      priority: 'Audit your ad copy against your page content. Every specific claim in the ad must be prominently featured on the landing page.'
+    },
+    {
+      id: 'value',
+      question: 'Is there a clear value proposition?',
+      weight: 7,
+      options: ['Yes', 'No'],
+      invertNo: false,
+      passTip: 'A strong value proposition tells visitors exactly what they get and why it matters, in seconds.',
+      failTip: 'Visitors decide in 5 seconds whether to stay. Your value proposition should clearly answer: what do you offer, who is it for, and why is it better?',
+      priority: 'Write a clear value proposition: [Product] helps [audience] achieve [outcome] by [mechanism]. Place it prominently near the headline.'
+    },
+    {
+      id: 'trust',
+      question: 'Are there trust signals (badges, guarantees)?',
+      weight: 4,
+      options: ['Yes', 'No'],
+      invertNo: false,
+      passTip: 'Security badges, money-back guarantees, and certifications reduce purchase anxiety.',
+      failTip: 'Add trust signals: security badges, payment provider logos, money-back guarantees, certifications, or "Trusted by X,000 customers" statements.',
+      priority: 'Add 2-3 trust signals near your CTA: payment security badge, satisfaction guarantee, or industry certifications.'
+    }
+  ];
+
+  var answers = {};
+
+  function buildChecklist(){
+    var container = document.getElementById('checklistContainer');
+    container.innerHTML = '';
+    questions.forEach(function(q){
+      var div = document.createElement('div');
+      div.className = 'check-item';
+      var optHtml = '';
+      q.options.forEach(function(opt){
+        optHtml += '<button class="check-opt" data-q="' + q.id + '" data-val="' + opt + '" onclick="setAnswer(\'' + q.id + '\',\'' + opt + '\',this)">' + opt + '</button>';
+      });
+      div.innerHTML = '<div class="check-question">' + q.question + '</div><div class="check-options">' + optHtml + '</div>';
+      container.appendChild(div);
+    });
+  }
+
+  window.setAnswer = function(qid, val, btn){
+    answers[qid] = val;
+    // Update button styles
+    var siblings = btn.parentElement.querySelectorAll('.check-opt');
+    siblings.forEach(function(b){
+      b.classList.remove('yes', 'no', 'na');
+      if(b.dataset.val === val){
+        if(val === 'Yes') b.classList.add('yes');
+        else if(val === 'No') b.classList.add('no');
+        else b.classList.add('na');
+      }
+    });
+  };
+
+  window.grade = function(){
+    // Check that at least some answers exist
+    var answered = Object.keys(answers).length;
+    if(answered < 6){
+      toast('Please answer at least 6 questions');
+      return;
+    }
+
+    var totalWeight = 0;
+    var earned = 0;
+    var breakdown = [];
+    var failedItems = [];
+
+    questions.forEach(function(q){
+      var ans = answers[q.id];
+      if(!ans || ans === 'N/A'){
+        breakdown.push({ q: q, status: 'skip', passed: null });
+        return;
+      }
+      totalWeight += q.weight;
+      var passed;
+      if(q.invertNo){
+        passed = (ans === 'No'); // "No" is the good answer for inverted questions
+      } else {
+        passed = (ans === 'Yes');
+      }
+      if(passed) earned += q.weight;
+      else failedItems.push(q);
+      breakdown.push({ q: q, status: passed ? 'pass' : 'fail', passed: passed });
+    });
+
+    var score = totalWeight > 0 ? Math.round((earned / totalWeight) * 100) : 0;
+    var letter, letterClass;
+    if(score >= 90){ letter = 'A'; letterClass = 'a'; }
+    else if(score >= 75){ letter = 'B'; letterClass = 'b'; }
+    else if(score >= 60){ letter = 'C'; letterClass = 'c'; }
+    else if(score >= 40){ letter = 'D'; letterClass = 'd'; }
+    else { letter = 'F'; letterClass = 'f'; }
+
+    // Percentile estimate based on score
+    var percentile;
+    if(score >= 90) percentile = 92;
+    else if(score >= 80) percentile = 78;
+    else if(score >= 70) percentile = 62;
+    else if(score >= 60) percentile = 45;
+    else if(score >= 50) percentile = 30;
+    else if(score >= 40) percentile = 18;
+    else percentile = 8;
+
+    renderResults(score, letter, letterClass, percentile, breakdown, failedItems);
+  };
+
+  function renderResults(score, letter, letterClass, percentile, breakdown, failedItems){
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('results').style.display = '';
+
+    // Ring
+    var circumference = 2 * Math.PI * 68; // ~427.26
+    var offset = circumference - (score / 100) * circumference;
+    var ringFill = document.getElementById('ringFill');
+    var strokeColor = letterClass === 'a' ? 'var(--green)' : letterClass === 'b' ? '#22c55e' : letterClass === 'c' ? 'var(--yellow)' : letterClass === 'd' ? '#f97316' : 'var(--red)';
+    ringFill.style.stroke = strokeColor;
+    // Delay for animation
+    setTimeout(function(){
+      ringFill.style.strokeDashoffset = offset;
+    }, 50);
+
+    document.getElementById('ringScore').textContent = score;
+    document.getElementById('gradeLetter').textContent = 'Grade: ' + letter;
+    document.getElementById('gradeLetter').className = 'grade-letter ' + letterClass;
+    document.getElementById('gradePercentile').innerHTML = 'Your page is estimated to be better than <strong>' + percentile + '%</strong> of landing pages.';
+
+    // Breakdown
+    var bdList = document.getElementById('breakdownList');
+    bdList.innerHTML = '';
+    breakdown.forEach(function(item){
+      var div = document.createElement('div');
+      div.className = 'breakdown-item';
+      var statusIcon, statusClass;
+      if(item.status === 'pass'){ statusIcon = '&#10003;'; statusClass = 'pass'; }
+      else if(item.status === 'fail'){ statusIcon = '&#10007;'; statusClass = 'fail'; }
+      else { statusIcon = '&#8212;'; statusClass = 'skip'; }
+
+      var tipText = item.status === 'skip' ? 'Skipped (N/A).' : (item.passed ? item.q.passTip : item.q.failTip);
+
+      div.innerHTML =
+        '<div class="bd-status ' + statusClass + '">' + statusIcon + '</div>' +
+        '<div class="bd-content">' +
+          '<div class="bd-question">' + item.q.question + '</div>' +
+          '<div class="bd-tip">' + tipText + '</div>' +
+        '</div>';
+      bdList.appendChild(div);
+    });
+
+    // Priority list
+    var priorityCard = document.getElementById('priorityCard');
+    var priorityList = document.getElementById('priorityList');
+    if(failedItems.length > 0){
+      priorityCard.style.display = '';
+      priorityList.innerHTML = '';
+      // Sort by weight descending (highest impact first)
+      failedItems.sort(function(a, b){ return b.weight - a.weight; });
+      failedItems.slice(0, 5).forEach(function(q){
+        var li = document.createElement('li');
+        li.textContent = q.priority;
+        priorityList.appendChild(li);
+      });
+    } else {
+      priorityCard.style.display = 'none';
+    }
+
+    document.getElementById('mainArea').scrollTop = 0;
+  }
+
+  /* ── Toast ── */
+  function toast(msg){
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(function(){ el.classList.remove('show'); }, 2200);
+  }
+  window.toast = toast;
+
+  /* ── Init ── */
+  buildChecklist();
+})();
+</script>
+</body>
+</html>

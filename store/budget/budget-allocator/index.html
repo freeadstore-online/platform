@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Budget Allocator - FreeAdStore</title>
+<meta name="description" content="Allocate your monthly ad budget across Google, Meta, LinkedIn, TikTok, YouTube & X with AI-powered recommendations. Donut chart, per-platform estimates, custom splits. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:#fef2f2;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#22c55e;--blue:#3b82f6;--purple:#8b5cf6;--orange:#f97316;--cyan:#06b6d4;--pink:#ec4899;--yellow:#eab308;--teal:#14b8a6}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 16px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px;font-family:'Fraunces',serif}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-width:0;background:var(--bg);padding:0}
+
+/* PANELS */
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+.panel-title svg{width:14px;height:14px;color:var(--muted)}
+label{font-size:.7rem;color:var(--muted);display:block;margin:6px 0 3px;font-weight:500}
+select,input[type=number]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;color:var(--text)}
+select:focus,input[type=number]:focus{border-color:var(--accent)}
+
+/* PILLS */
+.pill-row{display:flex;gap:4px;flex-wrap:wrap}
+.pill{padding:5px 12px;border:1px solid var(--line);border-radius:6px;font-size:.72rem;font-weight:600;cursor:pointer;background:var(--panel);font-family:inherit;transition:all .12s;color:var(--text)}
+.pill:hover{border-color:var(--accent)}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* CHECKBOXES */
+.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.check-item{display:flex;align-items:center;gap:6px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;cursor:pointer;font-size:.72rem;font-weight:500;transition:all .12s;user-select:none}
+.check-item:hover{border-color:var(--accent)}
+.check-item.active{border-color:var(--accent);background:var(--accent-light)}
+.check-item .dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+/* INPUT GROUP */
+.input-group{position:relative}
+.input-group .prefix{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.78rem;color:var(--muted);font-weight:600;pointer-events:none}
+.input-group input{padding-left:24px}
+
+/* BUTTONS */
+.btn{padding:9px 18px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .12s;width:100%}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{filter:brightness(1.1)}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+
+/* TOGGLE */
+.mode-toggle{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:16px}
+.mode-btn{flex:1;padding:8px;font-size:.76rem;font-weight:700;text-align:center;cursor:pointer;background:var(--panel);border:none;font-family:inherit;color:var(--muted);transition:all .12s}
+.mode-btn.active{background:var(--accent);color:#fff}
+
+/* MAIN CONTENT */
+.results{padding:24px;max-width:960px;margin:0 auto;width:100%}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;color:var(--muted);text-align:center;gap:12px}
+.empty-state svg{width:64px;height:64px;color:var(--line)}
+.empty-state h2{font-size:1.1rem;font-weight:700;color:var(--text)}
+.empty-state p{font-size:.82rem;max-width:360px}
+
+/* DONUT CHART */
+.donut-wrap{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px;margin-bottom:20px;display:flex;align-items:center;gap:32px;flex-wrap:wrap;justify-content:center}
+.donut-container{position:relative;width:220px;height:220px;flex-shrink:0}
+.donut-container svg{width:100%;height:100%;transform:rotate(-90deg)}
+.donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.donut-total{font-size:1.6rem;font-weight:800;font-family:'Fraunces',serif}
+.donut-label{font-size:.68rem;color:var(--muted);font-weight:600}
+.donut-legend{display:flex;flex-direction:column;gap:8px;flex:1;min-width:180px}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:.78rem;font-weight:600}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.legend-pct{margin-left:auto;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+
+/* PLATFORM CARDS */
+.platform-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.plat-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+.plat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.plat-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.plat-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.6rem;font-weight:800;flex-shrink:0}
+.plat-name{font-size:.88rem;font-weight:700}
+.plat-budget{font-size:1.5rem;font-weight:800;font-family:'Fraunces',serif;margin-bottom:4px}
+.plat-pct{font-size:.72rem;color:var(--accent);font-weight:700;margin-bottom:10px}
+.plat-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.plat-metric{background:var(--bg);border-radius:6px;padding:6px 8px}
+.plat-metric .m-label{font-size:.62rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.plat-metric .m-value{font-size:.82rem;font-weight:700}
+.plat-reasoning{font-size:.72rem;color:var(--muted);line-height:1.5;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+
+/* CUSTOM SLIDERS */
+.custom-section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px;display:none}
+.custom-section.visible{display:block}
+.custom-section h3{font-size:.82rem;font-weight:700;margin-bottom:4px}
+.custom-section .sub{font-size:.72rem;color:var(--muted);margin-bottom:14px}
+.slider-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.slider-row .s-label{width:90px;font-size:.76rem;font-weight:600;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.slider-row .s-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.slider-row input[type=range]{flex:1;-webkit-appearance:none;height:6px;border-radius:3px;background:var(--line);outline:none}
+.slider-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.slider-row input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
+.slider-row .s-value{width:50px;font-size:.78rem;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.slider-total{display:flex;justify-content:space-between;padding-top:10px;border-top:1px solid var(--line);font-size:.78rem;font-weight:700}
+.slider-total .warn{color:var(--accent)}
+
+/* TIPS */
+.tips-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px}
+.tips-card h3{font-size:.82rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.tip{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:.78rem;line-height:1.5}
+.tip:last-child{border-bottom:none}
+.tip-icon{width:28px;height:28px;border-radius:6px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.75rem}
+
+/* PRINT */
+@media print{
+  .sidebar,.back,a.back{display:none!important}
+  .app{display:block}
+  .main{overflow:visible}
+  .results{padding:0;max-width:100%}
+  .donut-wrap,.plat-card,.tips-card,.custom-section{break-inside:avoid;box-shadow:none;border:1px solid #ddd}
+  body{background:#fff}
+  @page{margin:1.5cm}
+}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .platform-cards{grid-template-columns:1fr}
+  .donut-wrap{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&#8592; FreeAdStore</a>
+      <h1>Budget Allocator</h1>
+      <p>Split your monthly ad budget across platforms with data-driven recommendations.</p>
+    </div>
+    <div class="sidebar-scroll">
+      <!-- Total Budget -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Total Monthly Budget</div>
+        <div class="input-group">
+          <span class="prefix">$</span>
+          <input type="number" id="budgetInput" min="100" step="100" placeholder="e.g. 5000">
+        </div>
+      </div>
+
+      <!-- Platforms -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Platforms</div>
+        <div class="check-grid" id="platformGrid"></div>
+      </div>
+
+      <!-- Campaign Goal -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>Campaign Goal</div>
+        <div class="pill-row" id="goalRow"></div>
+      </div>
+
+      <!-- Industry -->
+      <div class="panel">
+        <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7v14m6-14v14m6-14v14m6-14v14M6 3l6-1 6 1"/></svg>Industry</div>
+        <select id="industrySelect"></select>
+      </div>
+
+      <button class="btn btn-primary" id="btnAllocate" style="margin-top:4px">Allocate Budget</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="results" id="results">
+      <div class="empty-state" id="emptyState">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        <h2>Set your budget</h2>
+        <p>Enter your total monthly budget, select platforms and goal, then hit Allocate to see the recommended split.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+var PLATFORMS = [
+  { id:'google', name:'Google Ads', color:'#4285f4', abbr:'G', cpc:[1.00,6.50], cpm:[15,45], ctr:.045 },
+  { id:'meta', name:'Meta/Facebook', color:'#1877f2', abbr:'M', cpc:[0.60,3.50], cpm:[8,25], ctr:.02 },
+  { id:'linkedin', name:'LinkedIn', color:'#0a66c2', abbr:'LI', cpc:[3.00,12.00], cpm:[25,80], ctr:.007 },
+  { id:'tiktok', name:'TikTok', color:'#010101', abbr:'TT', cpc:[0.50,2.50], cpm:[6,20], ctr:.02 },
+  { id:'youtube', name:'YouTube', color:'#ff0000', abbr:'YT', cpc:[0.01,0.30], cpm:[5,30], ctr:.22 },
+  { id:'x', name:'X / Twitter', color:'#1d9bf0', abbr:'X', cpc:[0.50,3.00], cpm:[6,20], ctr:.012 }
+];
+
+var GOALS = [
+  { id:'awareness', label:'Brand Awareness' },
+  { id:'traffic', label:'Traffic' },
+  { id:'conversions', label:'Conversions' }
+];
+
+var INDUSTRIES = [
+  { id:'technology', name:'Technology', mult:1.2 },
+  { id:'ecommerce', name:'E-commerce', mult:0.8 },
+  { id:'finance', name:'Finance', mult:2.5 },
+  { id:'healthcare', name:'Healthcare', mult:1.8 },
+  { id:'education', name:'Education', mult:0.9 },
+  { id:'real-estate', name:'Real Estate', mult:1.6 },
+  { id:'travel', name:'Travel & Hospitality', mult:1.1 },
+  { id:'food', name:'Food & Beverage', mult:0.7 },
+  { id:'automotive', name:'Automotive', mult:1.5 },
+  { id:'legal', name:'Legal', mult:3.0 },
+  { id:'b2b-saas', name:'B2B SaaS', mult:2.0 },
+  { id:'retail', name:'Retail', mult:0.85 },
+  { id:'other', name:'Other', mult:1.0 }
+];
+
+// Weight matrix: how good each platform is for each goal (higher = more budget)
+var GOAL_WEIGHTS = {
+  awareness: { google:0.6, meta:1.4, linkedin:0.5, tiktok:1.5, youtube:1.6, x:0.9 },
+  traffic:   { google:1.6, meta:1.3, linkedin:0.5, tiktok:1.0, youtube:0.7, x:0.8 },
+  conversions:{ google:1.8, meta:1.4, linkedin:1.2, tiktok:0.6, youtube:0.5, x:0.4 }
+};
+
+// Industry adjustments — boost/cut certain platforms per industry
+var INDUSTRY_BOOSTS = {
+  'technology':   { linkedin:1.4, google:1.2 },
+  'ecommerce':    { meta:1.3, tiktok:1.3, google:1.1 },
+  'finance':      { google:1.5, linkedin:1.5 },
+  'healthcare':   { google:1.4, youtube:1.2 },
+  'education':    { youtube:1.4, meta:1.2 },
+  'real-estate':  { meta:1.3, google:1.2 },
+  'travel':       { meta:1.3, tiktok:1.3, youtube:1.2 },
+  'food':         { tiktok:1.5, meta:1.3 },
+  'automotive':   { youtube:1.4, google:1.3 },
+  'legal':        { google:1.6, linkedin:1.2 },
+  'b2b-saas':     { linkedin:1.6, google:1.3 },
+  'retail':       { meta:1.3, tiktok:1.2, google:1.1 },
+  'other':        {}
+};
+
+var PLATFORM_TIPS = {
+  google:'Google Ads captures high-intent search traffic. Best for bottom-of-funnel conversions and exact keyword targeting.',
+  meta:'Meta excels at detailed audience targeting and visual storytelling. Lookalike audiences can lower CPA by 30-50%.',
+  linkedin:'LinkedIn has the highest CPC but delivers premium B2B audiences. Best for reaching decision-makers and professionals.',
+  tiktok:'TikTok offers the lowest CPM for reaching younger demographics. Native-style content dramatically outperforms polished ads.',
+  youtube:'YouTube pre-roll and in-stream ads build brand recall cost-effectively. Aim for view rates above 20%.',
+  x:'X/Twitter works well for real-time engagement and trending conversations. Best for tech, media, and news-driven brands.'
+};
+
+var GOAL_TIPS = {
+  awareness:'For brand awareness, prioritize platforms with low CPM and high reach: YouTube, TikTok, and Meta typically deliver the most impressions per dollar.',
+  traffic:'To maximize traffic, focus on platforms with high CTR and low CPC. Google Search and Meta usually deliver the most cost-effective clicks.',
+  conversions:'For conversion campaigns, allocate 60-70% to proven converters (Google, Meta) and 20-30% to retargeting. Reserve 10% for testing new channels.'
+};
+
+var INDUSTRY_TIPS = {
+  'technology':'Tech audiences respond well to LinkedIn and Google. Consider thought-leadership content on LinkedIn alongside search ads.',
+  'ecommerce':'E-commerce benefits from dynamic product ads on Meta and shopping campaigns on Google. TikTok Shop is emerging fast.',
+  'finance':'Financial services face strict ad policies across all platforms. Google Search captures the highest-intent prospects.',
+  'healthcare':'Healthcare ads require compliance review. Educational content on YouTube and Google perform best for patient acquisition.',
+  'education':'Education marketing peaks during enrollment seasons. YouTube and Instagram Stories drive strong course promotion.',
+  'real-estate':'Real estate ads perform best with geo-targeting. Meta carousel ads and Google local campaigns are most effective.',
+  'travel':'Travel campaigns benefit from visual storytelling. YouTube and TikTok create desire; Google captures intent.',
+  'food':'Food brands see strong results on visual platforms. TikTok Reels and Instagram Stories drive restaurant visits.',
+  'automotive':'Auto buyers research for months. YouTube for awareness, Google for purchase intent, Meta for retargeting.',
+  'legal':'Legal has the highest CPC anywhere. Tight Google keyword targeting with negative keywords is essential.',
+  'b2b-saas':'B2B SaaS benefits most from LinkedIn lead gen and Google Search. Content marketing + retargeting builds pipeline.',
+  'retail':'Retail should split between Meta for discovery and Google Shopping for purchase intent. TikTok is growing fast for impulse buys.',
+  'other':'Start balanced across 2-3 platforms, test for 2 weeks, then reallocate budget to top performers.'
+};
+
+var S = {
+  budget: 0,
+  platforms: new Set(['google','meta']),
+  goal: 'traffic',
+  industry: 'other',
+  customMode: false,
+  customSplits: {},
+  allocated: false
+};
+
+function buildControls() {
+  // Platforms
+  var platformGrid = document.getElementById('platformGrid');
+  platformGrid.innerHTML = PLATFORMS.map(function(p) {
+    var active = S.platforms.has(p.id);
+    return '<div class="check-item' + (active ? ' active' : '') + '" data-pid="' + p.id + '">' +
+      '<div class="dot" style="background:' + p.color + '"></div>' +
+      '<span>' + p.name + '</span></div>';
+  }).join('');
+  platformGrid.onclick = function(e) {
+    var el = e.target.closest('[data-pid]');
+    if (!el) return;
+    var pid = el.dataset.pid;
+    if (S.platforms.has(pid)) S.platforms.delete(pid); else S.platforms.add(pid);
+    el.classList.toggle('active', S.platforms.has(pid));
+    if (S.allocated) allocate();
+  };
+
+  // Goals
+  var goalRow = document.getElementById('goalRow');
+  goalRow.innerHTML = GOALS.map(function(g) {
+    return '<button class="pill' + (S.goal === g.id ? ' active' : '') + '" data-gid="' + g.id + '">' + g.label + '</button>';
+  }).join('');
+  goalRow.onclick = function(e) {
+    var el = e.target.closest('[data-gid]');
+    if (!el) return;
+    S.goal = el.dataset.gid;
+    goalRow.querySelectorAll('.pill').forEach(function(p) { p.classList.toggle('active', p.dataset.gid === S.goal); });
+    if (S.allocated) allocate();
+  };
+
+  // Industry
+  var industrySelect = document.getElementById('industrySelect');
+  industrySelect.innerHTML = INDUSTRIES.map(function(i) {
+    return '<option value="' + i.id + '"' + (S.industry === i.id ? ' selected' : '') + '>' + i.name + '</option>';
+  }).join('');
+  industrySelect.onchange = function(e) { S.industry = e.target.value; if (S.allocated) allocate(); };
+
+  // Budget
+  document.getElementById('budgetInput').oninput = function(e) { S.budget = parseFloat(e.target.value) || 0; if (S.allocated) allocate(); };
+
+  // Button
+  document.getElementById('btnAllocate').onclick = function() { S.allocated = true; allocate(); };
+}
+
+function computeAllocation() {
+  var selected = PLATFORMS.filter(function(p) { return S.platforms.has(p.id); });
+  if (selected.length === 0 || S.budget <= 0) return null;
+
+  var weights = {};
+  var totalWeight = 0;
+  var boosts = INDUSTRY_BOOSTS[S.industry] || {};
+
+  selected.forEach(function(p) {
+    var w = GOAL_WEIGHTS[S.goal][p.id] || 1;
+    var boost = boosts[p.id] || 1;
+    weights[p.id] = w * boost;
+    totalWeight += weights[p.id];
+  });
+
+  var industry = INDUSTRIES.find(function(i) { return i.id === S.industry; });
+  var mult = industry ? industry.mult : 1;
+
+  return selected.map(function(p) {
+    var pct = (weights[p.id] / totalWeight) * 100;
+    var budget = S.budget * (pct / 100);
+    var avgCpc = ((p.cpc[0] + p.cpc[1]) / 2) * mult;
+    var avgCpm = ((p.cpm[0] + p.cpm[1]) / 2) * mult;
+    var estClicks = Math.round(budget / avgCpc);
+    var estImpressions = Math.round((budget / avgCpm) * 1000);
+
+    var reasoning = PLATFORM_TIPS[p.id];
+
+    return {
+      id: p.id, name: p.name, color: p.color, abbr: p.abbr,
+      pct: pct, budget: budget,
+      estClicks: estClicks, estImpressions: estImpressions,
+      avgCpc: avgCpc, avgCpm: avgCpm,
+      reasoning: reasoning
+    };
+  });
+}
+
+function fmt(n) {
+  if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return '$' + (n / 1e3).toFixed(1) + 'K';
+  return '$' + n.toFixed(2);
+}
+function fmtInt(n) { return n.toLocaleString('en-US'); }
+
+function buildDonut(data) {
+  var total = data.reduce(function(s, d) { return s + d.pct; }, 0);
+  var circumference = 2 * Math.PI * 80;
+  var offset = 0;
+  var circles = '';
+
+  data.forEach(function(d) {
+    var segLen = (d.pct / total) * circumference;
+    var gap = circumference - segLen;
+    circles += '<circle cx="110" cy="110" r="80" fill="none" stroke="' + d.color + '" stroke-width="32" ' +
+      'stroke-dasharray="' + segLen + ' ' + gap + '" stroke-dashoffset="' + (-offset) + '" />';
+    offset += segLen;
+  });
+
+  var legend = data.map(function(d) {
+    return '<div class="legend-item"><div class="legend-dot" style="background:' + d.color + '"></div>' +
+      d.name + '<span class="legend-pct">' + d.pct.toFixed(1) + '%</span></div>';
+  }).join('');
+
+  return '<div class="donut-wrap">' +
+    '<div class="donut-container"><svg viewBox="0 0 220 220">' + circles + '</svg>' +
+    '<div class="donut-center"><div class="donut-total">' + fmt(S.budget) + '</div><div class="donut-label">Monthly Budget</div></div></div>' +
+    '<div class="donut-legend">' + legend + '</div></div>';
+}
+
+function buildCustomSliders(data) {
+  // Initialize custom splits
+  data.forEach(function(d) {
+    if (S.customSplits[d.id] === undefined) S.customSplits[d.id] = Math.round(d.pct);
+  });
+  // Remove stale
+  Object.keys(S.customSplits).forEach(function(k) {
+    if (!data.find(function(d) { return d.id === k; })) delete S.customSplits[k];
+  });
+
+  var total = Object.values(S.customSplits).reduce(function(s, v) { return s + v; }, 0);
+  var isOk = total === 100;
+
+  var rows = data.map(function(d) {
+    var val = S.customSplits[d.id] || 0;
+    return '<div class="slider-row">' +
+      '<div class="s-label"><div class="s-dot" style="background:' + d.color + '"></div>' + d.abbr + '</div>' +
+      '<input type="range" min="0" max="100" value="' + val + '" data-sid="' + d.id + '">' +
+      '<div class="s-value">' + val + '%</div></div>';
+  }).join('');
+
+  return '<div class="custom-section' + (S.customMode ? ' visible' : '') + '" id="customSection">' +
+    '<h3>Custom Split</h3><div class="sub">Drag sliders to set your own allocation. Total must equal 100%.</div>' +
+    rows +
+    '<div class="slider-total"><span>Total</span><span' + (!isOk ? ' class="warn"' : '') + '>' + total + '%' + (!isOk ? ' (must be 100%)' : ' OK') + '</span></div></div>';
+}
+
+function allocate() {
+  var results = document.getElementById('results');
+  var data = computeAllocation();
+
+  if (!data) {
+    results.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v2m0 4h.01M5.07 19H19a2 2 0 0 0 1.75-2.97L13.73 4.99a2 2 0 0 0-3.46 0L3.34 16.03A2 2 0 0 0 5.07 19z"/></svg>' +
+      '<h2>Missing inputs</h2><p>Enter a budget and select at least one platform.</p></div>';
+    return;
+  }
+
+  // If custom mode and splits are valid, override
+  if (S.customMode) {
+    var total = Object.values(S.customSplits).reduce(function(s, v) { return s + v; }, 0);
+    if (total === 100) {
+      data.forEach(function(d) {
+        d.pct = S.customSplits[d.id] || 0;
+        d.budget = S.budget * (d.pct / 100);
+        var industry = INDUSTRIES.find(function(i) { return i.id === S.industry; });
+        var mult = industry ? industry.mult : 1;
+        var p = PLATFORMS.find(function(pl) { return pl.id === d.id; });
+        d.estClicks = Math.round(d.budget / (((p.cpc[0]+p.cpc[1])/2)*mult));
+        d.estImpressions = Math.round((d.budget / (((p.cpm[0]+p.cpm[1])/2)*mult)) * 1000);
+      });
+    }
+  }
+
+  // Mode toggle
+  var modeHtml = '<div class="mode-toggle">' +
+    '<button class="mode-btn' + (!S.customMode ? ' active' : '') + '" data-mode="recommended">Recommended Split</button>' +
+    '<button class="mode-btn' + (S.customMode ? ' active' : '') + '" data-mode="custom">Custom Split</button></div>';
+
+  // Donut
+  var donutHtml = buildDonut(data);
+
+  // Custom sliders
+  var customHtml = buildCustomSliders(data);
+
+  // Platform cards
+  var cardsHtml = '<div class="platform-cards">';
+  data.forEach(function(d) {
+    cardsHtml += '<div class="plat-card"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:' + d.color + '"></div>' +
+      '<div class="plat-header"><div class="plat-icon" style="background:' + d.color + '">' + d.abbr + '</div><div class="plat-name">' + d.name + '</div></div>' +
+      '<div class="plat-budget">' + fmt(d.budget) + '</div>' +
+      '<div class="plat-pct">' + d.pct.toFixed(1) + '% of budget</div>' +
+      '<div class="plat-metrics">' +
+        '<div class="plat-metric"><div class="m-label">Est. Clicks</div><div class="m-value">' + fmtInt(d.estClicks) + '</div></div>' +
+        '<div class="plat-metric"><div class="m-label">Est. Impressions</div><div class="m-value">' + fmtInt(d.estImpressions) + '</div></div>' +
+        '<div class="plat-metric"><div class="m-label">Avg CPC</div><div class="m-value">' + fmt(d.avgCpc) + '</div></div>' +
+        '<div class="plat-metric"><div class="m-label">Avg CPM</div><div class="m-value">' + fmt(d.avgCpm) + '</div></div>' +
+      '</div>' +
+      '<div class="plat-reasoning">' + d.reasoning + '</div></div>';
+  });
+  cardsHtml += '</div>';
+
+  // Tips
+  var tips = [];
+  tips.push(GOAL_TIPS[S.goal]);
+  tips.push(INDUSTRY_TIPS[S.industry]);
+  if (S.budget < 500 && data.length > 3) {
+    tips.push('Your budget is spread thin across ' + data.length + ' platforms. Consider focusing on 2-3 top performers to avoid underdelivery.');
+  }
+  if (S.budget >= 5000 && data.length < 3) {
+    tips.push('With a larger budget, consider testing 1-2 additional platforms to diversify your reach and find new pockets of efficiency.');
+  }
+  if (data.length === 1) {
+    tips.push('Running on a single platform increases risk. Consider allocating even 10-20% to a second channel for benchmarking.');
+  }
+
+  var tipsHtml = '<div class="tips-card"><h3><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Allocation Tips</h3>' +
+    tips.map(function(t) { return '<div class="tip"><div class="tip-icon">!</div><div>' + t + '</div></div>'; }).join('') +
+    '</div>';
+
+  results.innerHTML = modeHtml + donutHtml + customHtml + cardsHtml + tipsHtml;
+
+  // Mode toggle handlers
+  results.querySelectorAll('.mode-btn').forEach(function(btn) {
+    btn.onclick = function() {
+      S.customMode = btn.dataset.mode === 'custom';
+      allocate();
+    };
+  });
+
+  // Custom slider handlers
+  results.querySelectorAll('[data-sid]').forEach(function(slider) {
+    slider.oninput = function() {
+      S.customSplits[slider.dataset.sid] = parseInt(slider.value);
+      allocate();
+    };
+  });
+}
+
+buildControls();
+})();
+</script>
+</body>
+</html>

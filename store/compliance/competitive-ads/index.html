@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Competitive Ad Library Browser — FreeAdStore</title>
+<meta name="description" content="Research competitor ads across Meta Ad Library and Google Ads Transparency Center. Framework, templates, and direct links. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#ef4444;--accent-hover:#dc2626;--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--panel:#ffffff;--line:#e5e7eb;--green:#16a34a;--yellow:#f59e0b;--blue:#3b82f6;--sidebar-w:360px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+.layout{display:flex;min-height:100vh}
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--panel);border-right:1px solid var(--line);padding:1.25rem;overflow-y:auto;display:flex;flex-direction:column;gap:.1rem}
+.main{flex:1;padding:1.5rem 2rem;overflow-y:auto;max-height:100vh}
+
+.back{display:inline-flex;align-items:center;gap:.35rem;font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:.75rem}
+.back:hover{color:var(--accent);text-decoration:none}
+
+.sidebar h1{font-family:'Fraunces',serif;font-size:1.25rem;font-weight:700;margin-bottom:.15rem}
+.sidebar .subtitle{font-size:.72rem;color:var(--muted);line-height:1.45;margin-bottom:.85rem}
+
+.field{margin-bottom:.7rem}
+.field label{display:block;font-size:.72rem;font-weight:600;color:var(--muted);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.3px}
+.field input[type="text"],.field select{width:100%;padding:.5rem .65rem;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:.82rem;background:#fff;color:var(--text);transition:border-color .15s}
+.field input:focus,.field select:focus{outline:none;border-color:var(--accent)}
+.field select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .6rem center;padding-right:1.8rem}
+.field .hint{font-size:.65rem;color:var(--muted);margin-top:.2rem}
+
+.pills{display:flex;flex-wrap:wrap;gap:.3rem}
+.pill{padding:.3rem .6rem;border:1px solid var(--line);border-radius:99px;font-size:.7rem;font-weight:600;cursor:pointer;background:var(--panel);color:var(--muted);transition:all .15s;font-family:inherit}
+.pill:hover{border-color:var(--accent);color:var(--text)}
+.pill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.btn-search{width:100%;padding:.65rem;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;transition:background .15s;margin-top:.5rem}
+.btn-search:hover{background:var(--accent-hover)}
+
+.main h2{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;margin-bottom:1rem}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:1.1rem;margin-bottom:.85rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card h3{font-size:.88rem;font-weight:700;margin-bottom:.65rem;display:flex;align-items:center;gap:.4rem}
+.card h3 .card-icon{color:var(--accent)}
+
+.link-card{display:flex;align-items:center;gap:1rem;padding:1rem;background:var(--bg);border:1px solid var(--line);border-radius:10px;margin-bottom:.65rem;transition:all .15s;text-decoration:none;color:var(--text)}
+.link-card:hover{border-color:var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.06);text-decoration:none}
+.link-card .link-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:#fff;flex-shrink:0;font-weight:700}
+.link-card .link-info{flex:1;min-width:0}
+.link-card .link-title{font-size:.85rem;font-weight:700;margin-bottom:.15rem}
+.link-card .link-desc{font-size:.72rem;color:var(--muted);line-height:1.4}
+.link-card .link-arrow{color:var(--muted);font-size:1rem;flex-shrink:0}
+
+.step{display:flex;align-items:flex-start;gap:.75rem;padding:.65rem 0;border-bottom:1px solid #f3f4f6}
+.step:last-child{border-bottom:none}
+.step-num{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0;margin-top:1px}
+.step-content{flex:1;font-size:.78rem;line-height:1.5}
+.step-content strong{color:var(--text)}
+
+.framework-grid{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-bottom:.5rem}
+.fw-card{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:.85rem}
+.fw-card .fw-title{font-size:.78rem;font-weight:700;margin-bottom:.3rem;display:flex;align-items:center;gap:.35rem}
+.fw-card .fw-desc{font-size:.72rem;color:var(--muted);line-height:1.4}
+.fw-card ul{list-style:none;padding:0;margin-top:.35rem}
+.fw-card ul li{font-size:.7rem;color:var(--muted);padding:.15rem 0;padding-left:.75rem;position:relative}
+.fw-card ul li::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--accent);position:absolute;left:0;top:.5em}
+
+.btn-download{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1rem;background:var(--text);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:.78rem;font-weight:700;cursor:pointer;transition:opacity .15s}
+.btn-download:hover{opacity:.85}
+
+.tip-box{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:.75rem 1rem;margin-bottom:.65rem;font-size:.75rem;line-height:1.5;color:#92400e}
+.tip-box strong{color:#78350f}
+
+@media(max-width:900px){
+  .layout{flex-direction:column}
+  .sidebar{width:100%;min-width:unset;border-right:none;border-bottom:1px solid var(--line);max-height:unset}
+  .main{max-height:unset;padding:1.25rem}
+  .framework-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <aside class="sidebar">
+    <a href="/" class="back">&larr; FreeAdStore</a>
+    <h1>Competitive Ad Library</h1>
+    <p class="subtitle">Research competitor ads across Meta Ad Library and Google Ads Transparency Center. Get direct links, frameworks, and tracking templates.</p>
+
+    <div class="field">
+      <label>Brand or Keyword</label>
+      <input type="text" id="searchQuery" placeholder="e.g., Nike, meal kit delivery, CRM software">
+    </div>
+
+    <div class="field">
+      <label>Platform</label>
+      <div class="pills" id="platformPills">
+        <button class="pill active" data-val="meta">Meta</button>
+        <button class="pill" data-val="google">Google</button>
+        <button class="pill" data-val="both">Both</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Country</label>
+      <select id="country">
+        <option value="US">United States</option>
+        <option value="GB">United Kingdom</option>
+        <option value="CA">Canada</option>
+        <option value="AU">Australia</option>
+        <option value="DE">Germany</option>
+        <option value="FR">France</option>
+        <option value="JP">Japan</option>
+        <option value="BR">Brazil</option>
+        <option value="IN">India</option>
+        <option value="ALL">All Countries</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Date Range</label>
+      <div class="pills" id="datePills">
+        <button class="pill active" data-val="active">Active Now</button>
+        <button class="pill" data-val="30">Last 30 Days</button>
+        <button class="pill" data-val="90">Last 90 Days</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Ad Type</label>
+      <div class="pills" id="typePills">
+        <button class="pill active" data-val="all">All</button>
+        <button class="pill" data-val="image">Image</button>
+        <button class="pill" data-val="video">Video</button>
+        <button class="pill" data-val="carousel">Carousel</button>
+      </div>
+    </div>
+
+    <button class="btn-search" id="searchBtn">Research Competitor Ads</button>
+  </aside>
+
+  <main class="main" id="mainArea">
+    <div id="results"></div>
+  </main>
+</div>
+
+<script>
+(function(){
+  let selectedPlatform = 'meta';
+  let selectedDate = 'active';
+  let selectedType = 'all';
+
+  function setupPills(containerId, callback){
+    document.getElementById(containerId).addEventListener('click', function(e){
+      const pill = e.target.closest('.pill');
+      if(!pill) return;
+      this.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      callback(pill.dataset.val);
+    });
+  }
+
+  setupPills('platformPills', v => selectedPlatform = v);
+  setupPills('datePills', v => selectedDate = v);
+  setupPills('typePills', v => selectedType = v);
+
+  document.getElementById('searchBtn').addEventListener('click', () => {
+    const query = document.getElementById('searchQuery').value.trim();
+    const country = document.getElementById('country').value;
+    renderResults(query, selectedPlatform, country, selectedDate, selectedType);
+    document.getElementById('mainArea').scrollTop = 0;
+  });
+
+  /* Render on initial load too */
+  renderResults('', 'meta', 'US', 'active', 'all');
+
+  function buildMetaUrl(query, country){
+    const base = 'https://www.facebook.com/ads/library/';
+    const params = new URLSearchParams({
+      active_status: 'active',
+      ad_type: 'all',
+      country: country === 'ALL' ? 'US' : country,
+      q: query || '',
+      media_type: 'all'
+    });
+    return base + '?' + params.toString();
+  }
+
+  function buildGoogleUrl(query){
+    const base = 'https://adstransparency.google.com/';
+    if(query){
+      return base + '?search=' + encodeURIComponent(query);
+    }
+    return base;
+  }
+
+  function renderResults(query, platform, country, dateRange, adType){
+    const metaUrl = buildMetaUrl(query, country);
+    const googleUrl = buildGoogleUrl(query);
+    const queryLabel = query || '[enter a brand or keyword]';
+
+    let html = '<h2>Competitive Ad Research</h2>';
+
+    /* Direct links */
+    html += `
+    <div class="card">
+      <h3><span class="card-icon">&#9632;</span> Open Ad Libraries</h3>
+      <p style="font-size:.75rem;color:var(--muted);margin-bottom:.75rem">Click to open the official transparency libraries with your search pre-filled${query ? ' for <strong>"'+esc(query)+'"</strong>' : ''}.</p>`;
+
+    if(platform === 'meta' || platform === 'both'){
+      html += `
+      <a href="${metaUrl}" target="_blank" rel="noopener" class="link-card">
+        <div class="link-icon" style="background:#1877f2">f</div>
+        <div class="link-info">
+          <div class="link-title">Meta Ad Library</div>
+          <div class="link-desc">Search Facebook, Instagram, Messenger, and Audience Network ads. See all active ads from any Page.</div>
+        </div>
+        <span class="link-arrow">&rarr;</span>
+      </a>`;
+    }
+
+    if(platform === 'google' || platform === 'both'){
+      html += `
+      <a href="${googleUrl}" target="_blank" rel="noopener" class="link-card">
+        <div class="link-icon" style="background:#4285f4">G</div>
+        <div class="link-info">
+          <div class="link-title">Google Ads Transparency Center</div>
+          <div class="link-desc">Search Google Search, Display, and YouTube ads. See verified advertiser identities and ad history.</div>
+        </div>
+        <span class="link-arrow">&rarr;</span>
+      </a>`;
+    }
+
+    html += `
+      <a href="https://library.tiktok.com/ads" target="_blank" rel="noopener" class="link-card">
+        <div class="link-icon" style="background:#000000">T</div>
+        <div class="link-info">
+          <div class="link-title">TikTok Ad Library</div>
+          <div class="link-desc">Browse active TikTok ads by region. Limited search compared to Meta, but useful for video ad research.</div>
+        </div>
+        <span class="link-arrow">&rarr;</span>
+      </a>
+      <a href="https://ads.linkedin.com/transparency" target="_blank" rel="noopener" class="link-card">
+        <div class="link-icon" style="background:#0a66c2">in</div>
+        <div class="link-info">
+          <div class="link-title">LinkedIn Ad Library</div>
+          <div class="link-desc">Search sponsored content by company name. Great for B2B competitive intelligence.</div>
+        </div>
+        <span class="link-arrow">&rarr;</span>
+      </a>
+    </div>`;
+
+    /* How to research */
+    html += `
+    <div class="card">
+      <h3><span class="card-icon">&#9670;</span> How to Research Competitor Ads</h3>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content"><strong>Identify 3-5 direct competitors.</strong> Search for their brand name in the ad libraries above. Look for their official Facebook Page or Google advertiser profile.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content"><strong>Document active ads.</strong> Screenshot or save each ad. Note the headline, primary text, CTA, visual style, and landing page URL.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content"><strong>Identify patterns.</strong> What messaging themes repeat? Which CTAs do they use? What visual style (lifestyle vs. product shot vs. UGC)?</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content"><strong>Analyze longevity.</strong> Ads running for 30+ days are likely performing well. Short-lived ads were probably killed early for poor performance.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content"><strong>Find gaps.</strong> What messaging angles are competitors NOT using? What audiences are they ignoring? These are your opportunities.</div>
+      </div>
+    </div>`;
+
+    /* Competitive analysis framework */
+    html += `
+    <div class="card">
+      <h3><span class="card-icon">&#9881;</span> Competitive Analysis Framework</h3>
+      <p style="font-size:.75rem;color:var(--muted);margin-bottom:.75rem">Use this framework to systematically evaluate competitor ad strategies.</p>
+      <div class="framework-grid">
+        <div class="fw-card">
+          <div class="fw-title">&#9679; Messaging Themes</div>
+          <div class="fw-desc">What core messages do they repeat?</div>
+          <ul>
+            <li>Pain points they address</li>
+            <li>Benefits they highlight</li>
+            <li>Emotional vs. rational appeals</li>
+            <li>Brand voice and tone</li>
+          </ul>
+        </div>
+        <div class="fw-card">
+          <div class="fw-title">&#9679; Visual Patterns</div>
+          <div class="fw-desc">How do they present their product?</div>
+          <ul>
+            <li>Product shots vs. lifestyle</li>
+            <li>User-generated content (UGC)</li>
+            <li>Color palette and typography</li>
+            <li>Video vs. static vs. carousel</li>
+          </ul>
+        </div>
+        <div class="fw-card">
+          <div class="fw-title">&#9679; CTAs Used</div>
+          <div class="fw-desc">What actions do they drive?</div>
+          <ul>
+            <li>Shop Now vs. Learn More</li>
+            <li>Free trial offers</li>
+            <li>Discount / promo codes</li>
+            <li>Lead magnets (guides, webinars)</li>
+          </ul>
+        </div>
+        <div class="fw-card">
+          <div class="fw-title">&#9679; Targeting Hints</div>
+          <div class="fw-desc">Who are they trying to reach?</div>
+          <ul>
+            <li>Language and demographics clues</li>
+            <li>Geographic targeting</li>
+            <li>Seasonal or event-based timing</li>
+            <li>Platform selection (why Meta vs. Google?)</li>
+          </ul>
+        </div>
+      </div>
+    </div>`;
+
+    /* Tips */
+    html += `
+    <div class="card">
+      <h3><span class="card-icon">&#9733;</span> Pro Tips for Competitive Research</h3>
+      <div class="tip-box"><strong>Tip 1:</strong> On Meta Ad Library, click "See ad details" to see all versions of a creative (different headlines, images, audiences). This reveals their A/B testing strategy.</div>
+      <div class="tip-box"><strong>Tip 2:</strong> Ads with many active variants running simultaneously suggest the brand has a large budget and is actively testing. Ads with only 1-2 variants suggest a smaller operation.</div>
+      <div class="tip-box"><strong>Tip 3:</strong> Check the "Started running" date on Meta ads. If an ad has been running for 60+ days with no changes, it is almost certainly a top performer -- study it closely.</div>
+      <div class="tip-box"><strong>Tip 4:</strong> On Google Ads Transparency Center, look at the "Ad format" filter. If a competitor runs only Search ads (no Display), they may be focused on bottom-funnel capture. If they run Display, they are investing in awareness.</div>
+      <div class="tip-box"><strong>Tip 5:</strong> Save competitor landing page URLs and visit them regularly. Changes to landing pages often precede new ad campaigns.</div>
+    </div>`;
+
+    /* Downloadable CSV template */
+    html += `
+    <div class="card" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+      <div>
+        <h3 style="margin-bottom:.15rem"><span class="card-icon">&#9998;</span> Competitor Tracking Template</h3>
+        <p style="font-size:.72rem;color:var(--muted)">Download a CSV template to track competitor ads systematically</p>
+      </div>
+      <button class="btn-download" id="downloadCsv">&#128203; Download CSV Template</button>
+    </div>`;
+
+    document.getElementById('results').innerHTML = html;
+
+    /* CSV download handler */
+    document.getElementById('downloadCsv').addEventListener('click', () => {
+      const csvContent = [
+        ['Brand','Platform','Ad Type','Headline','Primary Text','CTA','Landing URL','First Seen','Last Seen','Still Active','Visual Style','Messaging Theme','Offer/Promo','Estimated Budget','Notes'],
+        ['Example Co','Meta','Image','Save 20% Today','Our biggest sale of the year...','Shop Now','https://example.com/sale','2025-01-15','','Yes','Lifestyle','Discount/Urgency','20% off code','Medium','Long-running top performer'],
+        ['Competitor B','Google','Search','Best CRM Software 2025','','Learn More','https://competitor.com/crm','2025-02-01','','Yes','N/A (text)','Product comparison','Free trial','High','Bidding on own brand + competitors'],
+        ['','','','','','','','','','','','','','','']
+      ].map(row => row.map(cell => '"'+cell.replace(/"/g,'""')+'"').join(',')).join('\n');
+
+      const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'competitor-ad-tracker.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  function esc(s){
+    const d = document.createElement('div');
+    d.textContent = s || '';
+    return d.innerHTML;
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ROAS Calculator — FreeAdStore</title>
+<meta name="description" content="Calculate Return on Ad Spend with break-even analysis, per-platform breakdown, scenario modeling, and industry benchmarks. Free, instant, no signup.">
+<meta property="og:title" content="ROAS Calculator — FreeAdStore">
+<link rel="canonical" href="https://freeadstore.pages.dev/budget/roas-calculator/">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#ef4444;--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--panel:#ffffff;--line:#e5e7eb;--green:#10b981;--yellow:#f59e0b;--red:#ef4444;--sidebar:360px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+/* Header */
+header{border-bottom:1px solid var(--line);padding:.6rem 1.5rem;display:flex;align-items:center;gap:1rem;background:var(--panel);flex-shrink:0}
+.brand{display:flex;align-items:center;gap:.5rem;text-decoration:none;color:var(--text)}
+.brand-emoji{font-size:1.4rem}.brand-name{font-family:'Fraunces',serif;font-size:1.05rem;font-weight:700}
+.back{font-size:.82rem;font-weight:600;color:var(--muted);margin-left:auto}
+.back:hover{color:var(--text);text-decoration:none}
+
+/* Layout */
+.layout{display:flex;flex:1;overflow:hidden}
+.sidebar{width:var(--sidebar);min-width:var(--sidebar);border-right:1px solid var(--line);background:var(--panel);overflow-y:auto;padding:1.25rem;display:flex;flex-direction:column;gap:1.1rem}
+.main{flex:1;overflow-y:auto;padding:1.5rem 2rem 3rem}
+
+/* Sidebar form elements */
+.section-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:.35rem}
+.field{display:flex;flex-direction:column;gap:.25rem}
+.field label{font-size:.78rem;font-weight:600;color:var(--text)}
+.field-hint{font-size:.66rem;color:var(--muted)}
+.input-wrap{position:relative;display:flex;align-items:center}
+.input-wrap .prefix{position:absolute;left:.65rem;font-size:.82rem;color:var(--muted);font-weight:600;pointer-events:none}
+.input-wrap input{width:100%;padding:.5rem .65rem .5rem 1.6rem;border:1px solid var(--line);border-radius:8px;font-size:.85rem;font-family:inherit;font-weight:600;background:var(--bg);transition:border-color .15s}
+.input-wrap input:focus{outline:none;border-color:var(--accent)}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+
+/* Period pills */
+.pills{display:flex;gap:.3rem}
+.pill{flex:1;padding:.35rem .1rem;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:.72rem;font-weight:600;cursor:pointer;text-align:center;font-family:inherit;color:var(--muted);transition:all .15s}
+.pill:hover{border-color:var(--accent);color:var(--text)}
+.pill.active{background:var(--accent);border-color:var(--accent);color:white}
+
+/* Toggle */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.toggle-label{font-size:.78rem;font-weight:600}
+.toggle{position:relative;width:40px;height:22px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-track{position:absolute;inset:0;background:var(--line);border-radius:99px;cursor:pointer;transition:background .2s}
+.toggle-track::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:white;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.toggle input:checked+.toggle-track{background:var(--accent)}
+.toggle input:checked+.toggle-track::after{transform:translateX(18px)}
+
+/* Platform breakdown */
+.platform-section{display:none;flex-direction:column;gap:.7rem}
+.platform-section.visible{display:flex}
+.platform-row{display:flex;flex-direction:column;gap:.25rem}
+.platform-name{font-size:.76rem;font-weight:700;display:flex;align-items:center;gap:.35rem}
+.platform-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.platform-inputs{display:grid;grid-template-columns:1fr 1fr;gap:.35rem}
+.platform-inputs .input-wrap input{padding-left:1.4rem;font-size:.78rem;padding-top:.4rem;padding-bottom:.4rem}
+.platform-inputs .input-wrap .prefix{font-size:.76rem;left:.5rem}
+
+/* Divider */
+.sidebar-divider{height:1px;background:var(--line);margin:.15rem 0}
+
+/* Main content */
+.main h1{font-family:'Fraunces',serif;font-size:1.5rem;font-weight:700;margin-bottom:.25rem}
+.main .subtitle{font-size:.82rem;color:var(--muted);margin-bottom:1.5rem}
+
+/* Big ROAS */
+.roas-hero{text-align:center;padding:1.8rem 1rem;border-radius:14px;border:1px solid var(--line);background:var(--panel);margin-bottom:1.25rem;position:relative}
+.roas-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:.25rem}
+.roas-value{font-family:'Fraunces',serif;font-size:3.6rem;font-weight:700;line-height:1;transition:color .3s}
+.roas-value.green{color:var(--green)}.roas-value.yellow{color:var(--yellow)}.roas-value.red{color:var(--red)}
+.roas-period{font-size:.75rem;color:var(--muted);margin-top:.35rem;font-weight:500}
+.roas-badge{display:inline-block;padding:.15rem .55rem;border-radius:99px;font-size:.68rem;font-weight:700;margin-top:.5rem}
+.roas-badge.green{background:#d1fae5;color:#065f46}.roas-badge.yellow{background:#fef3c7;color:#92400e}.roas-badge.red{background:#fee2e2;color:#991b1b}
+
+/* Metric cards */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;margin-bottom:1.25rem}
+.metric-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:.85rem}
+.metric-label{font-size:.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:.2rem}
+.metric-value{font-size:1.3rem;font-weight:800;font-family:'Fraunces',serif}
+.metric-sub{font-size:.66rem;color:var(--muted);margin-top:.15rem}
+.metric-value.positive{color:var(--green)}.metric-value.negative{color:var(--red)}
+
+/* Break-even */
+.breakeven{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:1rem;margin-bottom:1.25rem}
+.breakeven h3{font-size:.82rem;font-weight:700;margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem}
+.breakeven-text{font-size:.8rem;color:var(--muted);line-height:1.5;margin-bottom:.7rem}
+.breakeven-text strong{color:var(--text)}
+.bar-container{background:var(--bg);border-radius:8px;height:28px;position:relative;overflow:hidden;border:1px solid var(--line)}
+.bar-fill{height:100%;border-radius:7px;transition:width .4s ease,background .3s;display:flex;align-items:center;padding:0 .6rem;font-size:.68rem;font-weight:700;color:white;white-space:nowrap;min-width:fit-content}
+.bar-fill.green{background:var(--green)}.bar-fill.yellow{background:var(--yellow)}.bar-fill.red{background:var(--red)}
+.bar-marker{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--text);border-radius:1px}
+.bar-marker-label{position:absolute;top:-18px;font-size:.62rem;font-weight:700;white-space:nowrap;transform:translateX(-50%);color:var(--text)}
+
+/* Platform comparison */
+.platform-compare{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:1rem;margin-bottom:1.25rem;display:none}
+.platform-compare.visible{display:block}
+.platform-compare h3{font-size:.82rem;font-weight:700;margin-bottom:.7rem}
+.platform-bar-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.55rem}
+.platform-bar-label{width:90px;font-size:.74rem;font-weight:600;display:flex;align-items:center;gap:.3rem;flex-shrink:0}
+.platform-bar-track{flex:1;background:var(--bg);border-radius:6px;height:22px;position:relative;border:1px solid var(--line);overflow:hidden}
+.platform-bar-fill{height:100%;border-radius:5px;transition:width .4s ease;display:flex;align-items:center;padding-left:.5rem;font-size:.66rem;font-weight:700;color:white;min-width:fit-content;white-space:nowrap}
+.platform-bar-roas{font-size:.78rem;font-weight:700;width:52px;text-align:right;flex-shrink:0}
+
+/* Scenarios */
+.scenarios{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:1rem;margin-bottom:1.25rem}
+.scenarios h3{font-size:.82rem;font-weight:700;margin-bottom:.7rem}
+.scenario-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem}
+.scenario-card{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:.75rem}
+.scenario-label{font-size:.7rem;font-weight:600;color:var(--muted);margin-bottom:.25rem}
+.scenario-roas{font-size:1.1rem;font-weight:800;font-family:'Fraunces',serif}
+.scenario-delta{font-size:.68rem;font-weight:600;margin-top:.1rem}
+.scenario-delta.up{color:var(--green)}.scenario-delta.down{color:var(--red)}
+.slider-section{margin-top:.3rem}
+.slider-label{font-size:.76rem;font-weight:600;margin-bottom:.3rem;display:flex;justify-content:space-between}
+.slider-label span{color:var(--muted);font-weight:500}
+input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;background:var(--line);outline:none;margin:.4rem 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;border:none}
+.slider-result{display:flex;justify-content:space-between;align-items:baseline;margin-top:.3rem}
+.slider-spend{font-size:.78rem;color:var(--muted)}
+.slider-roas{font-size:1.2rem;font-weight:800;font-family:'Fraunces',serif}
+
+/* Benchmarks */
+.benchmarks{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:1rem;margin-bottom:1.25rem}
+.benchmarks h3{font-size:.82rem;font-weight:700;margin-bottom:.5rem}
+.benchmarks p{font-size:.72rem;color:var(--muted);margin-bottom:.6rem}
+.bench-table{width:100%;border-collapse:collapse}
+.bench-table th,.bench-table td{text-align:left;padding:.4rem .6rem;font-size:.74rem;border-bottom:1px solid var(--line)}
+.bench-table th{font-weight:700;color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.3px}
+.bench-table td:nth-child(2){font-weight:700;font-family:'Fraunces',serif}
+.bench-table tr:last-child td{border-bottom:none}
+.bench-table .your-row{background:#fef2f2}
+.bench-bar{display:inline-block;height:6px;border-radius:3px;vertical-align:middle;margin-left:.4rem}
+
+/* Export button */
+.export-btn{display:inline-flex;align-items:center;gap:.35rem;padding:.45rem 1rem;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:.76rem;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text);transition:all .15s;float:right;margin-bottom:1rem}
+.export-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Empty state */
+.empty-state{text-align:center;padding:2rem;color:var(--muted);font-size:.82rem}
+
+/* Footer */
+footer{border-top:1px solid var(--line);padding:.8rem 1.5rem;text-align:center;font-size:.7rem;color:var(--muted);background:var(--panel);flex-shrink:0}
+footer a{color:var(--accent)}
+
+/* Responsive */
+@media(max-width:900px){
+  .layout{flex-direction:column}
+  .sidebar{width:100%;min-width:100%;border-right:none;border-bottom:1px solid var(--line)}
+  .main{padding:1.25rem 1rem 2rem}
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .scenario-grid{grid-template-columns:1fr}
+  :root{--sidebar:100%}
+}
+@media(max-width:500px){
+  .metrics{grid-template-columns:1fr 1fr}
+  .metric-value{font-size:1.1rem}
+  .roas-value{font-size:2.8rem}
+}
+
+/* Print */
+@media print{
+  header,.sidebar,.export-btn,.back{display:none!important}
+  .layout{display:block}
+  .main{padding:.5rem;overflow:visible}
+  .main h1{font-size:1.3rem;margin-bottom:.15rem}
+  .main .subtitle{margin-bottom:.8rem}
+  body{background:white}
+  .roas-hero,.metric-card,.breakeven,.platform-compare,.scenarios,.benchmarks{break-inside:avoid;box-shadow:none;border:1px solid #ddd}
+  .scenarios .slider-section{display:none}
+  @page{margin:1.5cm}
+}
+</style>
+</head>
+<body>
+<header>
+<a href="/" class="brand"><span class="brand-emoji">📢</span><span class="brand-name">FreeAdStore</span></a>
+<a href="/" class="back">&larr; FreeAdStore</a>
+</header>
+<div class="layout">
+<aside class="sidebar">
+  <div>
+    <div class="section-title">Inputs</div>
+    <div class="field">
+      <label for="spend">Ad Spend</label>
+      <div class="input-wrap"><span class="prefix">$</span><input type="number" id="spend" placeholder="5,000" min="0" step="any"></div>
+    </div>
+    <div class="field">
+      <label for="revenue">Revenue</label>
+      <div class="input-wrap"><span class="prefix">$</span><input type="number" id="revenue" placeholder="15,000" min="0" step="any"></div>
+    </div>
+    <div class="field">
+      <label for="cogs">Product Cost / COGS <span class="field-hint">(optional)</span></label>
+      <div class="input-wrap"><span class="prefix">$</span><input type="number" id="cogs" placeholder="0" min="0" step="any"></div>
+    </div>
+  </div>
+
+  <div class="sidebar-divider"></div>
+
+  <div>
+    <div class="section-title">Time Period</div>
+    <div class="pills">
+      <button class="pill active" data-period="Daily">Daily</button>
+      <button class="pill" data-period="Weekly">Weekly</button>
+      <button class="pill" data-period="Monthly">Monthly</button>
+      <button class="pill" data-period="Custom">Custom</button>
+    </div>
+  </div>
+
+  <div class="sidebar-divider"></div>
+
+  <div>
+    <div class="toggle-row">
+      <span class="toggle-label">Platform Breakdown</span>
+      <label class="toggle"><input type="checkbox" id="breakdownToggle"><span class="toggle-track"></span></label>
+    </div>
+  </div>
+
+  <div class="platform-section" id="platformSection">
+    <div class="platform-row">
+      <div class="platform-name"><span class="platform-dot" style="background:#4285f4"></span>Google Ads</div>
+      <div class="platform-inputs">
+        <div class="input-wrap"><span class="prefix">$</span><input type="number" class="plat-spend" data-plat="google" placeholder="Spend" min="0" step="any"></div>
+        <div class="input-wrap"><span class="prefix">$</span><input type="number" class="plat-rev" data-plat="google" placeholder="Revenue" min="0" step="any"></div>
+      </div>
+    </div>
+    <div class="platform-row">
+      <div class="platform-name"><span class="platform-dot" style="background:#1877f2"></span>Meta Ads</div>
+      <div class="platform-inputs">
+        <div class="input-wrap"><span class="prefix">$</span><input type="number" class="plat-spend" data-plat="meta" placeholder="Spend" min="0" step="any"></div>
+        <div class="input-wrap"><span class="prefix">$</span><input type="number" class="plat-rev" data-plat="meta" placeholder="Revenue" min="0" step="any"></div>
+      </div>
+    </div>
+    <div class="platform-row">
+      <div class="platform-name"><span class="platform-dot" style="background:#0a66c2"></span>LinkedIn Ads</div>
+      <div class="platform-inputs">
+        <div class="input-wrap"><span class="prefix">$</span><input type="number" class="plat-spend" data-plat="linkedin" placeholder="Spend" min="0" step="any"></div>
+        <div class="input-wrap"><span class="prefix">$</span><input type="number" class="plat-rev" data-plat="linkedin" placeholder="Revenue" min="0" step="any"></div>
+      </div>
+    </div>
+    <div class="platform-row">
+      <div class="platform-name"><span class="platform-dot" style="background:#6b7280"></span>Other</div>
+      <div class="platform-inputs">
+        <div class="input-wrap"><span class="prefix">$</span><input type="number" class="plat-spend" data-plat="other" placeholder="Spend" min="0" step="any"></div>
+        <div class="input-wrap"><span class="prefix">$</span><input type="number" class="plat-rev" data-plat="other" placeholder="Revenue" min="0" step="any"></div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+    <div>
+      <h1>ROAS Calculator</h1>
+      <p class="subtitle">Return on Ad Spend &mdash; real-time analysis with break-even, scenarios &amp; benchmarks</p>
+    </div>
+    <button class="export-btn" onclick="window.print()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Export as PDF
+    </button>
+  </div>
+
+  <!-- Big ROAS -->
+  <div class="roas-hero" id="roasHero">
+    <div class="roas-label">Return on Ad Spend</div>
+    <div class="roas-value" id="roasValue">&mdash;</div>
+    <div class="roas-period" id="roasPeriod">Daily</div>
+    <div id="roasBadge"></div>
+  </div>
+
+  <!-- Metric cards -->
+  <div class="metrics">
+    <div class="metric-card">
+      <div class="metric-label">Revenue</div>
+      <div class="metric-value" id="metricRevenue">$0</div>
+      <div class="metric-sub">Total income from ads</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Ad Spend</div>
+      <div class="metric-value" id="metricSpend">$0</div>
+      <div class="metric-sub">Total ad investment</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Gross Profit</div>
+      <div class="metric-value" id="metricProfit">$0</div>
+      <div class="metric-sub">Revenue - COGS - Spend</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Profit Margin</div>
+      <div class="metric-value" id="metricMargin">0%</div>
+      <div class="metric-sub">Profit / Revenue</div>
+    </div>
+  </div>
+
+  <!-- Break-even -->
+  <div class="breakeven" id="breakeven">
+    <h3>Break-Even Analysis</h3>
+    <div class="breakeven-text" id="breakevenText">Enter your ad spend and revenue above to see break-even analysis.</div>
+    <div class="bar-container" id="breakevenBar">
+      <div class="bar-fill" id="breakevenFill" style="width:0%"></div>
+      <div class="bar-marker" id="breakevenMarker" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- Platform comparison -->
+  <div class="platform-compare" id="platformCompare">
+    <h3>Per-Platform ROAS Comparison</h3>
+    <div id="platformBars"></div>
+  </div>
+
+  <!-- Scenarios -->
+  <div class="scenarios" id="scenarios">
+    <h3>Scenario Modeling</h3>
+    <div class="scenario-grid">
+      <div class="scenario-card">
+        <div class="scenario-label">If spend +20%</div>
+        <div class="scenario-roas" id="scenarioSpendUp">&mdash;</div>
+        <div class="scenario-delta" id="scenarioSpendUpDelta"></div>
+      </div>
+      <div class="scenario-card">
+        <div class="scenario-label">If revenue +20%</div>
+        <div class="scenario-roas" id="scenarioRevUp">&mdash;</div>
+        <div class="scenario-delta" id="scenarioRevUpDelta"></div>
+      </div>
+    </div>
+    <div class="slider-section">
+      <div class="slider-label">
+        <span>Model different spend levels</span>
+        <span id="sliderPct">100%</span>
+      </div>
+      <input type="range" id="spendSlider" min="10" max="300" value="100" step="5">
+      <div class="slider-result">
+        <span class="slider-spend" id="sliderSpend">Spend: $0</span>
+        <span class="slider-roas" id="sliderRoas">&mdash;</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Benchmarks -->
+  <div class="benchmarks">
+    <h3>Average ROAS by Industry</h3>
+    <p>Benchmarks based on aggregated 2024-2026 industry data. Your ROAS is highlighted if inputs are provided.</p>
+    <table class="bench-table">
+      <thead><tr><th>Industry</th><th>Avg ROAS</th><th>Visual</th></tr></thead>
+      <tbody id="benchBody"></tbody>
+    </table>
+  </div>
+</main>
+</div>
+<footer>FreeAdStore &mdash; <a href="https://openfrontier.pages.dev">Open Frontier</a> family. MIT License. <a href="https://github.com/freeadstore-online">GitHub</a></footer>
+
+<script>
+(function(){
+  // DOM refs
+  const spendEl = document.getElementById('spend');
+  const revenueEl = document.getElementById('revenue');
+  const cogsEl = document.getElementById('cogs');
+  const roasValue = document.getElementById('roasValue');
+  const roasPeriod = document.getElementById('roasPeriod');
+  const roasBadge = document.getElementById('roasBadge');
+  const metricRevenue = document.getElementById('metricRevenue');
+  const metricSpend = document.getElementById('metricSpend');
+  const metricProfit = document.getElementById('metricProfit');
+  const metricMargin = document.getElementById('metricMargin');
+  const breakevenText = document.getElementById('breakevenText');
+  const breakevenFill = document.getElementById('breakevenFill');
+  const breakevenMarker = document.getElementById('breakevenMarker');
+  const platformSection = document.getElementById('platformSection');
+  const platformCompare = document.getElementById('platformCompare');
+  const platformBars = document.getElementById('platformBars');
+  const breakdownToggle = document.getElementById('breakdownToggle');
+  const spendSlider = document.getElementById('spendSlider');
+  const sliderPct = document.getElementById('sliderPct');
+  const sliderSpend = document.getElementById('sliderSpend');
+  const sliderRoas = document.getElementById('sliderRoas');
+
+  let currentPeriod = 'Daily';
+
+  // Benchmarks data
+  const benchmarks = [
+    { industry: 'Retail / E-commerce', roas: 4.0 },
+    { industry: 'Consumer Goods', roas: 5.0 },
+    { industry: 'SaaS / Software', roas: 3.0 },
+    { industry: 'Finance / Insurance', roas: 2.5 },
+    { industry: 'Healthcare', roas: 3.2 },
+    { industry: 'Education', roas: 3.5 },
+    { industry: 'Travel / Hospitality', roas: 4.5 },
+    { industry: 'Real Estate', roas: 2.8 },
+    { industry: 'Automotive', roas: 2.2 },
+    { industry: 'B2B Services', roas: 2.0 },
+  ];
+
+  const platformColors = {
+    google: '#4285f4',
+    meta: '#1877f2',
+    linkedin: '#0a66c2',
+    other: '#6b7280'
+  };
+  const platformNames = {
+    google: 'Google',
+    meta: 'Meta',
+    linkedin: 'LinkedIn',
+    other: 'Other'
+  };
+
+  // Format currency
+  function fmt(n) {
+    if (n === null || n === undefined || isNaN(n)) return '$0';
+    const abs = Math.abs(n);
+    if (abs >= 1e6) return (n < 0 ? '-' : '') + '$' + (abs / 1e6).toFixed(1) + 'M';
+    if (abs >= 1e3) return (n < 0 ? '-' : '') + '$' + (abs / 1e3).toFixed(1) + 'K';
+    return (n < 0 ? '-' : '') + '$' + abs.toFixed(2).replace(/\.00$/, '');
+  }
+
+  function fmtRoas(r) {
+    if (r === null || r === undefined || isNaN(r) || !isFinite(r)) return '\u2014';
+    return r.toFixed(2) + 'x';
+  }
+
+  function roasClass(r) {
+    if (r === null || isNaN(r) || !isFinite(r)) return '';
+    if (r >= 3) return 'green';
+    if (r >= 1) return 'yellow';
+    return 'red';
+  }
+
+  function getVal(el) {
+    const v = parseFloat(el.value);
+    return isNaN(v) ? 0 : v;
+  }
+
+  // Period pills
+  document.querySelectorAll('.pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentPeriod = btn.dataset.period;
+      update();
+    });
+  });
+
+  // Breakdown toggle
+  breakdownToggle.addEventListener('change', () => {
+    platformSection.classList.toggle('visible', breakdownToggle.checked);
+    platformCompare.classList.toggle('visible', breakdownToggle.checked);
+    update();
+  });
+
+  // Inputs
+  [spendEl, revenueEl, cogsEl].forEach(el => el.addEventListener('input', update));
+  document.querySelectorAll('.plat-spend, .plat-rev').forEach(el => el.addEventListener('input', update));
+  spendSlider.addEventListener('input', update);
+
+  // Render benchmarks (static, with dynamic "your" row)
+  function renderBenchmarks(userRoas) {
+    const maxRoas = Math.max(5, ...benchmarks.map(b => b.roas), userRoas || 0);
+    let html = '';
+    // Insert user row in sorted position
+    const rows = [...benchmarks];
+    let userInserted = false;
+    // Sort descending
+    rows.sort((a, b) => b.roas - a.roas);
+
+    for (const b of rows) {
+      if (!userInserted && userRoas !== null && !isNaN(userRoas) && isFinite(userRoas) && userRoas >= b.roas) {
+        html += yourRow(userRoas, maxRoas);
+        userInserted = true;
+      }
+      const pct = (b.roas / maxRoas * 100).toFixed(0);
+      html += '<tr><td>' + b.industry + '</td><td>' + b.roas.toFixed(1) + 'x</td><td><span class="bench-bar" style="width:' + pct + '%;background:var(--line)"></span></td></tr>';
+    }
+    if (!userInserted && userRoas !== null && !isNaN(userRoas) && isFinite(userRoas)) {
+      html += yourRow(userRoas, maxRoas);
+    }
+    document.getElementById('benchBody').innerHTML = html;
+  }
+
+  function yourRow(roas, max) {
+    const pct = Math.min(100, (roas / max * 100)).toFixed(0);
+    const cls = roasClass(roas);
+    const color = cls === 'green' ? 'var(--green)' : cls === 'yellow' ? 'var(--yellow)' : 'var(--red)';
+    return '<tr class="your-row"><td><strong>Your ROAS</strong></td><td style="color:' + color + '">' + roas.toFixed(1) + 'x</td><td><span class="bench-bar" style="width:' + pct + '%;background:' + color + '"></span></td></tr>';
+  }
+
+  // Platform bars
+  function renderPlatformBars() {
+    if (!breakdownToggle.checked) return;
+    const platforms = ['google', 'meta', 'linkedin', 'other'];
+    const data = [];
+    for (const p of platforms) {
+      const spendInput = document.querySelector('.plat-spend[data-plat="' + p + '"]');
+      const revInput = document.querySelector('.plat-rev[data-plat="' + p + '"]');
+      const s = getVal(spendInput);
+      const r = getVal(revInput);
+      if (s > 0) {
+        data.push({ id: p, spend: s, revenue: r, roas: r / s });
+      }
+    }
+    // Sort by ROAS descending
+    data.sort((a, b) => b.roas - a.roas);
+
+    if (data.length === 0) {
+      platformBars.innerHTML = '<div class="empty-state">Enter per-platform spend to see comparison</div>';
+      return;
+    }
+
+    const maxRoas = Math.max(...data.map(d => d.roas));
+    let html = '';
+    for (const d of data) {
+      const pct = maxRoas > 0 ? (d.roas / maxRoas * 100).toFixed(0) : 0;
+      const color = platformColors[d.id];
+      const cls = roasClass(d.roas);
+      const textColor = cls === 'green' ? 'var(--green)' : cls === 'yellow' ? 'var(--yellow)' : 'var(--red)';
+      html += '<div class="platform-bar-row">' +
+        '<div class="platform-bar-label"><span class="platform-dot" style="background:' + color + '"></span>' + platformNames[d.id] + '</div>' +
+        '<div class="platform-bar-track"><div class="platform-bar-fill" style="width:' + pct + '%;background:' + color + '">' + fmt(d.spend) + ' spend</div></div>' +
+        '<div class="platform-bar-roas" style="color:' + textColor + '">' + fmtRoas(d.roas) + '</div>' +
+        '</div>';
+    }
+    platformBars.innerHTML = html;
+  }
+
+  function update() {
+    const spend = getVal(spendEl);
+    const revenue = getVal(revenueEl);
+    const cogs = getVal(cogsEl);
+    const roas = spend > 0 ? revenue / spend : null;
+    const grossProfit = revenue - cogs - spend;
+    const margin = revenue > 0 ? (grossProfit / revenue * 100) : 0;
+
+    // Big ROAS
+    const cls = roasClass(roas);
+    roasValue.textContent = fmtRoas(roas);
+    roasValue.className = 'roas-value ' + cls;
+    roasPeriod.textContent = currentPeriod;
+
+    if (roas !== null && isFinite(roas)) {
+      let badgeText = '';
+      if (roas >= 3) badgeText = 'Excellent';
+      else if (roas >= 2) badgeText = 'Good';
+      else if (roas >= 1) badgeText = 'Break-even';
+      else badgeText = 'Losing money';
+      roasBadge.innerHTML = '<span class="roas-badge ' + cls + '">' + badgeText + '</span>';
+    } else {
+      roasBadge.innerHTML = '';
+    }
+
+    // Metric cards
+    metricRevenue.textContent = fmt(revenue);
+    metricSpend.textContent = fmt(spend);
+    metricProfit.textContent = fmt(grossProfit);
+    metricProfit.className = 'metric-value ' + (grossProfit >= 0 ? 'positive' : 'negative');
+    metricMargin.textContent = revenue > 0 ? margin.toFixed(1) + '%' : '0%';
+    metricMargin.className = 'metric-value ' + (margin >= 0 ? 'positive' : 'negative');
+
+    // Break-even
+    if (spend > 0) {
+      const breakEvenRevenue = spend + cogs;
+      const pct = Math.min(100, (revenue / breakEvenRevenue * 100));
+      breakevenFill.style.width = pct + '%';
+      breakevenFill.className = 'bar-fill ' + (revenue >= breakEvenRevenue ? 'green' : revenue >= spend ? 'yellow' : 'red');
+      breakevenFill.textContent = fmt(revenue) + ' revenue';
+      breakevenMarker.style.display = 'block';
+      const markerPct = Math.min(95, (breakEvenRevenue / (Math.max(revenue, breakEvenRevenue) * 1.1) * 100));
+      breakevenMarker.style.left = markerPct + '%';
+      breakevenMarker.innerHTML = '<span class="bar-marker-label">Break-even: ' + fmt(breakEvenRevenue) + '</span>';
+
+      // Adjust fill to same scale
+      const fillPct = Math.min(100, (revenue / (Math.max(revenue, breakEvenRevenue) * 1.1) * 100));
+      breakevenFill.style.width = fillPct + '%';
+
+      if (revenue >= breakEvenRevenue) {
+        breakevenText.innerHTML = 'You are <strong>' + fmt(revenue - breakEvenRevenue) + ' above</strong> break-even. ' +
+          'Your break-even revenue is <strong>' + fmt(breakEvenRevenue) + '</strong> on <strong>' + fmt(spend) + '</strong> ad spend' +
+          (cogs > 0 ? ' + <strong>' + fmt(cogs) + '</strong> COGS' : '') + '.';
+      } else {
+        breakevenText.innerHTML = 'You need <strong>' + fmt(breakEvenRevenue - revenue) + ' more revenue</strong> to break even. ' +
+          'Break-even point: <strong>' + fmt(breakEvenRevenue) + '</strong> on <strong>' + fmt(spend) + '</strong> ad spend' +
+          (cogs > 0 ? ' + <strong>' + fmt(cogs) + '</strong> COGS' : '') + '.';
+      }
+    } else {
+      breakevenText.textContent = 'Enter your ad spend and revenue above to see break-even analysis.';
+      breakevenFill.style.width = '0%';
+      breakevenFill.textContent = '';
+      breakevenMarker.style.display = 'none';
+    }
+
+    // Scenarios
+    if (spend > 0 && revenue > 0) {
+      const spendUp = spend * 1.2;
+      const revUp = revenue * 1.2;
+      const roasSpendUp = revenue / spendUp;
+      const roasRevUp = revUp / spend;
+
+      document.getElementById('scenarioSpendUp').textContent = fmtRoas(roasSpendUp);
+      document.getElementById('scenarioSpendUp').style.color = roasSpendUp >= 3 ? 'var(--green)' : roasSpendUp >= 1 ? 'var(--yellow)' : 'var(--red)';
+      const deltaSU = roasSpendUp - roas;
+      document.getElementById('scenarioSpendUpDelta').textContent = (deltaSU >= 0 ? '+' : '') + deltaSU.toFixed(2) + 'x vs current';
+      document.getElementById('scenarioSpendUpDelta').className = 'scenario-delta ' + (deltaSU >= 0 ? 'up' : 'down');
+
+      document.getElementById('scenarioRevUp').textContent = fmtRoas(roasRevUp);
+      document.getElementById('scenarioRevUp').style.color = roasRevUp >= 3 ? 'var(--green)' : roasRevUp >= 1 ? 'var(--yellow)' : 'var(--red)';
+      const deltaRU = roasRevUp - roas;
+      document.getElementById('scenarioRevUpDelta').textContent = (deltaRU >= 0 ? '+' : '') + deltaRU.toFixed(2) + 'x vs current';
+      document.getElementById('scenarioRevUpDelta').className = 'scenario-delta ' + (deltaRU >= 0 ? 'up' : 'down');
+    } else {
+      document.getElementById('scenarioSpendUp').textContent = '\u2014';
+      document.getElementById('scenarioSpendUp').style.color = '';
+      document.getElementById('scenarioSpendUpDelta').textContent = '';
+      document.getElementById('scenarioRevUp').textContent = '\u2014';
+      document.getElementById('scenarioRevUp').style.color = '';
+      document.getElementById('scenarioRevUpDelta').textContent = '';
+    }
+
+    // Slider
+    const pctVal = parseInt(spendSlider.value);
+    sliderPct.textContent = pctVal + '%';
+    if (spend > 0 && revenue > 0) {
+      const modelSpend = spend * (pctVal / 100);
+      // Assume revenue scales linearly with spend (constant ROAS)
+      const modelRevenue = revenue * (pctVal / 100);
+      const modelRoas = modelSpend > 0 ? modelRevenue / modelSpend : 0;
+      sliderSpend.textContent = 'Spend: ' + fmt(modelSpend) + ' \u2192 Revenue: ' + fmt(modelRevenue);
+      sliderRoas.textContent = fmtRoas(modelRoas);
+      sliderRoas.style.color = modelRoas >= 3 ? 'var(--green)' : modelRoas >= 1 ? 'var(--yellow)' : 'var(--red)';
+    } else {
+      sliderSpend.textContent = 'Spend: $0';
+      sliderRoas.textContent = '\u2014';
+      sliderRoas.style.color = '';
+    }
+
+    // Platform bars
+    renderPlatformBars();
+
+    // Benchmarks
+    renderBenchmarks(roas);
+  }
+
+  // Initial render
+  update();
+})();
+</script>
+</body>
+</html>

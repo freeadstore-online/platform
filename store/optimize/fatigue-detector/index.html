@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Creative Fatigue Detector — FreeAdStore</title>
+<meta name="description" content="Detect creative fatigue by tracking CTR decline over time. Get fatigue scores, refresh recommendations, and benchmark your ad creative lifespan. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#ef4444;--accent-hover:#dc2626;--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--panel:#ffffff;--line:#e5e7eb;--green:#16a34a;--yellow:#f59e0b;--red:#ef4444;--sidebar-w:360px}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+/* Layout */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--panel);border-right:1px solid var(--line);padding:1.25rem;overflow-y:auto;display:flex;flex-direction:column;gap:.1rem}
+.main{flex:1;padding:1.5rem 2rem;overflow-y:auto;max-height:100vh}
+
+/* Back link */
+.back{display:inline-flex;align-items:center;gap:.35rem;font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:.75rem}
+.back:hover{color:var(--accent);text-decoration:none}
+
+/* Sidebar heading */
+.sidebar h1{font-family:'Fraunces',serif;font-size:1.25rem;font-weight:700;margin-bottom:.15rem}
+.sidebar .subtitle{font-size:.72rem;color:var(--muted);line-height:1.45;margin-bottom:.85rem}
+
+/* Section title */
+.section-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:.35rem;margin-top:.6rem}
+
+/* Form elements */
+.field{margin-bottom:.7rem}
+.field label{display:block;font-size:.72rem;font-weight:600;color:var(--muted);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.3px}
+.field input[type="text"],
+.field input[type="number"],
+.field select{width:100%;padding:.5rem .65rem;border:1px solid var(--line);border-radius:8px;font-family:inherit;font-size:.82rem;background:#fff;color:var(--text);transition:border-color .15s}
+.field input:focus,.field select:focus{outline:none;border-color:var(--accent)}
+.field .hint{font-size:.65rem;color:var(--muted);margin-top:.2rem}
+
+/* Row */
+.row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+
+/* Pills / Mode toggle */
+.mode-toggle{display:flex;gap:.3rem;margin-bottom:.75rem}
+.mode-btn{flex:1;padding:.4rem .1rem;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:.72rem;font-weight:600;cursor:pointer;text-align:center;font-family:inherit;color:var(--muted);transition:all .15s}
+.mode-btn:hover{border-color:var(--accent);color:var(--text)}
+.mode-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* Table */
+.data-table{width:100%;border-collapse:collapse;font-size:.75rem;margin-bottom:.5rem}
+.data-table th{text-align:left;padding:.35rem .3rem;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);border-bottom:2px solid var(--line);position:sticky;top:0;background:var(--panel)}
+.data-table td{padding:.3rem .3rem;border-bottom:1px solid var(--line)}
+.data-table input{width:100%;padding:.3rem .4rem;border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:.75rem;background:#fff;text-align:right}
+.data-table input:focus{outline:none;border-color:var(--accent)}
+.data-table td:first-child{font-weight:600;color:var(--muted);text-align:center;width:36px}
+.table-wrap{max-height:360px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;margin-bottom:.5rem}
+
+/* Add row btn */
+.add-row-btn{width:100%;padding:.4rem;border:1px dashed var(--line);border-radius:8px;background:transparent;font-family:inherit;font-size:.72rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;margin-bottom:.5rem}
+.add-row-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Quick mode */
+.quick-mode{display:none}
+.quick-mode.visible{display:block}
+.detailed-mode{display:block}
+.detailed-mode.hidden{display:none}
+
+/* Calculate button */
+.btn-calc{width:100%;padding:.65rem;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;transition:background .15s;margin-top:.5rem}
+.btn-calc:hover{background:var(--accent-hover)}
+
+/* Main area */
+.main h2{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;margin-bottom:1rem}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;text-align:center;color:var(--muted)}
+.empty-state .icon{font-size:3rem;margin-bottom:1rem;opacity:.4}
+.empty-state p{font-size:.88rem;max-width:340px;line-height:1.5}
+
+/* Cards */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:1.1rem;margin-bottom:.85rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card h3{font-size:.88rem;font-weight:700;margin-bottom:.65rem;display:flex;align-items:center;gap:.4rem}
+.card h3 .card-icon{color:var(--accent)}
+
+/* Fatigue hero */
+.fatigue-hero{text-align:center;padding:1.6rem 1rem;border-radius:14px;border:1px solid var(--line);background:var(--panel);margin-bottom:1rem}
+.fatigue-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:.3rem}
+.fatigue-score{font-family:'Fraunces',serif;font-size:3rem;font-weight:700;line-height:1}
+.fatigue-score.fresh{color:var(--green)}
+.fatigue-score.aging{color:var(--yellow)}
+.fatigue-score.fatigued{color:var(--red)}
+.fatigue-badge{display:inline-block;padding:.2rem .65rem;border-radius:99px;font-size:.72rem;font-weight:700;margin-top:.5rem}
+.fatigue-badge.fresh{background:#dcfce7;color:#065f46}
+.fatigue-badge.aging{background:#fef3c7;color:#92400e}
+.fatigue-badge.fatigued{background:#fee2e2;color:#991b1b}
+.fatigue-summary{font-size:.8rem;color:var(--muted);margin-top:.5rem;line-height:1.5}
+.fatigue-summary strong{color:var(--text)}
+
+/* Stats grid */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:1rem}
+.stat{text-align:center;padding:.75rem .5rem;background:#fafafa;border-radius:8px;border:1px solid var(--line)}
+.stat .number{font-size:1.35rem;font-weight:800;color:var(--text);font-family:'Fraunces',serif}
+.stat .label{font-size:.65rem;color:var(--muted);font-weight:600;margin-top:.15rem;text-transform:uppercase;letter-spacing:.3px}
+
+/* SVG Chart */
+.chart-container{position:relative;margin:.5rem 0}
+.chart-svg{width:100%;height:200px;display:block}
+.chart-axis-label{font-size:.6rem;fill:var(--muted);font-family:'Manrope',sans-serif}
+.chart-grid-line{stroke:var(--line);stroke-width:1;stroke-dasharray:4,4}
+.chart-line{fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.chart-area{opacity:.12}
+.chart-dot{stroke:#fff;stroke-width:2}
+.chart-peak-line{stroke:var(--green);stroke-width:1;stroke-dasharray:6,4}
+.chart-legend{display:flex;gap:1rem;justify-content:center;margin-top:.5rem;font-size:.7rem;font-weight:600;color:var(--muted)}
+.chart-legend span{display:flex;align-items:center;gap:.3rem}
+.chart-legend .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* Recommendations */
+.rec-list{list-style:none;padding:0}
+.rec-list li{display:flex;align-items:flex-start;gap:.6rem;padding:.6rem 0;border-bottom:1px solid var(--line);font-size:.78rem;line-height:1.5}
+.rec-list li:last-child{border-bottom:none}
+.rec-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.82rem;flex-shrink:0;font-weight:700}
+.rec-icon.warn{background:#fef3c7;color:#d97706}
+.rec-icon.action{background:#dbeafe;color:#2563eb}
+.rec-icon.tip{background:#dcfce7;color:#16a34a}
+
+/* Benchmark */
+.benchmark-bar{height:40px;background:#f3f4f6;border-radius:8px;position:relative;overflow:hidden;margin:.5rem 0}
+.benchmark-fill{height:100%;border-radius:8px;position:relative;display:flex;align-items:center;padding:0 .75rem;font-size:.7rem;font-weight:700;color:#fff;white-space:nowrap}
+.benchmark-labels{display:flex;justify-content:space-between;font-size:.65rem;color:var(--muted);margin-top:.25rem}
+.benchmark-marker{position:absolute;top:0;bottom:0;width:2px;background:var(--text);z-index:2}
+.benchmark-marker-label{position:absolute;top:-16px;font-size:.6rem;font-weight:700;transform:translateX(-50%);white-space:nowrap;color:var(--text)}
+
+/* Toast */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:#fff;padding:.65rem 1.1rem;border-radius:8px;font-size:.78rem;font-weight:600;opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none;z-index:999}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* Responsive */
+@media(max-width:900px){
+  .layout{flex-direction:column}
+  .sidebar{width:100%;min-width:unset;border-right:none;border-bottom:1px solid var(--line);max-height:unset}
+  .main{max-height:unset;padding:1.25rem}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:500px){
+  .row{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <a href="/" class="back">&larr; FreeAdStore</a>
+    <h1>Creative Fatigue Detector</h1>
+    <p class="subtitle">Track CTR decline over time to detect when your ad creative is losing effectiveness. Get actionable refresh recommendations.</p>
+
+    <div class="section-title">Input Mode</div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" data-mode="detailed" onclick="setMode('detailed')">Detailed (Daily)</button>
+      <button class="mode-btn" data-mode="quick" onclick="setMode('quick')">Quick Mode</button>
+    </div>
+
+    <!-- Quick mode -->
+    <div class="quick-mode" id="quickMode">
+      <div class="field">
+        <label>Week 1 Average CTR (%)</label>
+        <input type="number" id="qWeek1CTR" step="0.01" min="0" placeholder="e.g., 3.2">
+      </div>
+      <div class="field">
+        <label>Current CTR (%)</label>
+        <input type="number" id="qCurrentCTR" step="0.01" min="0" placeholder="e.g., 1.8">
+      </div>
+      <div class="field">
+        <label>Days Running</label>
+        <input type="number" id="qDays" min="1" placeholder="e.g., 21">
+      </div>
+    </div>
+
+    <!-- Detailed mode -->
+    <div class="detailed-mode" id="detailedMode">
+      <div class="section-title">Daily Metrics</div>
+      <div class="table-wrap">
+        <table class="data-table" id="dataTable">
+          <thead>
+            <tr>
+              <th>Day</th>
+              <th>Impr.</th>
+              <th>Clicks</th>
+              <th>CTR %</th>
+              <th>CPC $</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <button class="add-row-btn" onclick="addDay()">+ Add Day</button>
+    </div>
+
+    <button class="btn-calc" onclick="analyze()">Analyze Fatigue</button>
+  </aside>
+
+  <!-- Main -->
+  <main class="main" id="mainArea">
+    <div class="empty-state" id="emptyState">
+      <div class="icon">&#9202;</div>
+      <p>Enter your daily ad metrics or use Quick Mode, then click <strong>Analyze Fatigue</strong> to detect creative exhaustion patterns.</p>
+    </div>
+
+    <div id="results" style="display:none">
+      <h2>Fatigue Analysis</h2>
+
+      <!-- Fatigue hero -->
+      <div class="fatigue-hero" id="fatigueHero">
+        <div class="fatigue-label">Creative Fatigue Status</div>
+        <div class="fatigue-score" id="fatigueStatus">Fresh</div>
+        <div id="fatigueBadge"></div>
+        <div class="fatigue-summary" id="fatigueSummary"></div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat">
+          <div class="number" id="statPeakCTR">--</div>
+          <div class="label">Peak CTR</div>
+        </div>
+        <div class="stat">
+          <div class="number" id="statCurrentCTR">--</div>
+          <div class="label">Current CTR</div>
+        </div>
+        <div class="stat">
+          <div class="number" id="statDecline">--</div>
+          <div class="label">Decline</div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="card">
+        <h3><span class="card-icon">&#9632;</span> CTR Trend Over Time</h3>
+        <div class="chart-container" id="chartContainer"></div>
+        <div class="chart-legend">
+          <span><span class="dot" style="background:var(--accent)"></span> CTR</span>
+          <span><span class="dot" style="background:var(--green)"></span> Peak CTR</span>
+        </div>
+      </div>
+
+      <!-- Benchmark -->
+      <div class="card">
+        <h3><span class="card-icon">&#9670;</span> Creative Lifespan Benchmark</h3>
+        <p style="font-size:.78rem;color:var(--muted);margin-bottom:.6rem;line-height:1.5" id="benchmarkText"></p>
+        <div class="benchmark-bar" id="benchmarkBar">
+          <div class="benchmark-fill" id="benchmarkFill"></div>
+          <div class="benchmark-marker" id="benchmarkMarker" style="display:none"></div>
+        </div>
+        <div class="benchmark-labels">
+          <span>Week 1</span>
+          <span>Week 2</span>
+          <span>Week 3</span>
+          <span>Week 4</span>
+        </div>
+      </div>
+
+      <!-- Recommendations -->
+      <div class="card">
+        <h3><span class="card-icon">&#9881;</span> Recommendations</h3>
+        <ul class="rec-list" id="recList"></ul>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var defaultRows = 14;
+  var mode = 'detailed';
+
+  /* ── Init table ── */
+  function initTable(){
+    var tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+    for(var i = 1; i <= defaultRows; i++) addDayRow(i);
+  }
+
+  function addDayRow(day){
+    var tbody = document.getElementById('tableBody');
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td>' + day + '</td>' +
+      '<td><input type="number" class="inp-impr" min="0" placeholder="0" oninput="calcRowCTR(this)"></td>' +
+      '<td><input type="number" class="inp-clicks" min="0" placeholder="0" oninput="calcRowCTR(this)"></td>' +
+      '<td><input type="number" class="inp-ctr" step="0.01" min="0" placeholder="--" readonly style="background:#f9fafb;color:var(--muted)"></td>' +
+      '<td><input type="number" class="inp-cpc" step="0.01" min="0" placeholder="--"></td>';
+    tbody.appendChild(tr);
+  }
+
+  window.addDay = function(){
+    var rows = document.getElementById('tableBody').querySelectorAll('tr');
+    addDayRow(rows.length + 1);
+  };
+
+  window.calcRowCTR = function(el){
+    var tr = el.closest('tr');
+    var impr = parseFloat(tr.querySelector('.inp-impr').value) || 0;
+    var clicks = parseFloat(tr.querySelector('.inp-clicks').value) || 0;
+    var ctrEl = tr.querySelector('.inp-ctr');
+    ctrEl.value = impr > 0 ? (clicks / impr * 100).toFixed(2) : '';
+  };
+
+  /* ── Mode toggle ── */
+  window.setMode = function(m){
+    mode = m;
+    document.querySelectorAll('.mode-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.mode === m); });
+    document.getElementById('quickMode').classList.toggle('visible', m === 'quick');
+    document.getElementById('detailedMode').classList.toggle('hidden', m === 'quick');
+  };
+
+  /* ── Analyze ── */
+  window.analyze = function(){
+    var data;
+    if(mode === 'quick'){
+      data = analyzeQuick();
+    } else {
+      data = analyzeDetailed();
+    }
+    if(!data) return;
+    renderResults(data);
+  };
+
+  function analyzeQuick(){
+    var w1 = parseFloat(document.getElementById('qWeek1CTR').value);
+    var cur = parseFloat(document.getElementById('qCurrentCTR').value);
+    var days = parseInt(document.getElementById('qDays').value);
+    if(isNaN(w1) || isNaN(cur) || isNaN(days) || w1 <= 0 || cur <= 0 || days <= 0){
+      toast('Please fill in all Quick Mode fields');
+      return null;
+    }
+    // Synthesize a linear decline for charting
+    var points = [];
+    for(var i = 0; i < days; i++){
+      var t = i / Math.max(days - 1, 1);
+      var ctr = w1 + (cur - w1) * t;
+      points.push({ day: i + 1, ctr: Math.max(0, ctr), cpc: null });
+    }
+    return { points: points, peakCTR: w1, currentCTR: cur, days: days };
+  }
+
+  function analyzeDetailed(){
+    var rows = document.getElementById('tableBody').querySelectorAll('tr');
+    var points = [];
+    rows.forEach(function(tr, i){
+      var impr = parseFloat(tr.querySelector('.inp-impr').value);
+      var clicks = parseFloat(tr.querySelector('.inp-clicks').value);
+      var cpc = parseFloat(tr.querySelector('.inp-cpc').value);
+      if(!isNaN(impr) && impr > 0){
+        var ctr = !isNaN(clicks) ? (clicks / impr * 100) : 0;
+        points.push({ day: i + 1, ctr: ctr, cpc: !isNaN(cpc) ? cpc : null });
+      }
+    });
+    if(points.length < 2){
+      toast('Enter at least 2 days of impression data');
+      return null;
+    }
+    var peak = 0, cur = 0;
+    points.forEach(function(p){ if(p.ctr > peak) peak = p.ctr; });
+    cur = points[points.length - 1].ctr;
+    return { points: points, peakCTR: peak, currentCTR: cur, days: points.length };
+  }
+
+  /* ── Render ── */
+  function renderResults(data){
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('results').style.display = '';
+
+    var decline = data.peakCTR > 0 ? ((data.peakCTR - data.currentCTR) / data.peakCTR * 100) : 0;
+    var fatigueLevel, fatigueClass;
+    if(decline < 15){
+      fatigueLevel = 'Fresh'; fatigueClass = 'fresh';
+    } else if(decline < 35){
+      fatigueLevel = 'Aging'; fatigueClass = 'aging';
+    } else {
+      fatigueLevel = 'Fatigued'; fatigueClass = 'fatigued';
+    }
+
+    // Hero
+    var statusEl = document.getElementById('fatigueStatus');
+    statusEl.textContent = fatigueLevel;
+    statusEl.className = 'fatigue-score ' + fatigueClass;
+    document.getElementById('fatigueBadge').innerHTML = '<span class="fatigue-badge ' + fatigueClass + '">' +
+      (decline < 15 ? 'CTR is holding steady' : decline < 35 ? 'Performance is declining' : 'Creative needs immediate refresh') + '</span>';
+    document.getElementById('fatigueSummary').innerHTML = 'Creative has been running for <strong>' + data.days + ' days</strong>. CTR has declined <strong>' + decline.toFixed(1) + '%</strong> from peak.';
+
+    // Stats
+    document.getElementById('statPeakCTR').textContent = data.peakCTR.toFixed(2) + '%';
+    document.getElementById('statCurrentCTR').textContent = data.currentCTR.toFixed(2) + '%';
+    document.getElementById('statDecline').textContent = decline.toFixed(1) + '%';
+    document.getElementById('statDecline').style.color = decline < 15 ? 'var(--green)' : decline < 35 ? 'var(--yellow)' : 'var(--red)';
+
+    // Chart
+    renderChart(data);
+
+    // Benchmark
+    renderBenchmark(data);
+
+    // Recommendations
+    renderRecs(data, decline, fatigueLevel);
+
+    document.getElementById('mainArea').scrollTop = 0;
+  }
+
+  function renderChart(data){
+    var container = document.getElementById('chartContainer');
+    var W = 580, H = 200, padL = 44, padR = 16, padT = 20, padB = 32;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+    var pts = data.points;
+    var maxCTR = 0;
+    pts.forEach(function(p){ if(p.ctr > maxCTR) maxCTR = p.ctr; });
+    maxCTR = Math.max(maxCTR * 1.15, 0.5);
+    var maxDay = pts[pts.length - 1].day;
+
+    function x(d){ return padL + (d - 1) / Math.max(maxDay - 1, 1) * plotW; }
+    function y(v){ return padT + plotH - (v / maxCTR * plotH); }
+
+    var pathD = '', areaD = '';
+    pts.forEach(function(p, i){
+      var px = x(p.day), py = y(p.ctr);
+      pathD += (i === 0 ? 'M' : 'L') + px.toFixed(1) + ',' + py.toFixed(1);
+      areaD += (i === 0 ? 'M' : 'L') + px.toFixed(1) + ',' + py.toFixed(1);
+    });
+    areaD += 'L' + x(pts[pts.length-1].day).toFixed(1) + ',' + (padT + plotH) + 'L' + x(pts[0].day).toFixed(1) + ',' + (padT + plotH) + 'Z';
+
+    var peakY = y(data.peakCTR);
+    var dots = '';
+    pts.forEach(function(p){
+      var px = x(p.day), py = y(p.ctr);
+      var color = p.ctr >= data.peakCTR * 0.85 ? 'var(--green)' : p.ctr >= data.peakCTR * 0.65 ? 'var(--yellow)' : 'var(--red)';
+      dots += '<circle cx="' + px.toFixed(1) + '" cy="' + py.toFixed(1) + '" r="4" fill="' + color + '" class="chart-dot"/>';
+    });
+
+    // Y-axis labels
+    var yLabels = '';
+    for(var i = 0; i <= 4; i++){
+      var val = maxCTR * i / 4;
+      var yy = y(val);
+      yLabels += '<text x="' + (padL - 6) + '" y="' + (yy + 3) + '" text-anchor="end" class="chart-axis-label">' + val.toFixed(1) + '%</text>';
+      yLabels += '<line x1="' + padL + '" y1="' + yy + '" x2="' + (W - padR) + '" y2="' + yy + '" class="chart-grid-line"/>';
+    }
+
+    // X-axis labels (show subset)
+    var xLabels = '';
+    var step = Math.max(1, Math.floor(maxDay / 7));
+    for(var d = 1; d <= maxDay; d += step){
+      xLabels += '<text x="' + x(d).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle" class="chart-axis-label">D' + d + '</text>';
+    }
+
+    container.innerHTML =
+      '<svg class="chart-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet">' +
+      yLabels + xLabels +
+      '<line x1="' + padL + '" y1="' + peakY.toFixed(1) + '" x2="' + (W - padR) + '" y2="' + peakY.toFixed(1) + '" class="chart-peak-line"/>' +
+      '<path d="' + areaD + '" fill="var(--accent)" class="chart-area"/>' +
+      '<path d="' + pathD + '" stroke="var(--accent)" class="chart-line"/>' +
+      dots +
+      '</svg>';
+  }
+
+  function renderBenchmark(data){
+    var days = data.days;
+    var pct = Math.min(100, (days / 28) * 100);
+    var fill = document.getElementById('benchmarkFill');
+    var marker = document.getElementById('benchmarkMarker');
+
+    var color = days <= 14 ? 'var(--green)' : days <= 21 ? 'var(--yellow)' : 'var(--red)';
+    fill.style.width = pct + '%';
+    fill.style.background = color;
+    fill.textContent = 'Day ' + days;
+
+    // Typical fatigue onset marker (day 14-18)
+    var onsetDay = 16;
+    var markerPct = (onsetDay / 28) * 100;
+    marker.style.display = 'block';
+    marker.style.left = markerPct + '%';
+    marker.innerHTML = '<span class="benchmark-marker-label">Avg. onset</span>';
+
+    document.getElementById('benchmarkText').innerHTML = 'Most creatives show fatigue after <strong>2-4 weeks</strong>. Yours ' +
+      (days < 14 ? 'is still in the <strong>early performance window</strong>.' :
+       days < 21 ? 'shows signs at <strong>day ' + days + '</strong>, within the typical range.' :
+       'shows signs at <strong>day ' + days + '</strong>, past the average onset point.');
+  }
+
+  function renderRecs(data, decline, level){
+    var list = document.getElementById('recList');
+    var recs = [];
+
+    if(level === 'Fresh'){
+      recs.push({ icon: 'tip', symbol: '&#10003;', text: 'Your creative is performing well. No immediate action needed. Monitor for another week before making changes.' });
+      recs.push({ icon: 'action', symbol: '&#9998;', text: 'Start preparing 2-3 variant creatives now so you have fresh options ready when fatigue begins.' });
+      recs.push({ icon: 'tip', symbol: '&#10003;', text: 'Consider adjusting audience targeting to extend creative lifespan before CTR starts to drop.' });
+    } else if(level === 'Aging'){
+      recs.push({ icon: 'warn', symbol: '!', text: 'CTR is declining. Begin testing new creative variations now — change the headline, imagery, or CTA.' });
+      recs.push({ icon: 'action', symbol: '&#9998;', text: 'Try new ad formats (carousel, video, stories) to re-engage the audience with the same message.' });
+      recs.push({ icon: 'action', symbol: '&#9998;', text: 'Expand or rotate your audience targeting. Fresh eyes can extend the remaining creative lifespan.' });
+      recs.push({ icon: 'tip', symbol: '&#10003;', text: 'Test a completely new hook or angle — the same audience may respond to a different value proposition.' });
+    } else {
+      recs.push({ icon: 'warn', symbol: '!', text: 'Creative is fatigued — replace immediately. Continued spend is wasting budget with declining returns.' });
+      recs.push({ icon: 'action', symbol: '&#9998;', text: 'Launch fresh creative with a different visual style, new copy angle, and updated CTA. Avoid recycling old elements.' });
+      recs.push({ icon: 'action', symbol: '&#9998;', text: 'Reset audience frequency caps and consider excluding users who have seen the ad more than 5 times.' });
+      recs.push({ icon: 'warn', symbol: '!', text: 'Review CPC trends — fatigue typically drives CPC up 20-40%. Your cost efficiency is likely declining alongside CTR.' });
+      recs.push({ icon: 'tip', symbol: '&#10003;', text: 'When refreshing, keep the winning elements from the original (proven audience, placement) and only change the creative asset.' });
+    }
+
+    list.innerHTML = '';
+    recs.forEach(function(r){
+      var li = document.createElement('li');
+      li.innerHTML = '<div class="rec-icon ' + r.icon + '">' + r.symbol + '</div><div>' + r.text + '</div>';
+      list.appendChild(li);
+    });
+  }
+
+  /* ── Toast ── */
+  function toast(msg){
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(function(){ el.classList.remove('show'); }, 2200);
+  }
+  window.toast = toast;
+
+  /* ── Init ── */
+  initTable();
+})();
+</script>
+</body>
+</html>

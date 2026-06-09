@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Audience Builder - FreeAdStore</title>
+<meta name="description" content="Build targeted ad audiences with demographics, interests, and behaviors. Estimated reach per platform. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#ef4444;--accent-light:#fef2f2;--accent-dark:#dc2626;--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--panel:#ffffff;--line:#e5e7eb;--green:#10b981;--yellow:#f59e0b;--blue:#3b82f6;--purple:#8b5cf6}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+/* Header */
+.top-bar{display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+.back{font-size:13px;font-weight:500;color:var(--accent);white-space:nowrap}
+.back:hover{text-decoration:underline}
+.top-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:700;flex:1}
+.top-title span{color:var(--accent)}
+
+/* Layout */
+.layout{display:flex;height:calc(100vh - 45px);overflow:hidden}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);overflow-y:auto;display:flex;flex-direction:column}
+.main{flex:1;overflow-y:auto;padding:24px 32px;background:var(--bg)}
+
+/* Sidebar sections */
+.sidebar-header{padding:16px 16px 0;border-bottom:1px solid var(--line);padding-bottom:12px}
+.sidebar-header h2{font-size:15px;font-weight:800;margin-bottom:8px}
+
+/* Platform tabs */
+.platform-tabs{display:flex;gap:0;background:var(--bg);border-radius:8px;padding:3px}
+.platform-tab{flex:1;text-align:center;padding:6px 4px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;border:none;background:transparent;color:var(--muted);font-family:inherit}
+.platform-tab:hover{color:var(--text)}
+.platform-tab.active{background:var(--accent);color:white;box-shadow:0 1px 3px rgba(239,68,68,.3)}
+
+.sidebar-content{padding:16px;flex:1;overflow-y:auto}
+
+/* Section */
+.section{margin-bottom:20px}
+.section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.section-title::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px}
+
+/* Form elements */
+.field{margin-bottom:12px}
+.field-label{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;display:block}
+
+/* Dual range slider */
+.range-display{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.range-value{font-size:13px;font-weight:700;color:var(--text)}
+.range-track{position:relative;height:6px;background:var(--line);border-radius:3px;margin:8px 0}
+.range-fill{position:absolute;height:100%;background:var(--accent);border-radius:3px}
+.range-inputs{position:relative;height:20px}
+.range-inputs input[type=range]{position:absolute;width:100%;height:20px;-webkit-appearance:none;appearance:none;background:transparent;pointer-events:none;top:-13px}
+.range-inputs input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid white;box-shadow:0 1px 4px rgba(0,0,0,.2);pointer-events:all;cursor:pointer}
+.range-inputs input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid white;box-shadow:0 1px 4px rgba(0,0,0,.2);pointer-events:all;cursor:pointer}
+.age-brackets{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:2px;padding:0 2px}
+
+/* Pills */
+.pills{display:flex;flex-wrap:wrap;gap:5px}
+.pill{padding:5px 12px;border-radius:99px;border:1px solid var(--line);background:var(--panel);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;color:var(--muted)}
+.pill:hover{border-color:var(--accent);color:var(--text)}
+.pill.active{background:var(--accent);border-color:var(--accent);color:white}
+
+/* Text input */
+.text-input{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg)}
+.text-input:focus{outline:none;border-color:var(--accent)}
+
+/* Select */
+.select{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg);color:var(--text);cursor:pointer}
+.select:focus{outline:none;border-color:var(--accent)}
+
+/* Interest groups */
+.interest-group{margin-bottom:10px}
+.interest-group-title{font-size:11px;font-weight:700;color:var(--text);margin-bottom:5px}
+.interest-checks{display:flex;flex-wrap:wrap;gap:4px}
+.interest-check{display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:6px;border:1px solid var(--line);font-size:10.5px;font-weight:500;cursor:pointer;transition:all .15s;background:var(--panel);color:var(--muted);user-select:none}
+.interest-check:hover{border-color:var(--accent);color:var(--text)}
+.interest-check.active{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
+.interest-check input{display:none}
+
+/* Reset button */
+.reset-btn{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);font-family:inherit;transition:all .15s;margin-top:8px}
+.reset-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* === MAIN AREA === */
+
+/* Reach card */
+.reach-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.reach-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.reach-number{font-family:'Fraunces',serif;font-size:2.4rem;font-weight:700;color:var(--text);line-height:1.1}
+.reach-sub{font-size:13px;color:var(--muted);margin-top:2px;margin-bottom:12px}
+.reach-bar-track{height:8px;background:var(--line);border-radius:4px;overflow:hidden;position:relative}
+.reach-bar-fill{height:100%;border-radius:4px;transition:width .4s ease}
+.reach-bar-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px}
+
+/* Grid for cards */
+.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+@media(max-width:900px){.cards-grid{grid-template-columns:1fr}}
+
+/* Summary card */
+.summary-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.summary-card h3{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.summary-list{list-style:none;padding:0}
+.summary-list li{font-size:12px;color:var(--text);padding:4px 0;border-bottom:1px solid var(--bg);display:flex;align-items:baseline;gap:6px;line-height:1.4}
+.summary-list li:last-child{border-bottom:none}
+.summary-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:5px}
+.summary-empty{font-size:12px;color:var(--muted);font-style:italic}
+
+/* Platform comparison */
+.platform-compare{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.platform-compare h3{font-size:13px;font-weight:700;margin-bottom:14px}
+.platform-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.platform-row:last-child{margin-bottom:0}
+.platform-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;color:white;flex-shrink:0}
+.platform-name{font-size:12px;font-weight:600;width:60px;flex-shrink:0}
+.platform-bar-wrap{flex:1;display:flex;align-items:center;gap:8px}
+.platform-bar-track{flex:1;height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.platform-bar-fill{height:100%;border-radius:3px;transition:width .4s ease}
+.platform-reach{font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;min-width:70px;text-align:right}
+
+/* Quality indicators */
+.quality-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px}
+@media(max-width:700px){.quality-grid{grid-template-columns:1fr}}
+.quality-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.quality-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}
+.quality-value{font-size:18px;font-weight:800}
+.quality-badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;margin-top:4px}
+
+/* Refinements */
+.refinements{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.refinements h3{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.tip{font-size:12px;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--bg);line-height:1.5;display:flex;gap:6px}
+.tip:last-child{border-bottom:none}
+.tip-icon{flex-shrink:0;font-size:14px}
+
+/* Export */
+.export-bar{display:flex;gap:8px;flex-wrap:wrap}
+.export-btn{padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .15s}
+.export-primary{background:var(--accent);color:white}
+.export-primary:hover{background:var(--accent-dark)}
+.export-secondary{background:var(--panel);color:var(--text);border:1px solid var(--line)}
+.export-secondary:hover{border-color:var(--accent)}
+.copied-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:white;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transition:all .3s ease;z-index:999;pointer-events:none}
+.copied-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* Responsive */
+@media(max-width:768px){
+  .layout{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;max-height:50vh;border-right:none;border-bottom:1px solid var(--line)}
+  .main{padding:16px}
+  .reach-number{font-size:1.8rem}
+  .quality-grid{grid-template-columns:1fr}
+  .cards-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a class="back" href="/">&larr; FreeAdStore</a>
+  <div class="top-title">Audience <span>Builder</span></div>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>Define Your Audience</h2>
+      <div class="platform-tabs" id="platformTabs">
+        <button class="platform-tab active" data-platform="meta">Meta</button>
+        <button class="platform-tab" data-platform="google">Google</button>
+        <button class="platform-tab" data-platform="linkedin">LinkedIn</button>
+        <button class="platform-tab" data-platform="tiktok">TikTok</button>
+      </div>
+    </div>
+
+    <div class="sidebar-content">
+      <!-- Demographics -->
+      <div class="section">
+        <div class="section-title">Demographics</div>
+
+        <div class="field">
+          <div class="field-label">Age Range</div>
+          <div class="range-display">
+            <span class="range-value" id="ageMinLabel">18</span>
+            <span style="font-size:11px;color:var(--muted)">to</span>
+            <span class="range-value" id="ageMaxLabel">65+</span>
+          </div>
+          <div class="range-track">
+            <div class="range-fill" id="ageFill"></div>
+          </div>
+          <div class="range-inputs">
+            <input type="range" id="ageMin" min="0" max="5" value="0" step="1">
+            <input type="range" id="ageMax" min="0" max="5" value="5" step="1">
+          </div>
+          <div class="age-brackets">
+            <span>18</span><span>25</span><span>35</span><span>45</span><span>55</span><span>65+</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Gender</div>
+          <div class="pills" id="genderPills">
+            <button class="pill active" data-value="all">All</button>
+            <button class="pill" data-value="male">Male</button>
+            <button class="pill" data-value="female">Female</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Location Type</div>
+          <div class="pills" id="locationTypePills">
+            <button class="pill active" data-value="country">Country</button>
+            <button class="pill" data-value="state">State/Region</button>
+            <button class="pill" data-value="city">City</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Locations (comma-separated)</div>
+          <input type="text" class="text-input" id="locationInput" placeholder="e.g. United States, Canada, UK">
+        </div>
+
+        <div class="field">
+          <div class="field-label">Language</div>
+          <select class="select" id="languageSelect">
+            <option value="all">All Languages</option>
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="pt">Portuguese</option>
+            <option value="zh">Chinese</option>
+            <option value="ja">Japanese</option>
+            <option value="ko">Korean</option>
+            <option value="ar">Arabic</option>
+            <option value="hi">Hindi</option>
+            <option value="it">Italian</option>
+            <option value="nl">Dutch</option>
+            <option value="ru">Russian</option>
+            <option value="tr">Turkish</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Income Level</div>
+          <div class="pills" id="incomePills">
+            <button class="pill active" data-value="all">All</button>
+            <button class="pill" data-value="low">Low</button>
+            <button class="pill" data-value="medium">Medium</button>
+            <button class="pill" data-value="high">High</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interests -->
+      <div class="section">
+        <div class="section-title">Interests</div>
+
+        <div class="interest-group">
+          <div class="interest-group-title">Technology</div>
+          <div class="interest-checks">
+            <label class="interest-check"><input type="checkbox" data-interest="Software">Software</label>
+            <label class="interest-check"><input type="checkbox" data-interest="Gadgets">Gadgets</label>
+            <label class="interest-check"><input type="checkbox" data-interest="AI">AI</label>
+            <label class="interest-check"><input type="checkbox" data-interest="Gaming">Gaming</label>
+            <label class="interest-check"><input type="checkbox" data-interest="Crypto">Crypto</label>
+          </div>
+        </div>
+
+        <div class="interest-group">
+          <div class="interest-group-title">Business</div>
+          <div class="interest-checks">
+            <label class="interest-check"><input type="checkbox" data-interest="Entrepreneurship">Entrepreneurship</label>
+            <label class="interest-check"><input type="checkbox" data-interest="Marketing">Marketing</label>
+            <label class="interest-check"><input type="checkbox" data-interest="Finance">Finance</label>
+            <label class="interest-check"><input type="checkbox" data-interest="Real Estate">Real Estate</label>
+          </div>
+        </div>
+
+        <div class="interest-group">
+          <div class="interest-group-title">Lifestyle</div>
+          <div class="interest-checks">
+            <label class="interest-check"><input type="checkbox" data-interest="Fitness">Fitness</label>
+            <label class="interest-check"><input type="checkbox" data-interest="Travel">Travel</label>
+            <label class="interest-check"><input type="checkbox" data-interest="Food">Food</label>
+            <label class="interest-check"><input type="checkbox" data-interest="Fashion">Fashion</label>
+            <label class="interest-check"><input type="checkbox" data-interest="Home">Home</label>
+          </div>
+        </div>
+
+        <div class="interest-group">
+          <div class="interest-group-title">Entertainment</div>
+          <div class="interest-checks">
+            <label class="interest-check"><input type="checkbox" data-interest="Music">Music</label>
+            <label class="interest-check"><input type="checkbox" data-interest="Movies">Movies</label>
+            <label class="interest-check"><input type="checkbox" data-interest="Sports">Sports</label>
+            <label class="interest-check"><input type="checkbox" data-interest="Art">Art</label>
+          </div>
+        </div>
+
+        <div class="interest-group">
+          <div class="interest-group-title">Education</div>
+          <div class="interest-checks">
+            <label class="interest-check"><input type="checkbox" data-interest="Online Courses">Online Courses</label>
+            <label class="interest-check"><input type="checkbox" data-interest="Professional Development">Prof. Dev</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Behaviors -->
+      <div class="section">
+        <div class="section-title">Behaviors</div>
+
+        <div class="field">
+          <div class="field-label">Purchase Behavior</div>
+          <div class="pills" id="purchasePills">
+            <button class="pill active" data-value="all">All</button>
+            <button class="pill" data-value="online">Online Shoppers</button>
+            <button class="pill" data-value="instore">In-store</button>
+            <button class="pill" data-value="both">Both</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Device</div>
+          <div class="pills" id="devicePills">
+            <button class="pill active" data-value="all">All</button>
+            <button class="pill" data-value="mobile">Mobile</button>
+            <button class="pill" data-value="desktop">Desktop</button>
+            <button class="pill" data-value="tablet">Tablet</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Engagement Level</div>
+          <div class="pills" id="engagementPills">
+            <button class="pill active" data-value="all">All</button>
+            <button class="pill" data-value="high">High</button>
+            <button class="pill" data-value="medium">Medium</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="reset-btn" onclick="resetAll()">Reset All Filters</button>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="main">
+    <!-- Estimated Reach -->
+    <div class="reach-card">
+      <div class="reach-label">Estimated Reach on <span id="reachPlatformName">Meta</span></div>
+      <div class="reach-number" id="reachNumber">2.4B - 3.0B</div>
+      <div class="reach-sub" id="reachSub">people</div>
+      <div class="reach-bar-track">
+        <div class="reach-bar-fill" id="reachBar" style="width:100%;background:linear-gradient(90deg,var(--accent),#f97316)"></div>
+      </div>
+      <div class="reach-bar-labels">
+        <span>0</span>
+        <span id="reachBarMax">3.0B total users</span>
+      </div>
+    </div>
+
+    <div class="cards-grid">
+      <!-- Audience Summary -->
+      <div class="summary-card">
+        <h3>Audience Summary</h3>
+        <ul class="summary-list" id="summaryList">
+          <li class="summary-empty">Select filters to define your audience</li>
+        </ul>
+      </div>
+
+      <!-- Quality Indicators (stacked in right column) -->
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="quality-card">
+          <div class="quality-label">Audience Size</div>
+          <div class="quality-badge" id="sizeBadge" style="background:#dcfce7;color:#16a34a">Good</div>
+        </div>
+        <div class="quality-card">
+          <div class="quality-label">Est. CPM</div>
+          <div class="quality-value" id="cpmValue">$8.50</div>
+        </div>
+        <div class="quality-card">
+          <div class="quality-label">Competition</div>
+          <div class="quality-badge" id="competitionBadge" style="background:#fef3c7;color:#d97706">Medium</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Platform Comparison -->
+    <div class="platform-compare">
+      <h3>Reach Across Platforms</h3>
+      <div class="platform-row">
+        <div class="platform-icon" style="background:#3b82f6">M</div>
+        <div class="platform-name">Meta</div>
+        <div class="platform-bar-wrap">
+          <div class="platform-bar-track"><div class="platform-bar-fill" id="barMeta" style="background:#3b82f6"></div></div>
+          <div class="platform-reach" id="reachMeta">-</div>
+        </div>
+      </div>
+      <div class="platform-row">
+        <div class="platform-icon" style="background:#10b981">G</div>
+        <div class="platform-name">Google</div>
+        <div class="platform-bar-wrap">
+          <div class="platform-bar-track"><div class="platform-bar-fill" id="barGoogle" style="background:#10b981"></div></div>
+          <div class="platform-reach" id="reachGoogle">-</div>
+        </div>
+      </div>
+      <div class="platform-row">
+        <div class="platform-icon" style="background:#0a66c2">Li</div>
+        <div class="platform-name">LinkedIn</div>
+        <div class="platform-bar-wrap">
+          <div class="platform-bar-track"><div class="platform-bar-fill" id="barLinkedin" style="background:#0a66c2"></div></div>
+          <div class="platform-reach" id="reachLinkedin">-</div>
+        </div>
+      </div>
+      <div class="platform-row">
+        <div class="platform-icon" style="background:#000">T</div>
+        <div class="platform-name">TikTok</div>
+        <div class="platform-bar-wrap">
+          <div class="platform-bar-track"><div class="platform-bar-fill" id="barTiktok" style="background:#111"></div></div>
+          <div class="platform-reach" id="reachTiktok">-</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Refinements -->
+    <div class="refinements">
+      <h3>Suggested Refinements</h3>
+      <div id="refinementsList">
+        <div class="tip"><span class="tip-icon">*</span><span>Select demographics, interests, or behaviors to see tailored suggestions.</span></div>
+      </div>
+    </div>
+
+    <!-- Export -->
+    <div class="export-bar">
+      <button class="export-btn export-primary" onclick="copyAudienceDef()">Copy Audience Definition</button>
+      <button class="export-btn export-secondary" onclick="exportJSON()">Export as JSON</button>
+    </div>
+  </div>
+</div>
+
+<div class="copied-toast" id="toast">Copied to clipboard</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ── Constants ──
+  const AGE_BRACKETS = ['18-24','25-34','35-44','45-54','55-64','65+'];
+  const AGE_POP_SHARE = [0.12, 0.17, 0.16, 0.15, 0.14, 0.26]; // rough global
+  const PLATFORMS = {
+    meta:     { name:'Meta',     base:3000000000, color:'#3b82f6' },
+    google:   { name:'Google',   base:4000000000, color:'#10b981' },
+    linkedin: { name:'LinkedIn', base:900000000,  color:'#0a66c2' },
+    tiktok:   { name:'TikTok',   base:1500000000, color:'#000'    }
+  };
+  const LANG_MAP = { all:1, en:0.28, es:0.08, fr:0.04, de:0.03, pt:0.04, zh:0.15, ja:0.02, ko:0.01, ar:0.05, hi:0.08, it:0.02, nl:0.01, ru:0.03, tr:0.02 };
+  const LOCATION_FACTOR = { country:0.6, state:0.15, city:0.04 };
+  const INCOME_FACTOR = { all:1, low:0.4, medium:0.35, high:0.25 };
+  const PURCHASE_FACTOR = { all:1, online:0.55, instore:0.30, both:0.15 };
+  const DEVICE_FACTOR = { all:1, mobile:0.62, desktop:0.30, tablet:0.08 };
+  const ENGAGEMENT_FACTOR = { all:1, high:0.20, medium:0.35 };
+
+  // Platform-specific multipliers for interest categories
+  const PLATFORM_INTEREST_MULT = {
+    meta:     { Technology:0.85, Business:0.70, Lifestyle:1.1, Entertainment:1.15, Education:0.75 },
+    google:   { Technology:1.0,  Business:1.0,  Lifestyle:0.95, Entertainment:0.90, Education:1.1 },
+    linkedin: { Technology:1.2,  Business:1.5,  Lifestyle:0.5, Entertainment:0.4, Education:1.4 },
+    tiktok:   { Technology:0.8,  Business:0.4,  Lifestyle:1.3, Entertainment:1.4, Education:0.6 }
+  };
+
+  const INTEREST_CATEGORIES = {
+    'Software':'Technology','Gadgets':'Technology','AI':'Technology','Gaming':'Technology','Crypto':'Technology',
+    'Entrepreneurship':'Business','Marketing':'Business','Finance':'Business','Real Estate':'Business',
+    'Fitness':'Lifestyle','Travel':'Lifestyle','Food':'Lifestyle','Fashion':'Lifestyle','Home':'Lifestyle',
+    'Music':'Entertainment','Movies':'Entertainment','Sports':'Entertainment','Art':'Entertainment',
+    'Online Courses':'Education','Professional Development':'Education'
+  };
+
+  // ── State ──
+  let activePlatform = 'meta';
+
+  // ── DOM refs ──
+  const $ = id => document.getElementById(id);
+
+  // ── Platform tabs ──
+  document.querySelectorAll('.platform-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activePlatform = tab.dataset.platform;
+      recalculate();
+    });
+  });
+
+  // ── Pill groups ──
+  function setupPills(containerId) {
+    const container = $(containerId);
+    container.querySelectorAll('.pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        container.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        recalculate();
+      });
+    });
+  }
+  setupPills('genderPills');
+  setupPills('locationTypePills');
+  setupPills('incomePills');
+  setupPills('purchasePills');
+  setupPills('devicePills');
+  setupPills('engagementPills');
+
+  // ── Interest checkboxes ──
+  document.querySelectorAll('.interest-check').forEach(label => {
+    label.addEventListener('click', function(e) {
+      // Toggle active class
+      const cb = this.querySelector('input');
+      // Let checkbox toggle naturally, then sync class
+      setTimeout(() => {
+        this.classList.toggle('active', cb.checked);
+        recalculate();
+      }, 0);
+    });
+  });
+
+  // ── Age range ──
+  const ageMinEl = $('ageMin');
+  const ageMaxEl = $('ageMax');
+
+  function updateAgeRange() {
+    let minV = parseInt(ageMinEl.value);
+    let maxV = parseInt(ageMaxEl.value);
+    if (minV > maxV) { const t = minV; minV = maxV; maxV = t; }
+    $('ageMinLabel').textContent = AGE_BRACKETS[minV].split('-')[0];
+    $('ageMaxLabel').textContent = AGE_BRACKETS[maxV].includes('+') ? '65+' : AGE_BRACKETS[maxV].split('-')[1];
+    const pct0 = (minV / 5) * 100;
+    const pct1 = (maxV / 5) * 100;
+    $('ageFill').style.left = pct0 + '%';
+    $('ageFill').style.width = (pct1 - pct0) + '%';
+    recalculate();
+  }
+  ageMinEl.addEventListener('input', updateAgeRange);
+  ageMaxEl.addEventListener('input', updateAgeRange);
+
+  // ── Location / language ──
+  $('locationInput').addEventListener('input', debounce(recalculate, 300));
+  $('languageSelect').addEventListener('change', recalculate);
+
+  // ── Get current selections ──
+  function getSelections() {
+    const pillVal = id => $(id).querySelector('.pill.active')?.dataset.value || 'all';
+
+    let ageMin = parseInt(ageMinEl.value);
+    let ageMax = parseInt(ageMaxEl.value);
+    if (ageMin > ageMax) { const t = ageMin; ageMin = ageMax; ageMax = t; }
+
+    const interests = [];
+    document.querySelectorAll('.interest-check input:checked').forEach(cb => {
+      interests.push(cb.dataset.interest);
+    });
+
+    const locations = $('locationInput').value.split(',').map(s => s.trim()).filter(Boolean);
+
+    return {
+      ageMin, ageMax,
+      gender: pillVal('genderPills'),
+      locationType: pillVal('locationTypePills'),
+      locations,
+      language: $('languageSelect').value,
+      income: pillVal('incomePills'),
+      interests,
+      purchase: pillVal('purchasePills'),
+      device: pillVal('devicePills'),
+      engagement: pillVal('engagementPills')
+    };
+  }
+
+  // ── Estimate reach for a given platform ──
+  function estimateReach(platform, sel) {
+    const p = PLATFORMS[platform];
+    let base = p.base;
+
+    // Age: sum of population shares for selected brackets
+    let ageFactor = 0;
+    for (let i = sel.ageMin; i <= sel.ageMax; i++) {
+      ageFactor += AGE_POP_SHARE[i];
+    }
+    base *= ageFactor;
+
+    // Gender
+    if (sel.gender !== 'all') base *= 0.48;
+
+    // Location
+    if (sel.locations.length > 0) {
+      const locFactor = LOCATION_FACTOR[sel.locationType] || 0.6;
+      base *= Math.min(locFactor * sel.locations.length, 0.85);
+    }
+
+    // Language
+    if (sel.language !== 'all') {
+      base *= (LANG_MAP[sel.language] || 0.05);
+    }
+
+    // Income
+    base *= INCOME_FACTOR[sel.income];
+
+    // Interests
+    if (sel.interests.length > 0) {
+      // Each interest targets ~15-25% of users, but overlaps add up
+      // More interests = broader (OR logic), but still narrower than "all"
+      const categories = {};
+      sel.interests.forEach(i => {
+        const cat = INTEREST_CATEGORIES[i];
+        if (!categories[cat]) categories[cat] = 0;
+        categories[cat]++;
+      });
+
+      let interestFactor = 0;
+      const catKeys = Object.keys(categories);
+      catKeys.forEach(cat => {
+        const count = categories[cat];
+        const catMult = (PLATFORM_INTEREST_MULT[platform] && PLATFORM_INTEREST_MULT[platform][cat]) || 1;
+        // Base ~18% per interest, overlap discount within same category
+        const catFactor = Math.min(0.18 * count * (1 - 0.08 * (count - 1)), 0.55);
+        interestFactor += catFactor * catMult;
+      });
+      // Cap at 0.70, floor at 0.05
+      interestFactor = Math.max(0.05, Math.min(interestFactor, 0.70));
+      base *= interestFactor;
+    }
+
+    // Behaviors
+    base *= PURCHASE_FACTOR[sel.purchase];
+    base *= DEVICE_FACTOR[sel.device];
+    base *= ENGAGEMENT_FACTOR[sel.engagement];
+
+    // Add variance for range (low = 0.8x, high = 1.15x)
+    const low = Math.round(base * 0.82);
+    const high = Math.round(base * 1.15);
+    return { low, high, mid: Math.round((low + high) / 2) };
+  }
+
+  // ── Format numbers ──
+  function fmtNum(n) {
+    if (n >= 1e9) return (n / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+    return n.toString();
+  }
+
+  // ── Recalculate everything ──
+  function recalculate() {
+    const sel = getSelections();
+
+    // Reach for active platform
+    const primary = estimateReach(activePlatform, sel);
+    const pInfo = PLATFORMS[activePlatform];
+    $('reachPlatformName').textContent = pInfo.name;
+    $('reachNumber').textContent = fmtNum(primary.low) + ' - ' + fmtNum(primary.high);
+    $('reachSub').textContent = 'people';
+
+    const reachPct = Math.min((primary.mid / pInfo.base) * 100, 100);
+    $('reachBar').style.width = reachPct + '%';
+    $('reachBarMax').textContent = fmtNum(pInfo.base) + ' total users';
+
+    // Platform comparison
+    const allReach = {};
+    let maxReach = 0;
+    Object.keys(PLATFORMS).forEach(pk => {
+      const r = estimateReach(pk, sel);
+      allReach[pk] = r;
+      if (r.high > maxReach) maxReach = r.high;
+    });
+
+    Object.keys(PLATFORMS).forEach(pk => {
+      const r = allReach[pk];
+      const barPct = maxReach > 0 ? (r.mid / maxReach) * 100 : 0;
+      const barId = 'bar' + pk.charAt(0).toUpperCase() + pk.slice(1);
+      const reachId = 'reach' + pk.charAt(0).toUpperCase() + pk.slice(1);
+      $(barId).style.width = barPct + '%';
+      $(reachId).textContent = fmtNum(r.low) + ' - ' + fmtNum(r.high);
+    });
+
+    // Audience summary
+    buildSummary(sel);
+
+    // Quality indicators
+    updateQuality(primary, pInfo);
+
+    // Refinements
+    updateRefinements(sel, primary, pInfo);
+  }
+
+  // ── Summary ──
+  function buildSummary(sel) {
+    const items = [];
+    const ageRange = AGE_BRACKETS[sel.ageMin].split('-')[0] + ' - ' + (AGE_BRACKETS[sel.ageMax].includes('+') ? '65+' : AGE_BRACKETS[sel.ageMax].split('-')[1]);
+    items.push('Age: ' + ageRange);
+
+    if (sel.gender !== 'all') items.push('Gender: ' + sel.gender.charAt(0).toUpperCase() + sel.gender.slice(1));
+    if (sel.locations.length > 0) items.push('Location (' + sel.locationType + '): ' + sel.locations.join(', '));
+    if (sel.language !== 'all') {
+      const langName = $('languageSelect').options[$('languageSelect').selectedIndex].text;
+      items.push('Language: ' + langName);
+    }
+    if (sel.income !== 'all') items.push('Income: ' + sel.income.charAt(0).toUpperCase() + sel.income.slice(1));
+    if (sel.interests.length > 0) items.push('Interests: ' + sel.interests.join(', '));
+    if (sel.purchase !== 'all') {
+      const labels = {online:'Online Shoppers',instore:'In-store',both:'Online + In-store'};
+      items.push('Purchase: ' + (labels[sel.purchase] || sel.purchase));
+    }
+    if (sel.device !== 'all') items.push('Device: ' + sel.device.charAt(0).toUpperCase() + sel.device.slice(1));
+    if (sel.engagement !== 'all') items.push('Engagement: ' + sel.engagement.charAt(0).toUpperCase() + sel.engagement.slice(1));
+
+    const list = $('summaryList');
+    if (items.length === 1 && sel.gender === 'all' && sel.locations.length === 0) {
+      list.innerHTML = '<li class="summary-empty">Select filters to define your audience</li>';
+    } else {
+      list.innerHTML = items.map(i => '<li><span class="summary-dot"></span><span>' + escapeHtml(i) + '</span></li>').join('');
+    }
+  }
+
+  // ── Quality ──
+  function updateQuality(reach, pInfo) {
+    const ratio = reach.mid / pInfo.base;
+
+    // Size badge
+    const sizeBadge = $('sizeBadge');
+    if (ratio < 0.001) {
+      sizeBadge.textContent = 'Too Narrow';
+      sizeBadge.style.background = '#fef2f2';
+      sizeBadge.style.color = '#dc2626';
+    } else if (ratio > 0.5) {
+      sizeBadge.textContent = 'Too Broad';
+      sizeBadge.style.background = '#fef3c7';
+      sizeBadge.style.color = '#d97706';
+    } else {
+      sizeBadge.textContent = 'Good';
+      sizeBadge.style.background = '#dcfce7';
+      sizeBadge.style.color = '#16a34a';
+    }
+
+    // CPM: more targeted = higher CPM
+    let baseCPM = { meta:8.5, google:7.2, linkedin:32, tiktok:6.0 }[activePlatform];
+    if (ratio < 0.01) baseCPM *= 1.8;
+    else if (ratio < 0.05) baseCPM *= 1.4;
+    else if (ratio < 0.2) baseCPM *= 1.1;
+    else if (ratio > 0.6) baseCPM *= 0.85;
+    $('cpmValue').textContent = '$' + baseCPM.toFixed(2);
+
+    // Competition
+    const compBadge = $('competitionBadge');
+    if (ratio < 0.02) {
+      compBadge.textContent = 'High';
+      compBadge.style.background = '#fef2f2';
+      compBadge.style.color = '#dc2626';
+    } else if (ratio < 0.15) {
+      compBadge.textContent = 'Medium';
+      compBadge.style.background = '#fef3c7';
+      compBadge.style.color = '#d97706';
+    } else {
+      compBadge.textContent = 'Low';
+      compBadge.style.background = '#dcfce7';
+      compBadge.style.color = '#16a34a';
+    }
+  }
+
+  // ── Refinements ──
+  function updateRefinements(sel, reach, pInfo) {
+    const tips = [];
+    const ratio = reach.mid / pInfo.base;
+
+    if (ratio > 0.5) {
+      tips.push({ icon:'>', text:'Your audience is very broad. Consider adding specific interests to improve targeting and reduce wasted spend.' });
+      if (sel.gender === 'all') tips.push({ icon:'>', text:'Consider targeting a specific gender if your product skews male or female.' });
+      if (sel.locations.length === 0) tips.push({ icon:'>', text:'Adding location targeting can significantly improve relevance and lower CPM.' });
+    } else if (ratio < 0.001) {
+      tips.push({ icon:'!', text:'Your audience may be too narrow. Consider broadening age range or removing some interest filters.' });
+      if (sel.interests.length > 3) tips.push({ icon:'!', text:'You have ' + sel.interests.length + ' interests selected. Try reducing to 2-3 core interests.' });
+      if (sel.engagement !== 'all') tips.push({ icon:'!', text:'Removing the engagement filter would significantly expand your reach.' });
+    } else {
+      tips.push({ icon:'*', text:'Audience size looks good for most campaign objectives.' });
+      if (sel.interests.length === 0) tips.push({ icon:'>', text:'Adding 1-2 interests can improve ad relevance and Quality Score.' });
+      if (sel.device === 'all' && activePlatform === 'tiktok') tips.push({ icon:'>', text:'TikTok is predominantly mobile. Consider targeting mobile devices only.' });
+      if (activePlatform === 'linkedin' && sel.interests.length > 0) {
+        const hasBiz = sel.interests.some(i => INTEREST_CATEGORIES[i] === 'Business');
+        if (!hasBiz) tips.push({ icon:'>', text:'LinkedIn audiences respond best to business/professional interests.' });
+      }
+      if (sel.locations.length > 0 && sel.language === 'all') {
+        tips.push({ icon:'>', text:'Consider adding language targeting to match your ad copy language.' });
+      }
+    }
+
+    if (sel.income === 'high' && activePlatform === 'tiktok') {
+      tips.push({ icon:'!', text:'TikTok skews younger with lower purchasing power. Consider Meta or Google for high-income targeting.' });
+    }
+
+    if (tips.length === 0) {
+      tips.push({ icon:'*', text:'Your audience looks well-defined. Ready to launch.' });
+    }
+
+    $('refinementsList').innerHTML = tips.map(t =>
+      '<div class="tip"><span class="tip-icon">' + t.icon + '</span><span>' + escapeHtml(t.text) + '</span></div>'
+    ).join('');
+  }
+
+  // ── Export ──
+  window.copyAudienceDef = function() {
+    const sel = getSelections();
+    const lines = [];
+    lines.push('AUDIENCE DEFINITION');
+    lines.push('Platform: ' + PLATFORMS[activePlatform].name);
+    lines.push('---');
+
+    const ageRange = AGE_BRACKETS[sel.ageMin].split('-')[0] + ' - ' + (AGE_BRACKETS[sel.ageMax].includes('+') ? '65+' : AGE_BRACKETS[sel.ageMax].split('-')[1]);
+    lines.push('Age: ' + ageRange);
+    lines.push('Gender: ' + (sel.gender === 'all' ? 'All' : sel.gender.charAt(0).toUpperCase() + sel.gender.slice(1)));
+
+    if (sel.locations.length > 0) {
+      lines.push('Location (' + sel.locationType + '): ' + sel.locations.join(', '));
+    }
+
+    const langName = $('languageSelect').options[$('languageSelect').selectedIndex].text;
+    lines.push('Language: ' + langName);
+    lines.push('Income: ' + (sel.income === 'all' ? 'All levels' : sel.income.charAt(0).toUpperCase() + sel.income.slice(1)));
+
+    if (sel.interests.length > 0) lines.push('Interests: ' + sel.interests.join(', '));
+
+    const purchaseLabels = {all:'All',online:'Online Shoppers',instore:'In-store',both:'Online + In-store'};
+    lines.push('Purchase Behavior: ' + purchaseLabels[sel.purchase]);
+    lines.push('Device: ' + (sel.device === 'all' ? 'All' : sel.device.charAt(0).toUpperCase() + sel.device.slice(1)));
+    lines.push('Engagement: ' + (sel.engagement === 'all' ? 'All' : sel.engagement.charAt(0).toUpperCase() + sel.engagement.slice(1)));
+
+    lines.push('---');
+    const primary = estimateReach(activePlatform, sel);
+    lines.push('Estimated Reach: ' + fmtNum(primary.low) + ' - ' + fmtNum(primary.high) + ' people');
+    lines.push('');
+    lines.push('Cross-platform:');
+    Object.keys(PLATFORMS).forEach(pk => {
+      const r = estimateReach(pk, sel);
+      lines.push('  ' + PLATFORMS[pk].name + ': ' + fmtNum(r.low) + ' - ' + fmtNum(r.high));
+    });
+    lines.push('');
+    lines.push('Generated by FreeAdStore Audience Builder');
+
+    navigator.clipboard.writeText(lines.join('\n')).then(() => showToast('Copied to clipboard'));
+  };
+
+  window.exportJSON = function() {
+    const sel = getSelections();
+    const ageRange = AGE_BRACKETS[sel.ageMin].split('-')[0] + ' - ' + (AGE_BRACKETS[sel.ageMax].includes('+') ? '65+' : AGE_BRACKETS[sel.ageMax].split('-')[1]);
+    const data = {
+      platform: PLATFORMS[activePlatform].name,
+      demographics: {
+        age: ageRange,
+        gender: sel.gender,
+        locations: sel.locations,
+        locationType: sel.locationType,
+        language: $('languageSelect').options[$('languageSelect').selectedIndex].text,
+        income: sel.income
+      },
+      interests: sel.interests,
+      behaviors: {
+        purchase: sel.purchase,
+        device: sel.device,
+        engagement: sel.engagement
+      },
+      estimatedReach: {}
+    };
+    Object.keys(PLATFORMS).forEach(pk => {
+      const r = estimateReach(pk, sel);
+      data.estimatedReach[PLATFORMS[pk].name] = { low: r.low, high: r.high };
+    });
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'audience-definition.json'; a.click();
+    URL.revokeObjectURL(url);
+    showToast('JSON downloaded');
+  };
+
+  // ── Reset ──
+  window.resetAll = function() {
+    // Age
+    ageMinEl.value = 0; ageMaxEl.value = 5;
+    // Pills
+    ['genderPills','locationTypePills','incomePills','purchasePills','devicePills','engagementPills'].forEach(id => {
+      $(id).querySelectorAll('.pill').forEach((p, i) => p.classList.toggle('active', i === 0));
+    });
+    // Location
+    $('locationInput').value = '';
+    // Language
+    $('languageSelect').value = 'all';
+    // Interests
+    document.querySelectorAll('.interest-check').forEach(l => {
+      l.classList.remove('active');
+      l.querySelector('input').checked = false;
+    });
+    updateAgeRange();
+  };
+
+  // ── Helpers ──
+  function escapeHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function debounce(fn, ms) {
+    let t; return function() { clearTimeout(t); t = setTimeout(fn, ms); };
+  }
+
+  function showToast(msg) {
+    const toast = $('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+
+  // ── Init ──
+  updateAgeRange();
+})();
+</script>
+</body>
+</html>

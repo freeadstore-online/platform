@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ad Funnel Visualizer - FreeAdStore</title>
+<meta name="description" content="Visualize your ad funnel from impressions to purchases. See drop-offs, conversion rates, CPA, ROAS, and optimization tips. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:rgba(239,68,68,.08);--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#059669;--green-bg:rgba(5,150,105,.08);--red:#ef4444;--red-bg:rgba(239,68,68,.08)}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:500;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 16px 16px}
+.sidebar-head{padding:16px 16px 0;flex-shrink:0}
+.sidebar-head h1{font-size:1.25rem;font-weight:800;margin-bottom:2px}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.main-scroll{flex:1;overflow-y:auto;padding:24px 32px}
+
+/* PANELS */
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 3px;font-weight:500}
+input[type=text],input[type=number]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;transition:border-color .15s}
+input[type=text]:focus,input[type=number]:focus{border-color:var(--accent)}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+
+/* STAGE ROW */
+.stage-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg);transition:border-color .15s}
+.stage-row:hover{border-color:var(--accent)}
+.stage-num{width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;font-size:.6rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stage-name{flex:1;font-size:.78rem;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stage-input{width:90px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-size:.8rem;font-family:inherit;background:var(--panel);text-align:right;outline:none;flex-shrink:0}
+.stage-input:focus{border-color:var(--accent)}
+.stage-remove{width:22px;height:22px;border:none;background:none;color:var(--muted);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;border-radius:4px;flex-shrink:0;transition:all .12s}
+.stage-remove:hover{background:var(--red-bg);color:var(--accent)}
+.stage-remove.locked{opacity:0;pointer-events:none}
+
+/* ADD STAGE */
+.add-stage-row{display:flex;gap:8px;margin-bottom:8px}
+.add-stage-name{flex:1;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-size:.78rem;font-family:inherit;background:var(--bg);outline:none}
+.add-stage-name:focus{border-color:var(--accent)}
+.add-stage-btn{padding:6px 12px;border-radius:6px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);transition:all .12s;white-space:nowrap}
+.add-stage-btn:hover{background:var(--accent);color:#fff}
+
+/* BUTTONS */
+.btn{padding:8px 16px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;border:none;transition:all .12s;display:inline-flex;align-items:center;gap:6px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover:not(:disabled){filter:brightness(1.1)}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line)}.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:5px 10px;font-size:.7rem}
+.btn-danger{background:none;color:var(--accent);border:1px solid var(--accent)}.btn-danger:hover{background:var(--accent-light)}
+.btn-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+
+/* SEPARATOR */
+.sep{border:none;border-top:1px solid var(--line);margin:16px 0}
+
+/* PRESET TEMPLATES */
+.template-grid{display:flex;flex-direction:column;gap:4px}
+.template-btn{padding:7px 10px;border:1px solid var(--line);border-radius:var(--radius);font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;background:var(--panel);text-align:left;transition:all .12s;display:flex;align-items:center;gap:8px}
+.template-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.template-icon{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:800;color:#fff;flex-shrink:0}
+
+/* MAIN AREA SECTIONS */
+.section{margin-bottom:28px}
+.section-title{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-title svg{width:20px;height:20px;color:var(--accent)}
+
+/* FUNNEL VISUAL */
+.funnel-container{display:flex;flex-direction:column;gap:0;align-items:center;padding:20px 0}
+.funnel-stage{position:relative;display:flex;align-items:center;justify-content:center;height:52px;transition:all .3s;border-radius:4px}
+.funnel-stage-inner{display:flex;align-items:center;justify-content:space-between;padding:0 16px;width:100%;height:100%;position:relative;z-index:1}
+.funnel-label{font-size:.78rem;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.2)}
+.funnel-value{font-size:.85rem;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.2)}
+.funnel-pct{font-size:.65rem;font-weight:600;color:rgba(255,255,255,.85);margin-left:6px}
+.funnel-dropoff{display:flex;align-items:center;justify-content:center;gap:6px;height:28px;font-size:.68rem;color:var(--muted);position:relative}
+.funnel-dropoff-arrow{color:var(--accent);font-weight:700;font-size:.75rem}
+.funnel-dropoff-bad{color:var(--accent);font-weight:700}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;color:var(--muted);padding:40px 20px;font-size:.85rem}
+.empty-state svg{margin-bottom:8px;opacity:.4}
+
+/* METRICS GRID */
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+.metric-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+.metric-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600;margin-bottom:4px}
+.metric-value{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:700;line-height:1.2}
+.metric-sub{font-size:.68rem;color:var(--muted);margin-top:2px}
+.metric-highlight{border-color:var(--accent);background:var(--red-bg)}
+
+/* STAGE CONVERSION TABLE */
+.conv-table{width:100%;border-collapse:collapse;font-size:.78rem}
+.conv-table th{text-align:left;padding:8px 10px;border-bottom:2px solid var(--line);font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600}
+.conv-table td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.conv-table tr:last-child td{border-bottom:none}
+.conv-table tr.worst-row td{background:var(--red-bg)}
+.rate-bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;min-width:60px;max-width:120px}
+.rate-fill{height:100%;border-radius:3px;transition:width .3s}
+
+/* BENCHMARKS */
+.bench-row{display:flex;align-items:center;gap:12px;padding:8px 10px;border-bottom:1px solid var(--line);font-size:.78rem}
+.bench-row:last-child{border-bottom:none}
+.bench-label{width:140px;font-weight:600;flex-shrink:0}
+.bench-yours{font-weight:700;min-width:60px}
+.bench-avg{color:var(--muted);min-width:80px;font-size:.72rem}
+.bench-indicator{font-weight:700;font-size:.72rem}
+.bench-good{color:var(--green)}
+.bench-bad{color:var(--accent)}
+
+/* TIPS */
+.tip-card{padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);margin-bottom:8px;display:flex;gap:10px;align-items:flex-start}
+.tip-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.8rem}
+.tip-icon-warn{background:#fef3c7;color:#d97706}
+.tip-icon-ok{background:var(--green-bg);color:var(--green)}
+.tip-content{flex:1}
+.tip-title{font-size:.78rem;font-weight:700;margin-bottom:2px}
+.tip-desc{font-size:.72rem;color:var(--muted);line-height:1.5}
+
+/* EXPORT */
+.export-row{display:flex;gap:8px;flex-wrap:wrap}
+.copied-toast{font-size:.7rem;color:var(--green);font-weight:600;opacity:0;transition:opacity .2s}
+.copied-toast.show{opacity:1}
+
+/* HIDDEN CANVAS */
+#exportCanvas{display:none}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:50vh}
+  .main-scroll{padding:16px}
+  .metrics-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:500px){
+  .metrics-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Controls -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/">&#8592; FreeAdStore</a>
+      <h1>Ad Funnel Visualizer</h1>
+      <p>Map your ad funnel. See drop-offs, CPA, ROAS, and optimization tips.</p>
+    </div>
+    <div class="sidebar-scroll">
+      <!-- Campaign Name -->
+      <div class="panel">
+        <label>Campaign Name</label>
+        <input type="text" id="inpCampaign" placeholder="e.g. Summer Sale 2026" autocomplete="off" spellcheck="false">
+      </div>
+
+      <hr class="sep">
+
+      <!-- Funnel Stages -->
+      <div class="panel">
+        <div class="panel-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          Funnel Stages
+        </div>
+        <div id="stagesList"></div>
+
+        <!-- Add Custom Stage -->
+        <div class="add-stage-row">
+          <input type="text" class="add-stage-name" id="inpNewStage" placeholder="Custom stage name...">
+          <button class="add-stage-btn" id="btnAddStage">+ Add Stage</button>
+        </div>
+      </div>
+
+      <hr class="sep">
+
+      <!-- Cost & Revenue -->
+      <div class="panel">
+        <div class="panel-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Cost &amp; Revenue (optional)
+        </div>
+        <label>Total Ad Spend ($)</label>
+        <input type="number" id="inpSpend" placeholder="e.g. 5000" min="0" step="any">
+        <label>Cost Per Click ($)</label>
+        <input type="number" id="inpCPC" placeholder="e.g. 1.50" min="0" step="any">
+        <label>Revenue Per Conversion ($)</label>
+        <input type="number" id="inpRevenue" placeholder="e.g. 50" min="0" step="any">
+      </div>
+
+      <hr class="sep">
+
+      <!-- Preset Funnels -->
+      <div class="panel">
+        <div class="panel-title">Preset Funnels</div>
+        <div class="template-grid" id="presets"></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-danger" id="btnReset" style="flex:1">Reset All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Funnel + Metrics -->
+  <div class="main">
+    <div class="main-scroll">
+      <!-- Visual Funnel -->
+      <div class="section">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          Visual Funnel
+          <span id="campaignLabel" style="font-family:'Manrope',sans-serif;font-size:.72rem;color:var(--muted);font-weight:500;margin-left:8px"></span>
+        </div>
+        <div id="funnelArea"></div>
+      </div>
+
+      <!-- Key Metrics -->
+      <div class="section">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+          Key Metrics
+        </div>
+        <div class="metrics-grid" id="metricsGrid"></div>
+      </div>
+
+      <!-- Stage Conversion Table -->
+      <div class="section">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+          Stage-by-Stage Conversion
+        </div>
+        <div id="convTableArea"></div>
+      </div>
+
+      <!-- Benchmarks -->
+      <div class="section">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Industry Benchmarks
+        </div>
+        <div id="benchArea"></div>
+      </div>
+
+      <!-- Optimization Tips -->
+      <div class="section">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          Optimization Tips
+        </div>
+        <div id="tipsArea"></div>
+      </div>
+
+      <!-- Export -->
+      <div class="section">
+        <div class="section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export
+        </div>
+        <div class="export-row">
+          <button class="btn btn-primary btn-sm" id="btnExportPNG">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            Export as PNG
+          </button>
+          <button class="btn btn-outline btn-sm" id="btnCopyText">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy as Text
+          </button>
+          <span class="copied-toast" id="toast"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<canvas id="exportCanvas"></canvas>
+
+<script>
+// ============================================================
+// DATA & STATE
+// ============================================================
+const DEFAULT_STAGES = [
+  { name: 'Impressions', value: 100000, locked: true },
+  { name: 'Clicks', value: 3000, locked: true },
+  { name: 'Landing Page Views', value: 2500, locked: true },
+  { name: 'Actions / Conversions', value: 150, locked: true },
+  { name: 'Purchases', value: 50, locked: false },
+];
+
+const PRESETS = [
+  {
+    label: 'E-commerce',
+    icon: 'EC',
+    color: '#7c3aed',
+    stages: [
+      { name: 'Impressions', value: 500000 },
+      { name: 'Clicks', value: 15000 },
+      { name: 'Product Views', value: 12000 },
+      { name: 'Add to Cart', value: 3600 },
+      { name: 'Purchases', value: 1080 },
+    ]
+  },
+  {
+    label: 'SaaS',
+    icon: 'S',
+    color: '#2563eb',
+    stages: [
+      { name: 'Impressions', value: 200000 },
+      { name: 'Clicks', value: 6000 },
+      { name: 'Landing Page Views', value: 5000 },
+      { name: 'Sign Ups', value: 500 },
+      { name: 'Activations', value: 200 },
+      { name: 'Subscriptions', value: 60 },
+    ]
+  },
+  {
+    label: 'Lead Gen',
+    icon: 'LG',
+    color: '#059669',
+    stages: [
+      { name: 'Impressions', value: 300000 },
+      { name: 'Clicks', value: 9000 },
+      { name: 'Landing Page Views', value: 7500 },
+      { name: 'Form Submits', value: 750 },
+      { name: 'Qualified Leads', value: 225 },
+    ]
+  },
+];
+
+// Industry benchmark rates (step-to-step conversion %)
+const BENCHMARKS = {
+  'ctr': { label: 'CTR (Click-through)', avg: 2.5 },
+  'landing': { label: 'Click to Landing', avg: 85 },
+  'action': { label: 'Landing to Action', avg: 5 },
+  'purchase': { label: 'Action to Purchase', avg: 30 },
+  'overall': { label: 'Overall Conversion', avg: 0.05 },
+};
+
+let stages = JSON.parse(JSON.stringify(DEFAULT_STAGES));
+
+// Funnel gradient colors (top=wide to bottom=narrow)
+const FUNNEL_COLORS = [
+  '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
+  '#d946ef', '#14b8a6', '#f59e0b', '#6366f1'
+];
+
+function $(id) { return document.getElementById(id); }
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmt(n) {
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return n.toLocaleString();
+}
+function pct(n) { return n.toFixed(1) + '%'; }
+function money(n) { return '$' + n.toFixed(2); }
+
+// ============================================================
+// RENDER SIDEBAR STAGES
+// ============================================================
+function renderStages() {
+  const list = $('stagesList');
+  list.innerHTML = stages.map((s, i) => {
+    const colorIdx = Math.round((i / Math.max(stages.length - 1, 1)) * (FUNNEL_COLORS.length - 1));
+    const color = FUNNEL_COLORS[colorIdx] || FUNNEL_COLORS[0];
+    return `<div class="stage-row" data-idx="${i}">
+      <span class="stage-num" style="background:${color}">${i + 1}</span>
+      <span class="stage-name" title="${esc(s.name)}">${esc(s.name)}</span>
+      <input type="number" class="stage-input" value="${s.value}" min="0" data-idx="${i}" placeholder="0">
+      <button class="stage-remove ${stages.length <= 2 ? 'locked' : ''}" data-remove="${i}" title="Remove stage">&#215;</button>
+    </div>`;
+  }).join('');
+
+  // Bind input events
+  list.querySelectorAll('.stage-input').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const idx = +e.target.dataset.idx;
+      stages[idx].value = Math.max(0, parseInt(e.target.value) || 0);
+      renderMain();
+    });
+  });
+
+  // Bind remove events
+  list.querySelectorAll('.stage-remove:not(.locked)').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const idx = +e.target.dataset.remove;
+      stages.splice(idx, 1);
+      renderStages();
+      renderMain();
+    });
+  });
+}
+
+// ============================================================
+// RENDER MAIN AREA
+// ============================================================
+function renderMain() {
+  renderCampaignLabel();
+  renderFunnel();
+  renderMetrics();
+  renderConvTable();
+  renderBenchmarks();
+  renderTips();
+}
+
+function renderCampaignLabel() {
+  const name = $('inpCampaign').value.trim();
+  $('campaignLabel').textContent = name ? '-- ' + name : '';
+}
+
+function getStageConversions() {
+  const convs = [];
+  for (let i = 1; i < stages.length; i++) {
+    const prev = stages[i - 1].value;
+    const curr = stages[i].value;
+    const rate = prev > 0 ? (curr / prev) * 100 : 0;
+    const dropoff = prev > 0 ? ((prev - curr) / prev) * 100 : 0;
+    convs.push({ from: stages[i - 1].name, to: stages[i].name, rate, dropoff, lost: prev - curr });
+  }
+  return convs;
+}
+
+function renderFunnel() {
+  const area = $('funnelArea');
+  const hasData = stages.some(s => s.value > 0);
+
+  if (!hasData) {
+    area.innerHTML = `<div class="empty-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      <div>Enter numbers for each stage to visualize your funnel</div>
+    </div>`;
+    return;
+  }
+
+  const maxVal = Math.max(...stages.map(s => s.value), 1);
+  const maxWidth = 100; // percentage
+  const minWidth = 20; // percentage - minimum bar width
+
+  const convs = getStageConversions();
+  const worstIdx = findWorstDropoff();
+
+  let html = '<div class="funnel-container">';
+  stages.forEach((s, i) => {
+    const widthPct = Math.max(minWidth, (s.value / maxVal) * maxWidth);
+    const colorIdx = Math.round((i / Math.max(stages.length - 1, 1)) * (FUNNEL_COLORS.length - 1));
+    const color = FUNNEL_COLORS[Math.min(colorIdx, FUNNEL_COLORS.length - 1)];
+
+    // Percentage of top
+    const topPct = stages[0].value > 0 ? (s.value / stages[0].value * 100) : 0;
+
+    html += `<div class="funnel-stage" style="width:${widthPct}%;background:${color}">
+      <div class="funnel-stage-inner">
+        <span class="funnel-label">${esc(s.name)}</span>
+        <span class="funnel-value">${fmt(s.value)}<span class="funnel-pct">${i > 0 ? pct(topPct) : '100%'}</span></span>
+      </div>
+    </div>`;
+
+    // Drop-off arrow between stages
+    if (i < stages.length - 1 && convs[i]) {
+      const isWorst = i === worstIdx;
+      html += `<div class="funnel-dropoff">
+        <span class="funnel-dropoff-arrow">&#x25BC;</span>
+        <span class="${isWorst ? 'funnel-dropoff-bad' : ''}">${pct(convs[i].rate)} pass through</span>
+        <span style="color:var(--muted)">&middot;</span>
+        <span class="${isWorst ? 'funnel-dropoff-bad' : ''}" style="color:${isWorst ? 'var(--accent)' : 'var(--muted)'}">-${pct(convs[i].dropoff)} drop-off${isWorst ? ' (biggest!)' : ''}</span>
+      </div>`;
+    }
+  });
+  html += '</div>';
+  area.innerHTML = html;
+}
+
+function findWorstDropoff() {
+  const convs = getStageConversions();
+  if (!convs.length) return -1;
+  let worstIdx = 0;
+  let worstDropoff = convs[0].dropoff;
+  convs.forEach((c, i) => {
+    if (c.dropoff > worstDropoff) {
+      worstDropoff = c.dropoff;
+      worstIdx = i;
+    }
+  });
+  return worstIdx;
+}
+
+function renderMetrics() {
+  const grid = $('metricsGrid');
+  const hasData = stages.some(s => s.value > 0);
+  if (!hasData) {
+    grid.innerHTML = '';
+    return;
+  }
+
+  const first = stages[0].value;
+  const last = stages[stages.length - 1].value;
+  const overallRate = first > 0 ? (last / first * 100) : 0;
+
+  const spend = parseFloat($('inpSpend').value) || 0;
+  const cpcInput = parseFloat($('inpCPC').value) || 0;
+  const revenue = parseFloat($('inpRevenue').value) || 0;
+
+  const convs = getStageConversions();
+  const worstIdx = findWorstDropoff();
+  const worstStage = worstIdx >= 0 ? convs[worstIdx] : null;
+
+  // CPA calculation
+  const cpa = (spend > 0 && last > 0) ? spend / last : 0;
+  // ROAS calculation
+  const totalRevenue = last * revenue;
+  const roas = (spend > 0 && revenue > 0) ? totalRevenue / spend : 0;
+  // Effective CPC
+  const clicks = stages.length > 1 ? stages[1].value : 0;
+  const effectiveCPC = (spend > 0 && clicks > 0) ? spend / clicks : cpcInput;
+
+  let cards = '';
+
+  cards += `<div class="metric-card">
+    <div class="metric-label">Overall Conversion</div>
+    <div class="metric-value">${pct(overallRate)}</div>
+    <div class="metric-sub">${esc(stages[0].name)} to ${esc(stages[stages.length - 1].name)}</div>
+  </div>`;
+
+  if (worstStage) {
+    cards += `<div class="metric-card metric-highlight">
+      <div class="metric-label">Biggest Drop-off</div>
+      <div class="metric-value" style="color:var(--accent)">${pct(worstStage.dropoff)}</div>
+      <div class="metric-sub">${esc(worstStage.from)} &rarr; ${esc(worstStage.to)}</div>
+    </div>`;
+  }
+
+  if (spend > 0 && last > 0) {
+    cards += `<div class="metric-card">
+      <div class="metric-label">CPA (Cost Per Acquisition)</div>
+      <div class="metric-value">${money(cpa)}</div>
+      <div class="metric-sub">${money(spend)} spend / ${fmt(last)} conversions</div>
+    </div>`;
+  }
+
+  if (spend > 0 && revenue > 0) {
+    cards += `<div class="metric-card" style="${roas >= 1 ? 'border-color:var(--green)' : 'border-color:var(--accent)'}">
+      <div class="metric-label">ROAS</div>
+      <div class="metric-value" style="color:${roas >= 1 ? 'var(--green)' : 'var(--accent)'}">${roas.toFixed(2)}x</div>
+      <div class="metric-sub">${money(totalRevenue)} revenue / ${money(spend)} spend</div>
+    </div>`;
+  }
+
+  if (effectiveCPC > 0) {
+    cards += `<div class="metric-card">
+      <div class="metric-label">${spend > 0 ? 'Effective' : ''} CPC</div>
+      <div class="metric-value">${money(effectiveCPC)}</div>
+      <div class="metric-sub">${spend > 0 ? 'From total spend' : 'Manual input'}</div>
+    </div>`;
+  }
+
+  if (revenue > 0 && last > 0) {
+    cards += `<div class="metric-card">
+      <div class="metric-label">Total Revenue</div>
+      <div class="metric-value" style="color:var(--green)">${money(totalRevenue)}</div>
+      <div class="metric-sub">${fmt(last)} &times; ${money(revenue)} each</div>
+    </div>`;
+  }
+
+  if (spend > 0 && revenue > 0) {
+    const profit = totalRevenue - spend;
+    cards += `<div class="metric-card">
+      <div class="metric-label">Net Profit</div>
+      <div class="metric-value" style="color:${profit >= 0 ? 'var(--green)' : 'var(--accent)'}">${profit >= 0 ? '+' : ''}${money(profit)}</div>
+      <div class="metric-sub">${profit >= 0 ? 'Profitable' : 'Losing money'}</div>
+    </div>`;
+  }
+
+  grid.innerHTML = cards;
+}
+
+function renderConvTable() {
+  const area = $('convTableArea');
+  const convs = getStageConversions();
+  if (!convs.length) {
+    area.innerHTML = '';
+    return;
+  }
+
+  const worstIdx = findWorstDropoff();
+
+  let html = `<table class="conv-table">
+    <thead><tr><th>Stage Transition</th><th>Conversion</th><th>Drop-off</th><th>Lost</th><th></th></tr></thead>
+    <tbody>`;
+
+  convs.forEach((c, i) => {
+    const barColor = c.rate >= 50 ? 'var(--green)' : c.rate >= 20 ? '#eab308' : 'var(--accent)';
+    html += `<tr class="${i === worstIdx ? 'worst-row' : ''}">
+      <td style="font-weight:600;font-size:.75rem">${esc(c.from)} &rarr; ${esc(c.to)}</td>
+      <td style="font-weight:700">${pct(c.rate)}</td>
+      <td style="color:${i === worstIdx ? 'var(--accent)' : 'var(--muted)'};font-weight:${i === worstIdx ? '700' : '400'}">${pct(c.dropoff)}</td>
+      <td style="color:var(--muted)">${fmt(c.lost)}</td>
+      <td><div class="rate-bar"><div class="rate-fill" style="width:${Math.min(c.rate, 100)}%;background:${barColor}"></div></div></td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  area.innerHTML = html;
+}
+
+function renderBenchmarks() {
+  const area = $('benchArea');
+  const hasData = stages.length >= 2 && stages[0].value > 0;
+  if (!hasData) {
+    area.innerHTML = '<div class="empty-state" style="padding:16px">Enter funnel data to see benchmark comparisons.</div>';
+    return;
+  }
+
+  const convs = getStageConversions();
+  let html = '';
+
+  // CTR: Impressions -> Clicks (first transition)
+  if (convs.length >= 1) {
+    const yourCTR = convs[0].rate;
+    const avgCTR = BENCHMARKS.ctr.avg;
+    const good = yourCTR >= avgCTR;
+    html += benchRow('CTR (Click-through)', pct(yourCTR), 'Avg: ' + pct(avgCTR), good);
+  }
+
+  // Click to Landing (second transition, if exists)
+  if (convs.length >= 2) {
+    const yourRate = convs[1].rate;
+    const avgRate = BENCHMARKS.landing.avg;
+    const good = yourRate >= avgRate;
+    html += benchRow('Click to Landing', pct(yourRate), 'Avg: ' + pct(avgRate), good);
+  }
+
+  // Landing to Action (third transition, if exists)
+  if (convs.length >= 3) {
+    const yourRate = convs[2].rate;
+    const avgRate = BENCHMARKS.action.avg;
+    const good = yourRate >= avgRate;
+    html += benchRow('Landing to Action', pct(yourRate), 'Avg: ' + pct(avgRate), good);
+  }
+
+  // Action to Purchase (fourth transition, if exists)
+  if (convs.length >= 4) {
+    const yourRate = convs[3].rate;
+    const avgRate = BENCHMARKS.purchase.avg;
+    const good = yourRate >= avgRate;
+    html += benchRow('Action to Purchase', pct(yourRate), 'Avg: ' + pct(avgRate), good);
+  }
+
+  // Overall
+  const first = stages[0].value;
+  const last = stages[stages.length - 1].value;
+  const overallRate = first > 0 ? (last / first * 100) : 0;
+  const avgOverall = BENCHMARKS.overall.avg;
+  html += benchRow('Overall Conversion', pct(overallRate), 'Avg: ' + pct(avgOverall), overallRate >= avgOverall);
+
+  area.innerHTML = html || '<div class="empty-state" style="padding:16px">Not enough stages for benchmarks.</div>';
+}
+
+function benchRow(label, yours, avg, good) {
+  return `<div class="bench-row">
+    <span class="bench-label">${label}</span>
+    <span class="bench-yours">Your: ${yours}</span>
+    <span class="bench-avg">${avg}</span>
+    <span class="bench-indicator ${good ? 'bench-good' : 'bench-bad'}">${good ? 'Above avg' : 'Below avg'}</span>
+  </div>`;
+}
+
+function renderTips() {
+  const area = $('tipsArea');
+  const convs = getStageConversions();
+  if (!convs.length || !stages.some(s => s.value > 0)) {
+    area.innerHTML = '<div class="empty-state" style="padding:16px">Enter funnel data to see optimization tips.</div>';
+    return;
+  }
+
+  const worstIdx = findWorstDropoff();
+  const tips = [];
+
+  // Generate tips based on where the biggest drop-off is
+  convs.forEach((c, i) => {
+    if (c.dropoff < 10) return; // Skip trivial drop-offs
+
+    const isWorst = i === worstIdx;
+    const fromLower = c.from.toLowerCase();
+    const toLower = c.to.toLowerCase();
+
+    // CTR (first stage)
+    if (i === 0 && c.rate < 3) {
+      tips.push({
+        warn: true,
+        worst: isWorst,
+        title: 'Low Click-Through Rate (' + pct(c.rate) + ')',
+        desc: 'Consider testing new headlines, images, or ad copy. Review audience targeting to ensure relevance. Try different ad formats (video, carousel) and use stronger calls to action.',
+      });
+    }
+
+    // Landing page
+    if ((fromLower.includes('click') && (toLower.includes('landing') || toLower.includes('page'))) && c.rate < 80) {
+      tips.push({
+        warn: true,
+        worst: isWorst,
+        title: 'Clicks Not Reaching Landing Page (' + pct(c.dropoff) + ' lost)',
+        desc: 'Page may be loading too slowly, or the URL might be broken. Check mobile responsiveness, reduce page weight, and ensure the landing page matches the ad promise.',
+      });
+    }
+
+    // Landing to action
+    if ((fromLower.includes('landing') || fromLower.includes('page') || fromLower.includes('view')) &&
+        (toLower.includes('action') || toLower.includes('convert') || toLower.includes('sign') || toLower.includes('form') || toLower.includes('cart'))) {
+      if (c.rate < 10) {
+        tips.push({
+          warn: true,
+          worst: isWorst,
+          title: 'Low Landing-to-Action Rate (' + pct(c.rate) + ')',
+          desc: 'Your landing page may need a clearer CTA, better value proposition, or more social proof. Test shorter forms, add trust signals (reviews, badges), and ensure message match with your ad.',
+        });
+      }
+    }
+
+    // Cart to purchase / action to purchase
+    if ((fromLower.includes('cart') || fromLower.includes('action') || fromLower.includes('convert')) &&
+        (toLower.includes('purchase') || toLower.includes('subscri') || toLower.includes('order'))) {
+      if (c.rate < 40) {
+        tips.push({
+          warn: true,
+          worst: isWorst,
+          title: 'Checkout/Purchase Drop-off (' + pct(c.dropoff) + ' lost)',
+          desc: 'Checkout friction, unexpected costs (shipping, taxes), or lack of trust signals may be causing abandonment. Simplify the checkout flow, offer guest checkout, show security badges, and consider exit-intent offers.',
+        });
+      }
+    }
+
+    // Generic worst stage tip if not covered
+    if (isWorst && !tips.some(t => t.worst)) {
+      tips.push({
+        warn: true,
+        worst: true,
+        title: 'Biggest Drop-off: ' + c.from + ' to ' + c.to + ' (' + pct(c.dropoff) + ')',
+        desc: 'This is where you are losing the most users. Investigate what happens at this stage. Common fixes: improve messaging continuity, reduce friction, add incentives, and A/B test different approaches.',
+      });
+    }
+  });
+
+  // ROAS tip
+  const spend = parseFloat($('inpSpend').value) || 0;
+  const revenue = parseFloat($('inpRevenue').value) || 0;
+  const last = stages[stages.length - 1].value;
+  if (spend > 0 && revenue > 0 && last > 0) {
+    const roas = (last * revenue) / spend;
+    if (roas < 1) {
+      tips.push({
+        warn: true,
+        worst: false,
+        title: 'Negative ROAS (' + roas.toFixed(2) + 'x)',
+        desc: 'You are spending more than you earn. Focus on improving the biggest drop-off stage, or reduce CPC by refining targeting. Consider pausing underperforming ad sets.',
+      });
+    } else if (roas >= 3) {
+      tips.push({
+        warn: false,
+        worst: false,
+        title: 'Strong ROAS (' + roas.toFixed(2) + 'x)',
+        desc: 'Your campaign is profitable. Consider scaling spend gradually while monitoring CPA. Test lookalike audiences and expand to new channels.',
+      });
+    }
+  }
+
+  // If all stages are healthy
+  if (!tips.length) {
+    tips.push({
+      warn: false,
+      worst: false,
+      title: 'Funnel Looks Healthy',
+      desc: 'No major drop-off points detected. Keep monitoring and run A/B tests to continuously optimize each stage.',
+    });
+  }
+
+  area.innerHTML = tips.map(t => `
+    <div class="tip-card">
+      <div class="tip-icon ${t.warn ? 'tip-icon-warn' : 'tip-icon-ok'}">${t.warn ? '!' : '&#10003;'}</div>
+      <div class="tip-content">
+        <div class="tip-title">${esc(t.title)}</div>
+        <div class="tip-desc">${esc(t.desc)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// PRESETS
+// ============================================================
+function buildPresets() {
+  const grid = $('presets');
+  grid.innerHTML = PRESETS.map((p, i) => `
+    <button class="template-btn" data-pi="${i}">
+      <span class="template-icon" style="background:${p.color}">${p.icon}</span>
+      ${esc(p.label)}
+    </button>
+  `).join('');
+
+  grid.onclick = e => {
+    const el = e.target.closest('[data-pi]');
+    if (!el) return;
+    const p = PRESETS[+el.dataset.pi];
+    stages = p.stages.map(s => ({ ...s, locked: false }));
+    renderStages();
+    renderMain();
+  };
+}
+
+// ============================================================
+// ADD CUSTOM STAGE
+// ============================================================
+function addCustomStage() {
+  const input = $('inpNewStage');
+  const name = input.value.trim();
+  if (!name) { input.focus(); return; }
+  stages.push({ name, value: 0, locked: false });
+  input.value = '';
+  renderStages();
+  renderMain();
+}
+
+// ============================================================
+// EXPORT AS PNG
+// ============================================================
+function exportPNG() {
+  const canvas = $('exportCanvas');
+  const ctx = canvas.getContext('2d');
+  const dpr = 2;
+  const w = 800;
+  const stageH = 50;
+  const gapH = 24;
+  const padTop = 80;
+  const padBot = 40;
+  const padX = 40;
+  const totalH = padTop + stages.length * stageH + (stages.length - 1) * gapH + padBot;
+
+  canvas.width = w * dpr;
+  canvas.height = totalH * dpr;
+  ctx.scale(dpr, dpr);
+
+  // Background
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, w, totalH);
+
+  // Title
+  ctx.fillStyle = '#1a1a1a';
+  ctx.font = 'bold 22px Manrope, system-ui, sans-serif';
+  const campaignName = $('inpCampaign').value.trim();
+  ctx.fillText(campaignName ? 'Ad Funnel: ' + campaignName : 'Ad Funnel', padX, 36);
+
+  // Subtitle
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '12px Manrope, system-ui, sans-serif';
+  ctx.fillText('Generated by FreeAdStore', padX, 56);
+
+  const maxVal = Math.max(...stages.map(s => s.value), 1);
+  const barMaxW = w - padX * 2;
+  const barMinW = barMaxW * 0.15;
+  const convs = getStageConversions();
+  const worstIdx = findWorstDropoff();
+
+  stages.forEach((s, i) => {
+    const y = padTop + i * (stageH + gapH);
+    const barW = Math.max(barMinW, (s.value / maxVal) * barMaxW);
+    const x = (w - barW) / 2;
+
+    const colorIdx = Math.round((i / Math.max(stages.length - 1, 1)) * (FUNNEL_COLORS.length - 1));
+    const color = FUNNEL_COLORS[Math.min(colorIdx, FUNNEL_COLORS.length - 1)];
+
+    // Bar
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(x, y, barW, stageH, 4);
+    ctx.fill();
+
+    // Label
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 13px Manrope, system-ui, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(s.name, x + 14, y + stageH / 2 + 5);
+
+    // Value
+    ctx.textAlign = 'right';
+    ctx.font = 'bold 14px Manrope, system-ui, sans-serif';
+    const topPct = stages[0].value > 0 ? (s.value / stages[0].value * 100) : 0;
+    const valText = fmt(s.value) + (i > 0 ? ' (' + pct(topPct) + ')' : ' (100%)');
+    ctx.fillText(valText, x + barW - 14, y + stageH / 2 + 5);
+
+    // Drop-off text between bars
+    if (i < stages.length - 1 && convs[i]) {
+      const isWorst = i === worstIdx;
+      ctx.textAlign = 'center';
+      ctx.fillStyle = isWorst ? '#ef4444' : '#6b7280';
+      ctx.font = (isWorst ? 'bold ' : '') + '11px Manrope, system-ui, sans-serif';
+      const dropText = pct(convs[i].rate) + ' pass | -' + pct(convs[i].dropoff) + ' drop-off' + (isWorst ? ' (biggest!)' : '');
+      ctx.fillText(dropText, w / 2, y + stageH + gapH / 2 + 4);
+    }
+  });
+
+  ctx.textAlign = 'left';
+
+  // Download
+  canvas.toBlob(blob => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    const name = campaignName ? campaignName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase() : 'funnel';
+    a.download = 'funnel-' + name + '.png';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('PNG exported');
+  });
+}
+
+// ============================================================
+// COPY AS TEXT
+// ============================================================
+function copyAsText() {
+  const campaignName = $('inpCampaign').value.trim();
+  const convs = getStageConversions();
+  const worstIdx = findWorstDropoff();
+
+  let lines = [];
+  lines.push(campaignName ? 'Ad Funnel: ' + campaignName : 'Ad Funnel');
+  lines.push('='.repeat(40));
+  lines.push('');
+
+  stages.forEach((s, i) => {
+    const topPct = stages[0].value > 0 ? (s.value / stages[0].value * 100) : 0;
+    const bar = '#'.repeat(Math.max(1, Math.round((s.value / Math.max(...stages.map(x => x.value), 1)) * 20)));
+    lines.push(`${i + 1}. ${s.name}: ${s.value.toLocaleString()} (${i > 0 ? pct(topPct) : '100%'})`);
+    lines.push(`   ${bar}`);
+    if (i < stages.length - 1 && convs[i]) {
+      lines.push(`   --> ${pct(convs[i].rate)} pass | -${pct(convs[i].dropoff)} drop-off${i === worstIdx ? ' (biggest!)' : ''}`);
+    }
+    lines.push('');
+  });
+
+  // Overall
+  const first = stages[0].value;
+  const last = stages[stages.length - 1].value;
+  const overall = first > 0 ? (last / first * 100) : 0;
+  lines.push('Overall Conversion: ' + pct(overall));
+
+  const spend = parseFloat($('inpSpend').value) || 0;
+  const revenue = parseFloat($('inpRevenue').value) || 0;
+  if (spend > 0 && last > 0) lines.push('CPA: ' + money(spend / last));
+  if (spend > 0 && revenue > 0) {
+    const roas = (last * revenue) / spend;
+    lines.push('ROAS: ' + roas.toFixed(2) + 'x');
+  }
+
+  const text = lines.join('\n');
+  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Copied to clipboard');
+  });
+}
+
+function showToast(msg) {
+  const toast = $('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// ============================================================
+// RESET
+// ============================================================
+function resetAll() {
+  stages = JSON.parse(JSON.stringify(DEFAULT_STAGES));
+  $('inpCampaign').value = '';
+  $('inpSpend').value = '';
+  $('inpCPC').value = '';
+  $('inpRevenue').value = '';
+  renderStages();
+  renderMain();
+}
+
+// ============================================================
+// BIND EVENTS
+// ============================================================
+function bindEvents() {
+  $('inpCampaign').addEventListener('input', renderCampaignLabel);
+  $('inpSpend').addEventListener('input', renderMain);
+  $('inpCPC').addEventListener('input', renderMain);
+  $('inpRevenue').addEventListener('input', renderMain);
+
+  $('btnAddStage').onclick = addCustomStage;
+  $('inpNewStage').addEventListener('keydown', e => { if (e.key === 'Enter') addCustomStage(); });
+  $('btnReset').onclick = resetAll;
+  $('btnExportPNG').onclick = exportPNG;
+  $('btnCopyText').onclick = copyAsText;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildPresets();
+renderStages();
+bindEvents();
+renderMain();
+</script>
+</body>
+</html>

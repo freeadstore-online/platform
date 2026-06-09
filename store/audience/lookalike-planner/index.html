@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Lookalike Planner - FreeAdStore</title>
+<meta name="description" content="Plan lookalike audiences by defining seed traits and expansion level. Estimated reach per platform at each tier. Free, no signup.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--accent:#ef4444;--accent-light:#fef2f2;--accent-dark:#dc2626;--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--panel:#ffffff;--line:#e5e7eb;--green:#10b981;--yellow:#f59e0b;--blue:#3b82f6;--purple:#8b5cf6}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+.top-bar{display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+.back{font-size:13px;font-weight:500;color:var(--accent);white-space:nowrap}
+.back:hover{text-decoration:underline}
+.top-title{font-family:'Fraunces',serif;font-size:1rem;font-weight:700;flex:1}
+.top-title span{color:var(--accent)}
+
+.layout{display:flex;height:calc(100vh - 45px);overflow:hidden}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);overflow-y:auto;display:flex;flex-direction:column}
+.main{flex:1;overflow-y:auto;padding:24px 32px;background:var(--bg)}
+
+.sidebar-header{padding:16px 16px 0;border-bottom:1px solid var(--line);padding-bottom:12px}
+.sidebar-header h2{font-size:15px;font-weight:800;margin-bottom:4px}
+.sidebar-header p{font-size:11px;color:var(--muted);line-height:1.4}
+.sidebar-content{padding:16px;flex:1;overflow-y:auto}
+
+.section{margin-bottom:20px}
+.section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.section-title::before{content:'';width:3px;height:14px;background:var(--accent);border-radius:2px}
+
+.field{margin-bottom:12px}
+.field-label{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px;display:block}
+
+.text-input{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg)}
+.text-input:focus{outline:none;border-color:var(--accent)}
+
+.select{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;font-family:inherit;background:var(--bg);color:var(--text);cursor:pointer}
+.select:focus{outline:none;border-color:var(--accent)}
+
+.pills{display:flex;flex-wrap:wrap;gap:5px}
+.pill{padding:5px 12px;border-radius:99px;border:1px solid var(--line);background:var(--panel);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;color:var(--muted)}
+.pill:hover{border-color:var(--accent);color:var(--text)}
+.pill.active{background:var(--accent);border-color:var(--accent);color:white}
+
+.interest-checks{display:flex;flex-wrap:wrap;gap:4px}
+.interest-check{display:flex;align-items:center;gap:4px;padding:4px 9px;border-radius:6px;border:1px solid var(--line);font-size:10.5px;font-weight:500;cursor:pointer;transition:all .15s;background:var(--panel);color:var(--muted);user-select:none}
+.interest-check:hover{border-color:var(--accent);color:var(--text)}
+.interest-check.active{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
+.interest-check input{display:none}
+
+/* Expansion slider */
+.slider-wrap{margin:8px 0}
+.slider-wrap input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:6px;background:var(--line);border-radius:3px;outline:none}
+.slider-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent);border:3px solid white;box-shadow:0 1px 4px rgba(0,0,0,.2);cursor:pointer}
+.slider-wrap input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--accent);border:3px solid white;box-shadow:0 1px 4px rgba(0,0,0,.2);cursor:pointer}
+.slider-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px}
+.slider-value{text-align:center;font-family:'Fraunces',serif;font-size:1.6rem;font-weight:700;color:var(--accent);margin:4px 0}
+
+.reset-btn{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);font-family:inherit;transition:all .15s;margin-top:8px}
+.reset-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Main area */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card h3{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+
+/* Concentric circles visualization */
+.circles-container{display:flex;justify-content:center;align-items:center;padding:20px 0 28px}
+.circles-wrap{position:relative;width:320px;height:320px}
+.circle-ring{position:absolute;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;transition:all .4s ease}
+.circle-label{position:absolute;font-size:10px;font-weight:700;white-space:nowrap;text-align:center;line-height:1.3}
+.circle-seed{background:var(--accent);border:none}
+.seed-text{color:white;font-size:11px;font-weight:700;text-align:center;line-height:1.3}
+
+/* Tier table */
+.tier-table{width:100%;border-collapse:collapse;font-size:12px}
+.tier-table th{text-align:left;font-weight:700;padding:8px 10px;border-bottom:2px solid var(--line);font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted)}
+.tier-table td{padding:8px 10px;border-bottom:1px solid var(--bg)}
+.tier-table tr:last-child td{border-bottom:none}
+.tier-pct{font-weight:700;color:var(--accent)}
+.tier-bar-cell{width:100px}
+.tier-bar{height:6px;border-radius:3px;transition:width .4s ease}
+
+/* Platform reach grid */
+.platform-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+@media(max-width:900px){.platform-grid{grid-template-columns:1fr}}
+.platform-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.platform-card h4{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.platform-card .p-icon{width:24px;height:24px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;color:white;flex-shrink:0}
+.tier-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.tier-row:last-child{margin-bottom:0}
+.tier-label{font-size:11px;font-weight:600;width:32px;flex-shrink:0}
+.tier-track{flex:1;height:5px;background:var(--line);border-radius:3px;overflow:hidden}
+.tier-fill{height:100%;border-radius:3px;transition:width .4s ease}
+.tier-reach{font-size:10px;font-weight:600;color:var(--muted);min-width:55px;text-align:right}
+
+/* Tips */
+.tips-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.tips-card h3{font-size:13px;font-weight:700;margin-bottom:10px}
+.tip{font-size:12px;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--bg);line-height:1.5;display:flex;gap:6px}
+.tip:last-child{border-bottom:none}
+.tip-icon{flex-shrink:0;font-size:14px}
+
+.export-bar{display:flex;gap:8px;flex-wrap:wrap}
+.export-btn{padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .15s}
+.export-primary{background:var(--accent);color:white}
+.export-primary:hover{background:var(--accent-dark)}
+.export-secondary{background:var(--panel);color:var(--text);border:1px solid var(--line)}
+.export-secondary:hover{border-color:var(--accent)}
+.copied-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:white;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transition:all .3s ease;z-index:999;pointer-events:none}
+.copied-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+@media(max-width:768px){
+  .layout{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;max-height:50vh;border-right:none;border-bottom:1px solid var(--line)}
+  .main{padding:16px}
+  .circles-wrap{width:240px;height:240px}
+  .platform-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a class="back" href="/">&larr; FreeAdStore</a>
+  <div class="top-title">Lookalike <span>Planner</span></div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>Seed Audience Traits</h2>
+      <p>Define your best customers. The platform will find similar users.</p>
+    </div>
+
+    <div class="sidebar-content">
+      <div class="section">
+        <div class="section-title">Demographics</div>
+
+        <div class="field">
+          <div class="field-label">Age Range</div>
+          <div class="pills" id="agePills">
+            <button class="pill active" data-value="18-24">18-24</button>
+            <button class="pill active" data-value="25-34">25-34</button>
+            <button class="pill active" data-value="35-44">35-44</button>
+            <button class="pill" data-value="45-54">45-54</button>
+            <button class="pill" data-value="55-64">55-64</button>
+            <button class="pill" data-value="65+">65+</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Gender</div>
+          <div class="pills" id="genderPills">
+            <button class="pill active" data-value="all">All</button>
+            <button class="pill" data-value="male">Male</button>
+            <button class="pill" data-value="female">Female</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Source Country</div>
+          <select class="select" id="countrySelect">
+            <option value="us">United States</option>
+            <option value="uk">United Kingdom</option>
+            <option value="ca">Canada</option>
+            <option value="au">Australia</option>
+            <option value="de">Germany</option>
+            <option value="fr">France</option>
+            <option value="br">Brazil</option>
+            <option value="in">India</option>
+            <option value="jp">Japan</option>
+            <option value="mx">Mexico</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Interests</div>
+        <div class="interest-checks" id="interestChecks">
+          <label class="interest-check active"><input type="checkbox" data-interest="Technology" checked>Technology</label>
+          <label class="interest-check"><input type="checkbox" data-interest="E-commerce">E-commerce</label>
+          <label class="interest-check"><input type="checkbox" data-interest="Finance">Finance</label>
+          <label class="interest-check"><input type="checkbox" data-interest="Health">Health</label>
+          <label class="interest-check"><input type="checkbox" data-interest="Travel">Travel</label>
+          <label class="interest-check"><input type="checkbox" data-interest="Food">Food</label>
+          <label class="interest-check"><input type="checkbox" data-interest="Fashion">Fashion</label>
+          <label class="interest-check"><input type="checkbox" data-interest="Fitness">Fitness</label>
+          <label class="interest-check"><input type="checkbox" data-interest="Gaming">Gaming</label>
+          <label class="interest-check"><input type="checkbox" data-interest="Education">Education</label>
+          <label class="interest-check"><input type="checkbox" data-interest="Real Estate">Real Estate</label>
+          <label class="interest-check"><input type="checkbox" data-interest="Automotive">Automotive</label>
+          <label class="interest-check"><input type="checkbox" data-interest="Parenting">Parenting</label>
+          <label class="interest-check"><input type="checkbox" data-interest="Luxury">Luxury</label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Behaviors</div>
+        <div class="interest-checks" id="behaviorChecks">
+          <label class="interest-check active"><input type="checkbox" data-behavior="Online Shoppers" checked>Online Shoppers</label>
+          <label class="interest-check"><input type="checkbox" data-behavior="Frequent Travelers">Frequent Travelers</label>
+          <label class="interest-check"><input type="checkbox" data-behavior="Early Adopters">Early Adopters</label>
+          <label class="interest-check"><input type="checkbox" data-behavior="Mobile-first">Mobile-first</label>
+          <label class="interest-check"><input type="checkbox" data-behavior="High Spenders">High Spenders</label>
+          <label class="interest-check"><input type="checkbox" data-behavior="Engaged Shoppers">Engaged Shoppers</label>
+          <label class="interest-check"><input type="checkbox" data-behavior="Subscribers">Subscribers</label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Expansion Level</div>
+        <div class="slider-value" id="expansionValue">1%</div>
+        <div class="slider-wrap">
+          <input type="range" id="expansionSlider" min="1" max="10" value="1" step="1">
+        </div>
+        <div class="slider-labels">
+          <span>1% (Most similar)</span>
+          <span>10% (Broadest)</span>
+        </div>
+      </div>
+
+      <button class="reset-btn" onclick="resetAll()">Reset All</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Concentric Circles Visualization -->
+    <div class="card">
+      <h3>Audience Expansion</h3>
+      <div class="circles-container">
+        <div class="circles-wrap" id="circlesWrap">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Tier Breakdown Table -->
+    <div class="card">
+      <h3>Reach by Expansion Tier</h3>
+      <table class="tier-table">
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>Similarity</th>
+            <th>Meta</th>
+            <th>Google</th>
+            <th>LinkedIn</th>
+            <th>TikTok</th>
+          </tr>
+        </thead>
+        <tbody id="tierTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Platform Cards -->
+    <div class="platform-grid" id="platformGrid"></div>
+
+    <!-- Tips -->
+    <div class="tips-card">
+      <h3>Best Practices</h3>
+      <div id="tipsList"></div>
+    </div>
+
+    <div class="export-bar">
+      <button class="export-btn export-primary" onclick="copyPlan()">Copy Lookalike Plan</button>
+      <button class="export-btn export-secondary" onclick="exportJSON()">Export JSON</button>
+    </div>
+  </div>
+</div>
+
+<div class="copied-toast" id="toast">Copied to clipboard</div>
+
+<script>
+(function(){
+  'use strict';
+
+  const PLATFORMS = {
+    meta:     { name:'Meta',     base:3000000000, color:'#3b82f6', icon:'M' },
+    google:   { name:'Google',   base:4000000000, color:'#10b981', icon:'G' },
+    linkedin: { name:'LinkedIn', base:900000000,  color:'#0a66c2', icon:'Li' },
+    tiktok:   { name:'TikTok',   base:1500000000, color:'#000',    icon:'T' }
+  };
+
+  const COUNTRY_POP = { us:0.045, uk:0.010, ca:0.006, au:0.004, de:0.013, fr:0.010, br:0.035, in:0.22, jp:0.018, mx:0.020 };
+  const COUNTRY_NAMES = { us:'United States', uk:'United Kingdom', ca:'Canada', au:'Australia', de:'Germany', fr:'France', br:'Brazil', in:'India', jp:'Japan', mx:'Mexico' };
+
+  const TIERS = [
+    { pct:1,  label:'1%',  similarity:'Highest', color:'var(--accent)' },
+    { pct:2,  label:'2%',  similarity:'Very High', color:'#f97316' },
+    { pct:3,  label:'3%',  similarity:'High', color:'var(--yellow)' },
+    { pct:5,  label:'5%',  similarity:'Medium', color:'var(--blue)' },
+    { pct:10, label:'10%', similarity:'Broad', color:'var(--purple)' }
+  ];
+
+  const $ = id => document.getElementById(id);
+
+  // Toggle pills (multi-select for age)
+  document.querySelectorAll('#agePills .pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      pill.classList.toggle('active');
+      recalculate();
+    });
+  });
+
+  // Single-select pills
+  function setupSinglePills(containerId) {
+    const container = $(containerId);
+    container.querySelectorAll('.pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        container.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        recalculate();
+      });
+    });
+  }
+  setupSinglePills('genderPills');
+
+  // Interest + behavior checkboxes
+  document.querySelectorAll('.interest-check').forEach(label => {
+    label.addEventListener('click', function() {
+      const cb = this.querySelector('input');
+      setTimeout(() => {
+        this.classList.toggle('active', cb.checked);
+        recalculate();
+      }, 0);
+    });
+  });
+
+  // Country + expansion slider
+  $('countrySelect').addEventListener('change', recalculate);
+  $('expansionSlider').addEventListener('input', function() {
+    $('expansionValue').textContent = this.value + '%';
+    recalculate();
+  });
+
+  function getSelections() {
+    const ages = [];
+    document.querySelectorAll('#agePills .pill.active').forEach(p => ages.push(p.dataset.value));
+    const gender = document.querySelector('#genderPills .pill.active')?.dataset.value || 'all';
+    const country = $('countrySelect').value;
+    const interests = [];
+    document.querySelectorAll('#interestChecks input:checked').forEach(cb => interests.push(cb.dataset.interest));
+    const behaviors = [];
+    document.querySelectorAll('#behaviorChecks input:checked').forEach(cb => behaviors.push(cb.dataset.behavior));
+    const expansion = parseInt($('expansionSlider').value);
+    return { ages, gender, country, interests, behaviors, expansion };
+  }
+
+  function seedSize(platform, sel) {
+    let base = PLATFORMS[platform].base;
+    const countryShare = COUNTRY_POP[sel.country] || 0.04;
+    base *= countryShare;
+
+    // Age narrowing
+    const allAges = 6;
+    const ageFactor = sel.ages.length > 0 ? sel.ages.length / allAges : 1;
+    base *= ageFactor;
+
+    // Gender
+    if (sel.gender !== 'all') base *= 0.48;
+
+    // Interests narrow by ~20% each
+    if (sel.interests.length > 0) {
+      const factor = Math.max(0.05, 0.3 * Math.pow(0.85, sel.interests.length - 1));
+      base *= factor;
+    }
+
+    // Behaviors narrow by ~15% each
+    if (sel.behaviors.length > 0) {
+      const factor = Math.max(0.08, 0.4 * Math.pow(0.88, sel.behaviors.length - 1));
+      base *= factor;
+    }
+
+    return Math.max(Math.round(base), 1000);
+  }
+
+  function lookalikeReach(seed, pct, platformBase) {
+    // Lookalike = pct% of platform's country population, adjusted by seed quality
+    const reach = platformBase * (pct / 100);
+    // Ensure lookalike is at least seed size
+    return Math.max(Math.round(reach), seed);
+  }
+
+  function fmtNum(n) {
+    if (n >= 1e9) return (n / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+    return n.toLocaleString();
+  }
+
+  function renderCircles(sel) {
+    const wrap = $('circlesWrap');
+    const size = wrap.offsetWidth || 320;
+    const expansion = sel.expansion;
+
+    // Build rings: seed + tiers up to selected expansion
+    const activeTiers = TIERS.filter(t => t.pct <= expansion);
+    if (activeTiers.length === 0) activeTiers.push(TIERS[0]);
+
+    let html = '';
+
+    // Outer rings first (drawn behind)
+    const totalRings = activeTiers.length + 1; // tiers + seed
+    for (let i = activeTiers.length - 1; i >= 0; i--) {
+      const tier = activeTiers[i];
+      const ringPct = 0.35 + (0.6 * (i + 1) / totalRings);
+      const ringSize = Math.round(size * ringPct);
+      const offset = Math.round((size - ringSize) / 2);
+      const opacity = 0.08 + (0.07 * (activeTiers.length - i));
+      html += '<div class="circle-ring" style="width:' + ringSize + 'px;height:' + ringSize + 'px;left:' + offset + 'px;top:' + offset + 'px;border-color:' + tier.color + ';background:' + tier.color.replace(')', ',' + opacity + ')').replace('rgb', 'rgba').replace('var(--accent)', 'rgba(239,68,68,' + opacity + ')').replace('var(--yellow)', 'rgba(245,158,11,' + opacity + ')').replace('var(--blue)', 'rgba(59,130,246,' + opacity + ')').replace('var(--purple)', 'rgba(139,92,246,' + opacity + ')') + '">';
+      html += '<span class="circle-label" style="bottom:-20px;color:' + tier.color.replace('var(--accent)', '#ef4444').replace('var(--yellow)', '#f59e0b').replace('var(--blue)', '#3b82f6').replace('var(--purple)', '#8b5cf6') + '">' + tier.label + ' lookalike</span>';
+      html += '</div>';
+    }
+
+    // Seed circle (center)
+    const seedSize = Math.round(size * 0.28);
+    const seedOffset = Math.round((size - seedSize) / 2);
+    html += '<div class="circle-ring circle-seed" style="width:' + seedSize + 'px;height:' + seedSize + 'px;left:' + seedOffset + 'px;top:' + seedOffset + 'px">';
+    html += '<span class="seed-text">Seed<br>Audience</span>';
+    html += '</div>';
+
+    wrap.innerHTML = html;
+  }
+
+  function renderTierTable(sel) {
+    const tbody = $('tierTableBody');
+    const countryShare = COUNTRY_POP[sel.country] || 0.04;
+    let html = '';
+
+    // Seed row
+    html += '<tr style="background:var(--accent-light)">';
+    html += '<td><span class="tier-pct">Seed</span></td>';
+    html += '<td style="font-size:11px;color:var(--muted)">Your customers</td>';
+    Object.keys(PLATFORMS).forEach(pk => {
+      const seed = seedSize(pk, sel);
+      html += '<td style="font-size:12px;font-weight:600">' + fmtNum(seed) + '</td>';
+    });
+    html += '</tr>';
+
+    // Tier rows
+    TIERS.forEach(tier => {
+      const isActive = tier.pct <= sel.expansion;
+      html += '<tr style="' + (isActive ? '' : 'opacity:0.35') + '">';
+      html += '<td><span class="tier-pct" style="color:' + tier.color.replace('var(--accent)', '#ef4444').replace('var(--yellow)', '#f59e0b').replace('var(--blue)', '#3b82f6').replace('var(--purple)', '#8b5cf6') + '">' + tier.label + '</span></td>';
+      html += '<td style="font-size:11px;color:var(--muted)">' + tier.similarity + '</td>';
+      Object.keys(PLATFORMS).forEach(pk => {
+        const base = PLATFORMS[pk].base * countryShare;
+        const reach = lookalikeReach(seedSize(pk, sel), tier.pct, base);
+        html += '<td style="font-size:12px;font-weight:' + (isActive ? '600' : '400') + '">' + fmtNum(reach) + '</td>';
+      });
+      html += '</tr>';
+    });
+
+    tbody.innerHTML = html;
+  }
+
+  function renderPlatformCards(sel) {
+    const grid = $('platformGrid');
+    const countryShare = COUNTRY_POP[sel.country] || 0.04;
+    let html = '';
+
+    Object.keys(PLATFORMS).forEach(pk => {
+      const p = PLATFORMS[pk];
+      const base = p.base * countryShare;
+      const seed = seedSize(pk, sel);
+      const maxReach = lookalikeReach(seed, 10, base);
+
+      html += '<div class="platform-card">';
+      html += '<h4><span class="p-icon" style="background:' + p.color + '">' + p.icon + '</span> ' + p.name + '</h4>';
+
+      // Seed row
+      html += '<div class="tier-row">';
+      html += '<span class="tier-label" style="color:var(--accent)">Seed</span>';
+      html += '<div class="tier-track"><div class="tier-fill" style="width:' + Math.max(2, (seed / maxReach) * 100) + '%;background:var(--accent)"></div></div>';
+      html += '<span class="tier-reach">' + fmtNum(seed) + '</span>';
+      html += '</div>';
+
+      TIERS.forEach(tier => {
+        const reach = lookalikeReach(seed, tier.pct, base);
+        const isActive = tier.pct <= sel.expansion;
+        const barColor = tier.color.replace('var(--accent)', '#ef4444').replace('var(--yellow)', '#f59e0b').replace('var(--blue)', '#3b82f6').replace('var(--purple)', '#8b5cf6');
+
+        html += '<div class="tier-row" style="' + (isActive ? '' : 'opacity:0.3') + '">';
+        html += '<span class="tier-label" style="color:' + barColor + '">' + tier.label + '</span>';
+        html += '<div class="tier-track"><div class="tier-fill" style="width:' + (reach / maxReach * 100) + '%;background:' + barColor + '"></div></div>';
+        html += '<span class="tier-reach">' + fmtNum(reach) + '</span>';
+        html += '</div>';
+      });
+
+      html += '</div>';
+    });
+
+    grid.innerHTML = html;
+  }
+
+  function renderTips(sel) {
+    const tips = [];
+    const seed = seedSize('meta', sel);
+
+    if (seed < 1000) {
+      tips.push({ icon:'!', text:'Your seed audience is very small. Meta recommends at least 1,000 people in your source audience for best results. Consider broadening your seed traits.' });
+    } else if (seed < 10000) {
+      tips.push({ icon:'>', text:'A seed audience of 1K-10K is workable but consider adding more source data (email lists, pixel data) for better matching.' });
+    } else {
+      tips.push({ icon:'*', text:'Seed audience size looks healthy. Larger seeds generally produce better-quality lookalikes.' });
+    }
+
+    if (sel.expansion <= 1) {
+      tips.push({ icon:'*', text:'1% lookalike is the most similar to your seed. Best for conversion campaigns where quality matters more than scale.' });
+    } else if (sel.expansion <= 3) {
+      tips.push({ icon:'*', text:sel.expansion + '% expansion balances similarity and reach. Good for most campaign types.' });
+    } else if (sel.expansion <= 5) {
+      tips.push({ icon:'>', text:sel.expansion + '% expansion is getting broad. Consider using this for awareness campaigns, not conversion.' });
+    } else {
+      tips.push({ icon:'!', text:sel.expansion + '% expansion is very broad. Audience similarity drops significantly. Reserve for top-of-funnel awareness only.' });
+    }
+
+    if (sel.interests.length === 0 && sel.behaviors.length === 0) {
+      tips.push({ icon:'>', text:'Adding interests or behaviors to your seed definition helps platforms find more relevant lookalikes.' });
+    }
+
+    if (sel.interests.length > 5) {
+      tips.push({ icon:'>', text:'Many interests selected (' + sel.interests.length + '). Fewer, more focused interests often produce better seed quality.' });
+    }
+
+    tips.push({ icon:'*', text:'Pro tip: Layer lookalike targeting with interest targeting on the platform for even better results.' });
+    tips.push({ icon:'*', text:'Create multiple ad sets at 1%, 1-3%, and 3-5% to test which expansion level performs best for your offer.' });
+
+    $('tipsList').innerHTML = tips.map(t =>
+      '<div class="tip"><span class="tip-icon">' + t.icon + '</span><span>' + t.text + '</span></div>'
+    ).join('');
+  }
+
+  function recalculate() {
+    const sel = getSelections();
+    renderCircles(sel);
+    renderTierTable(sel);
+    renderPlatformCards(sel);
+    renderTips(sel);
+  }
+
+  // Export
+  window.copyPlan = function() {
+    const sel = getSelections();
+    const countryShare = COUNTRY_POP[sel.country] || 0.04;
+    const lines = ['LOOKALIKE AUDIENCE PLAN', '---'];
+    lines.push('Source Country: ' + (COUNTRY_NAMES[sel.country] || sel.country));
+    lines.push('Age: ' + (sel.ages.length ? sel.ages.join(', ') : 'All'));
+    lines.push('Gender: ' + (sel.gender === 'all' ? 'All' : sel.gender));
+    if (sel.interests.length) lines.push('Interests: ' + sel.interests.join(', '));
+    if (sel.behaviors.length) lines.push('Behaviors: ' + sel.behaviors.join(', '));
+    lines.push('Expansion: ' + sel.expansion + '%');
+    lines.push('');
+    lines.push('ESTIMATED REACH BY TIER');
+    lines.push('---');
+
+    TIERS.filter(t => t.pct <= sel.expansion).forEach(tier => {
+      lines.push(tier.label + ' (' + tier.similarity + '):');
+      Object.keys(PLATFORMS).forEach(pk => {
+        const base = PLATFORMS[pk].base * countryShare;
+        const reach = lookalikeReach(seedSize(pk, sel), tier.pct, base);
+        lines.push('  ' + PLATFORMS[pk].name + ': ' + fmtNum(reach));
+      });
+    });
+    lines.push('');
+    lines.push('Generated by FreeAdStore Lookalike Planner');
+
+    navigator.clipboard.writeText(lines.join('\n')).then(() => showToast('Copied to clipboard'));
+  };
+
+  window.exportJSON = function() {
+    const sel = getSelections();
+    const countryShare = COUNTRY_POP[sel.country] || 0.04;
+    const data = {
+      seed: { country: sel.country, ages: sel.ages, gender: sel.gender, interests: sel.interests, behaviors: sel.behaviors },
+      expansion: sel.expansion + '%',
+      tiers: {}
+    };
+    TIERS.filter(t => t.pct <= sel.expansion).forEach(tier => {
+      data.tiers[tier.label] = {};
+      Object.keys(PLATFORMS).forEach(pk => {
+        const base = PLATFORMS[pk].base * countryShare;
+        data.tiers[tier.label][PLATFORMS[pk].name] = lookalikeReach(seedSize(pk, sel), tier.pct, base);
+      });
+    });
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'lookalike-plan.json'; a.click();
+    URL.revokeObjectURL(url);
+    showToast('JSON downloaded');
+  };
+
+  window.resetAll = function() {
+    document.querySelectorAll('#agePills .pill').forEach((p, i) => p.classList.toggle('active', i < 3));
+    document.querySelectorAll('#genderPills .pill').forEach((p, i) => p.classList.toggle('active', i === 0));
+    $('countrySelect').value = 'us';
+    document.querySelectorAll('.interest-check').forEach((l, i) => {
+      const cb = l.querySelector('input');
+      const shouldCheck = i === 0;
+      cb.checked = shouldCheck;
+      l.classList.toggle('active', shouldCheck);
+    });
+    $('expansionSlider').value = 1;
+    $('expansionValue').textContent = '1%';
+    recalculate();
+  };
+
+  function showToast(msg) {
+    const toast = $('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+
+  recalculate();
+})();
+</script>
+</body>
+</html>
