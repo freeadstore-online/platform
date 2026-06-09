@@ -3,342 +3,220 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Image Ad Generator - FreeAdStore</title>
-<meta name="description" content="Generate real AI images for ads using Pollinations AI. Add text overlays, choose platform sizes, download production-ready ad creatives. Free, no signup, no API key.">
+<title>AI Ad Image — Real AI Generation - FreeAdStore</title>
+<meta name="description" content="Generate real AI images for ads. Local model (downloads once, runs in browser via WebGPU) or cloud AI. No fakes.">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Bebas+Neue&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Bebas+Neue&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:rgba(239,68,68,.08);--accent-hover:#dc2626;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#22c55e;--yellow:#eab308;--red:#ef4444}
-body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
-a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:600;font-size:.85rem}
-a.back:hover{text-decoration:underline}
-a.back span{font-weight:400;color:var(--muted)}
+:root{--bg:#111;--text:#f3f4f6;--muted:#9ca3af;--accent:#ef4444;--panel:#1a1a1a;--line:#2d2d2d;--radius:10px;--green:#22c55e;--yellow:#eab308}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
 
-/* SPLIT LAYOUT */
 .app{display:flex;height:100vh}
-.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
-.sidebar-scroll{flex:1;overflow-y:auto;padding:0 20px 20px}
+.sidebar{width:380px;min-width:380px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
 .sidebar-head{padding:16px 20px 0;flex-shrink:0}
-.sidebar-head h1{font-family:'Fraunces',serif;font-size:1.35rem;font-weight:700;margin-bottom:2px;color:var(--text)}
-.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:14px;line-height:1.4}
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--bg)}
-.main-header{padding:16px 24px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;flex-wrap:wrap;gap:8px}
-.main-header h2{font-size:.85rem;font-weight:700;color:var(--text)}
-.main-actions{display:flex;gap:8px;flex-wrap:wrap}
+.sidebar-head h1{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.sidebar-head p{font-size:.75rem;color:var(--muted);line-height:1.4;margin-bottom:8px}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 20px 20px}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.main-head{padding:16px 24px 0;flex-shrink:0}
 .main-scroll{flex:1;overflow-y:auto;padding:16px 24px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center}
 
-/* PANELS */
-.panel{margin-bottom:16px}
-.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+.panel{margin-bottom:14px}
+.panel-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;color:var(--text)}
 label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 4px;font-weight:500}
-input[type=text],textarea,select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;transition:border-color .15s}
-input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent)}
-textarea{resize:vertical;min-height:80px}
+textarea,input[type=text]{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);color:var(--text);outline:none}
+textarea:focus,input:focus{border-color:var(--accent)}
 
-/* PILLS */
 .pill-row{display:flex;gap:5px;flex-wrap:wrap}
-.pill{padding:5px 12px;border:1px solid var(--line);border-radius:8px;font-size:.72rem;font-weight:600;cursor:pointer;background:var(--panel);font-family:inherit;transition:all .12s;color:var(--text)}
+.pill{padding:5px 12px;border:1px solid var(--line);border-radius:8px;font-size:.72rem;font-weight:600;cursor:pointer;background:var(--panel);font-family:inherit;color:var(--text);transition:all .12s}
 .pill:hover{border-color:var(--accent);color:var(--accent)}
 .pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 
-/* BUTTONS */
-.btn{padding:10px 20px;border-radius:var(--radius);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
-.btn-primary{background:var(--accent);color:#fff;width:100%}
-.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(239,68,68,.3)}
-.btn-primary:active{transform:translateY(0)}
-.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
-.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line);padding:7px 14px;font-size:.75rem;font-weight:600}
+.btn{padding:10px 20px;border-radius:var(--radius);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px;color:#fff}
+.btn-primary{background:var(--accent);width:100%}
+.btn-primary:hover{filter:brightness(1.1)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--line);padding:7px 14px;font-size:.75rem;font-weight:600}
 .btn-outline:hover{border-color:var(--accent);color:var(--accent)}
 .btn-sm{padding:6px 12px;font-size:.72rem}
-.btn-generate{padding:14px 20px;font-size:.9rem;margin-top:6px}
 
-/* PRESET BUTTONS */
-.preset-btn{display:block;width:100%;text-align:left;padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:.7rem;font-weight:500;cursor:pointer;background:var(--panel);font-family:inherit;transition:all .12s;color:var(--muted);margin-bottom:4px;line-height:1.3}
-.preset-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+.sep{height:1px;background:var(--line);margin:14px 0}
 
-/* CHECKBOXES */
-.check-list{display:flex;flex-direction:column;gap:4px}
-.check-item{display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer;font-size:.72rem;font-weight:500;color:var(--text)}
-.check-item input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;cursor:pointer;flex-shrink:0}
-.check-item:hover{color:var(--accent)}
+.source-card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .15s;margin-bottom:8px}
+.source-card:hover{border-color:var(--accent)}
+.source-card.active{border-color:var(--accent);background:rgba(239,68,68,.06)}
+.source-card h4{font-size:.8rem;font-weight:700;margin-bottom:2px;display:flex;align-items:center;gap:6px}
+.source-card p{font-size:.68rem;color:var(--muted);line-height:1.4}
+.source-card .badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.6rem;font-weight:700}
+.badge-green{background:rgba(34,197,94,.15);color:var(--green)}
+.badge-yellow{background:rgba(234,179,8,.15);color:var(--yellow)}
 
-/* COLOR INPUTS */
-.color-row{display:flex;align-items:center;gap:8px}
-.color-input{width:40px;height:32px;border:1px solid var(--line);border-radius:6px;padding:2px;cursor:pointer;background:var(--panel)}
-.color-input::-webkit-color-swatch-wrapper{padding:0}
-.color-input::-webkit-color-swatch{border:none;border-radius:4px}
+/* Progress */
+.progress-wrap{margin-top:8px;display:none}
+.progress-bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:3px;width:0%;transition:width .3s}
+.progress-text{font-size:.68rem;color:var(--muted);margin-top:4px}
 
-/* RANGE SLIDER */
-input[type=range]{width:100%;height:4px;-webkit-appearance:none;appearance:none;background:var(--line);border-radius:2px;outline:none;margin:6px 0}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.15)}
-input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.15)}
-.range-row{display:flex;align-items:center;gap:10px}
-.range-row input[type=range]{flex:1}
-.range-val{font-size:.72rem;font-weight:600;color:var(--muted);min-width:32px;text-align:right}
+/* States */
+.state{display:none;text-align:center;padding:40px 20px;max-width:500px}
+.state.visible{display:block}
+.state h3{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;margin-bottom:8px}
+.state p{font-size:.8rem;color:var(--muted);line-height:1.5}
 
-/* TOGGLE */
-.toggle-row{display:flex;align-items:center;gap:10px;margin:6px 0}
-.toggle{position:relative;width:36px;height:20px;background:var(--line);border-radius:10px;cursor:pointer;transition:background .15s;flex-shrink:0}
-.toggle.active{background:var(--accent)}
-.toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.1)}
-.toggle.active::after{transform:translateX(16px)}
-.toggle-label{font-size:.72rem;font-weight:600;color:var(--text)}
-
-/* SEPARATOR */
-.sep{height:1px;background:var(--line);margin:16px 0}
-
-/* EMPTY STATE */
-.empty-state{text-align:center;padding:40px 20px;max-width:420px}
-.empty-state-icon{font-size:3rem;margin-bottom:12px;opacity:.6}
-.empty-state h3{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;margin-bottom:8px}
-.empty-state p{font-size:.82rem;color:var(--muted);line-height:1.5}
-
-/* LOADING STATE */
-.loading-state{text-align:center;padding:40px 20px}
-.loading-spinner{width:48px;height:48px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+.spinner{width:40px;height:40px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-state h3{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;margin-bottom:6px}
-.loading-state p{font-size:.78rem;color:var(--muted)}
-.loading-state .slow-msg{margin-top:12px;font-size:.72rem;color:var(--yellow);font-weight:600;display:none}
 
-/* RESULT STATE */
-.result-state{width:100%;max-width:900px}
-.result-section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
-.result-section-title{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
-.result-canvas-wrap{display:flex;justify-content:center;align-items:center;overflow:hidden}
-.result-canvas-wrap canvas{display:block;max-width:100%;height:auto;border-radius:8px}
-.result-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center}
-.result-note{font-size:.7rem;color:var(--muted);line-height:1.5;margin-top:8px}
+.error-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:10px 14px;margin:12px 0;font-size:.75rem;color:var(--muted);text-align:left}
+.error-box strong{color:var(--accent)}
 
-/* ERROR STATE */
-.error-state{text-align:center;padding:40px 20px;max-width:420px}
-.error-state h3{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;color:var(--red);margin-bottom:8px}
-.error-state p{font-size:.82rem;color:var(--muted);line-height:1.5;margin-bottom:16px}
+/* Result */
+.result{width:100%;max-width:800px}
+.result canvas{display:block;max-width:100%;height:auto;border-radius:8px;border:1px solid var(--line)}
+.result-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.result-label{font-size:.68rem;color:var(--muted);margin-top:8px}
 
-/* PRO BANNER */
-.pro-banner{margin-top:24px;padding:16px 20px;background:linear-gradient(135deg,#1a1a1a 0%,#2d1f1f 100%);border-radius:12px;color:#fff;font-size:.72rem;line-height:1.5}
-.pro-banner strong{color:#f87171;font-size:.78rem}
-
-/* TOAST */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;padding:10px 20px;border-radius:10px;font-size:.78rem;font-weight:600;opacity:0;transition:all .3s ease;z-index:1000;pointer-events:none}
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:var(--bg);padding:10px 20px;border-radius:10px;font-size:.78rem;font-weight:600;opacity:0;transition:all .3s;z-index:1000;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* FORMAT TOGGLE */
-.format-toggle{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.format-toggle button{padding:5px 12px;font-size:.7rem;font-weight:600;border:none;background:var(--panel);cursor:pointer;font-family:inherit;color:var(--muted);transition:all .12s}
-.format-toggle button.active{background:var(--accent);color:#fff}
-.format-toggle button:not(:last-child){border-right:1px solid var(--line)}
-
-/* TIPS */
-.tips{background:var(--accent-light);border:1px solid rgba(239,68,68,.15);border-radius:var(--radius);padding:12px 14px;margin-top:12px}
-.tips-title{font-size:.7rem;font-weight:700;color:var(--accent);margin-bottom:6px}
-.tips ul{list-style:none;padding:0}
-.tips li{font-size:.7rem;color:var(--text);padding:2px 0;line-height:1.4}
-.tips li::before{content:'>';margin-right:6px;color:var(--accent);font-weight:700}
+/* Overlay controls */
+.overlay-section{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:14px}
+.overlay-section .panel-title{margin-bottom:6px}
+.color-row{display:flex;align-items:center;gap:8px}
+.color-input{width:36px;height:28px;border:1px solid var(--line);border-radius:6px;padding:1px 2px;cursor:pointer;background:var(--panel)}
+.range-row{display:flex;align-items:center;gap:8px}
+.range-row input[type=range]{flex:1;accent-color:var(--accent)}
+.range-val{font-size:.7rem;color:var(--muted);min-width:32px;text-align:right}
 
 @media(max-width:900px){
   .app{flex-direction:column;height:auto}
-  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:none}
-  .main{min-height:60vh}
-  .main-scroll{padding:16px}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line)}
+  .main-scroll{padding:16px;min-height:60vh}
 }
 </style>
 </head>
 <body>
 <div class="app">
-  <!-- LEFT: Controls -->
   <div class="sidebar">
     <div class="sidebar-head">
-      <a class="back" href="/"><span>&larr;</span> FreeAdStore</a>
-      <h1>Ad Background Maker</h1>
-      <p>Create ad backgrounds with text overlays. Choose procedural designs (instant) or real AI photos (cloud, may be slow).</p>
+      <a href="/" style="font-size:.82rem;font-weight:600">&larr; FreeAdStore</a>
+      <h1>AI Ad Image</h1>
+      <p>Real AI image generation. No fakes, no templates. Choose local model or cloud API.</p>
     </div>
     <div class="sidebar-scroll">
 
       <div class="panel">
         <div class="panel-title">Image Source</div>
-        <div class="pill-row" id="sourcePills">
-          <button class="pill active" data-source="local" title="Gradients, shapes, patterns — not AI">Designed (instant)</button>
-          <button class="pill" data-source="cloud" title="Real AI-generated photographs">AI Photo (cloud)</button>
+        <div class="source-card active" id="srcLocal" onclick="selectSource('local')">
+          <h4>Local AI Model <span class="badge badge-green">real AI</span></h4>
+          <p>Downloads a real diffusion model (~2GB first time, cached after). Runs entirely in your browser via WebGPU. Takes 30-90 seconds to generate. <strong>Always works, no rate limits.</strong></p>
+          <div class="progress-wrap" id="modelProgress">
+            <div class="progress-bar"><div class="progress-fill" id="modelProgressFill"></div></div>
+            <div class="progress-text" id="modelProgressText">Downloading model...</div>
+          </div>
         </div>
-        <div id="sourceNote" style="font-size:.68rem;color:var(--muted);margin-top:6px;line-height:1.4">Procedural backgrounds — gradients, shapes, and patterns. Not AI-generated. Instant, always works.</div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-title">Image Prompt</div>
-        <textarea id="imgPrompt" placeholder="A steaming latte on a rustic wooden table, warm morning light, cozy cafe atmosphere" rows="4"></textarea>
-      </div>
-
-      <div class="panel">
-        <div class="panel-title">Prompt Presets</div>
-        <button class="preset-btn" data-preset="Product on clean white background, studio lighting, professional product photography">Product on white background</button>
-        <button class="preset-btn" data-preset="Happy people using technology, modern office, natural lighting, diverse team collaborating">People using technology</button>
-        <button class="preset-btn" data-preset="Delicious food closeup, restaurant quality plating, shallow depth of field, warm lighting">Delicious food closeup</button>
-        <button class="preset-btn" data-preset="Fashion model in urban setting, editorial style photography, golden hour, city backdrop">Fashion editorial</button>
-        <button class="preset-btn" data-preset="Nature landscape, sunrise over mountains, inspirational, dramatic sky, vivid colors">Nature / inspirational</button>
-        <button class="preset-btn" data-preset="Minimalist flat lay arrangement, pastel colors, clean composition, top-down view">Minimalist flat lay</button>
-      </div>
-
-      <div class="panel">
-        <div class="panel-title">Style Modifiers</div>
-        <div class="check-list" id="styleModifiers">
-          <label class="check-item"><input type="checkbox" value="professional advertising photography"> Professional ad photography</label>
-          <label class="check-item"><input type="checkbox" value="high quality, 8k, sharp detail"> High quality, 8k</label>
-          <label class="check-item"><input type="checkbox" value="clean background, product focus"> Clean background, product focus</label>
-          <label class="check-item"><input type="checkbox" value="vibrant colors, eye-catching composition"> Vibrant colors, eye-catching</label>
-          <label class="check-item"><input type="checkbox" value="soft lighting, warm tones"> Soft lighting, warm tones</label>
-          <label class="check-item"><input type="checkbox" value="modern, minimalist aesthetic"> Modern, minimalist</label>
+        <div class="source-card" id="srcCloud" onclick="selectSource('cloud')">
+          <h4>Cloud AI <span class="badge badge-yellow">may rate-limit</span></h4>
+          <p>Uses Pollinations API (free, no signup). Faster (~10-30s) but may fail if the service is busy or rate-limited.</p>
         </div>
       </div>
 
       <div class="sep"></div>
+
+      <div class="panel">
+        <div class="panel-title">Describe Your Image</div>
+        <textarea id="prompt" rows="3" placeholder="A steaming latte on a rustic wooden table, warm morning light, cozy cafe atmosphere"></textarea>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Quick Prompts</div>
+        <div class="pill-row" id="presets">
+          <button class="pill" data-p="Product on clean white background, studio lighting">Product shot</button>
+          <button class="pill" data-p="Happy people using technology, modern office">Office team</button>
+          <button class="pill" data-p="Delicious food closeup, restaurant quality, warm lighting">Food photo</button>
+          <button class="pill" data-p="Fashion model in urban setting, golden hour">Fashion</button>
+          <button class="pill" data-p="Nature landscape, sunrise over mountains, vivid colors">Nature</button>
+          <button class="pill" data-p="Minimalist flat lay, pastel colors, top-down view">Flat lay</button>
+        </div>
+      </div>
 
       <div class="panel">
         <div class="panel-title">Platform Size</div>
-        <div class="pill-row" id="platformPills">
-          <button class="pill active" data-w="1080" data-h="1080">Instagram</button>
-          <button class="pill" data-w="1200" data-h="628">Facebook</button>
-          <button class="pill" data-w="1080" data-h="1920">Story</button>
-          <button class="pill" data-w="1200" data-h="627">LinkedIn</button>
+        <div class="pill-row" id="sizePills">
+          <button class="pill active" data-w="512" data-h="512">Square</button>
+          <button class="pill" data-w="768" data-h="512">Landscape</button>
+          <button class="pill" data-w="512" data-h="768">Portrait</button>
         </div>
+        <div style="font-size:.65rem;color:var(--muted);margin-top:4px">Local AI generates at 512px (model limit). Cloud can go higher.</div>
       </div>
 
       <div class="sep"></div>
 
-      <div class="panel">
-        <div class="panel-title">Ad Text Overlay</div>
+      <div class="overlay-section">
+        <div class="panel-title">Text Overlay (optional)</div>
         <label>Headline</label>
         <input type="text" id="headline" placeholder="Your Headline Here" maxlength="60">
-        <label>Subtext</label>
-        <input type="text" id="subtext" placeholder="Supporting message or tagline" maxlength="100">
-        <label>CTA Button Text</label>
-        <input type="text" id="ctaText" placeholder="Shop Now" maxlength="30">
-
-        <label>Text Color</label>
-        <div class="color-row">
-          <input type="color" class="color-input" id="textColor" value="#ffffff">
-          <span style="flex:1;font-size:.72rem;color:var(--muted)" id="textColorHex">#ffffff</span>
-        </div>
-
-        <label>Text Position</label>
-        <div class="pill-row" id="textPosPills">
-          <button class="pill" data-pos="top">Top</button>
-          <button class="pill active" data-pos="center">Center</button>
-          <button class="pill" data-pos="bottom">Bottom</button>
-        </div>
-
-        <div class="toggle-row" style="margin-top:10px">
-          <div class="toggle active" id="overlayToggle"></div>
-          <span class="toggle-label">Dark overlay</span>
-        </div>
-        <div id="overlayOpacityWrap">
-          <label>Overlay Opacity</label>
+        <label>CTA</label>
+        <input type="text" id="cta" placeholder="Shop Now" maxlength="30">
+        <label>Brand</label>
+        <input type="text" id="brand" placeholder="Brand Name" maxlength="30">
+        <div style="margin-top:8px">
+          <label>Darken overlay</label>
           <div class="range-row">
-            <input type="range" id="overlayOpacity" min="0" max="80" value="40">
-            <span class="range-val" id="overlayOpacityVal">40%</span>
+            <input type="range" id="overlayAmt" min="0" max="70" value="30">
+            <span class="range-val" id="overlayVal">30%</span>
           </div>
         </div>
-
-        <label>Overlay Font</label>
-        <div class="pill-row" id="fontPills">
-          <button class="pill active" data-font="'Bebas Neue', sans-serif" data-name="bold">Bold</button>
-          <button class="pill" data-font="'Manrope', sans-serif" data-name="clean">Clean</button>
-          <button class="pill" data-font="'Playfair Display', serif" data-name="elegant">Elegant</button>
-        </div>
       </div>
 
-      <div class="sep"></div>
-
-      <div class="panel">
-        <div class="panel-title">Brand</div>
-        <label>Brand Name</label>
-        <input type="text" id="brandName" placeholder="Your Brand" maxlength="40">
+      <div style="margin-top:14px">
+        <button class="btn btn-primary" id="genBtn" onclick="generate()">Generate Image</button>
       </div>
 
-      <div class="sep"></div>
-
-      <button class="btn btn-primary btn-generate" id="generateBtn">Generate Image</button>
-      <button class="btn btn-outline btn-generate" id="regenerateBtn" style="display:none;margin-top:6px;width:100%">Regenerate</button>
-
-      <div class="pro-banner">
-        <strong>Powered by Pollinations AI</strong> &mdash; free, open-source image generation. For production-quality AI ads, try ProAdStore (coming soon).
-      </div>
     </div>
   </div>
 
-  <!-- RIGHT: Output -->
   <div class="main">
-    <div class="main-header">
-      <h2 id="mainTitle">Preview</h2>
-      <div class="main-actions" id="mainActions" style="display:none">
-        <div class="format-toggle" id="formatToggle">
-          <button class="active" data-fmt="png">PNG</button>
-          <button data-fmt="jpg">JPG</button>
-        </div>
-      </div>
-    </div>
     <div class="main-scroll" id="mainScroll">
 
-      <!-- EMPTY STATE -->
-      <div class="empty-state" id="stateEmpty">
-        <div class="empty-state-icon">&#x1F3A8;</div>
-        <h3>Describe your ad image</h3>
-        <p>AI generates a unique image in 10-15 seconds. Add text overlays to turn it into a finished ad creative.</p>
+      <!-- EMPTY -->
+      <div class="state visible" id="stateEmpty">
+        <h3>Describe your image, hit Generate</h3>
+        <p>Real AI generates a unique image from your description. Local model downloads once (~2GB), then runs entirely in your browser.</p>
+        <div id="webgpuCheck" style="margin-top:16px;font-size:.75rem"></div>
       </div>
 
-      <!-- LOADING STATE -->
-      <div class="loading-state" id="stateLoading" style="display:none">
-        <div class="loading-spinner"></div>
-        <h3>Generating your ad image...</h3>
-        <p>This usually takes 10-15 seconds</p>
-        <p class="slow-msg" id="slowMsg">Taking longer than usual... hang tight.</p>
+      <!-- LOADING -->
+      <div class="state" id="stateLoading">
+        <div class="spinner"></div>
+        <h3 id="loadingTitle">Generating image...</h3>
+        <p id="loadingText">This takes 30-90 seconds with the local model.</p>
       </div>
 
-      <!-- ERROR STATE -->
-      <div class="error-state" id="stateError" style="display:none">
-        <h3>Image generation failed</h3>
-        <p id="errorMsg">Try a simpler prompt or try again in a moment.</p>
-        <div id="errorDetail" style="margin:12px 0;padding:10px 14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;font-size:.75rem;color:var(--muted);display:none">
-          <strong style="color:var(--accent)">Details:</strong> <span id="errorDetailText"></span>
+      <!-- ERROR -->
+      <div class="state" id="stateError">
+        <h3 style="color:var(--accent)">Generation failed</h3>
+        <p id="errorMsg">Something went wrong.</p>
+        <div class="error-box" id="errorDetail" style="display:none">
+          <strong>Details:</strong> <span id="errorDetailText"></span>
         </div>
-        <div id="errorHelp" style="margin-bottom:14px;font-size:.75rem;color:var(--muted);line-height:1.6;display:none"></div>
-        <button class="btn btn-primary" style="width:auto;display:inline-flex" onclick="doGenerate()">Try Again</button>
+        <div id="errorHelp" style="margin-top:8px;font-size:.72rem;color:var(--muted);line-height:1.6"></div>
+        <button class="btn btn-primary" style="width:auto;margin-top:14px" onclick="generate()">Try Again</button>
       </div>
 
-      <!-- RESULT STATE -->
-      <div class="result-state" id="stateResult" style="display:none">
-        <div class="result-section">
-          <div class="result-section-title" id="resultTitle">Generated Background</div>
-          <div class="result-canvas-wrap">
-            <canvas id="imageCanvas"></canvas>
-          </div>
+      <!-- RESULT -->
+      <div class="state" id="stateResult">
+        <div class="result">
+          <canvas id="resultCanvas"></canvas>
           <div class="result-actions">
-            <button class="btn btn-outline btn-sm" onclick="downloadImage()">Download Image Only</button>
+            <button class="btn btn-primary btn-sm" onclick="download('png')">Download PNG</button>
+            <button class="btn btn-outline btn-sm" onclick="download('jpg')">Download JPG</button>
+            <button class="btn btn-outline btn-sm" onclick="generate()">Regenerate</button>
           </div>
-        </div>
-
-        <div class="result-section" id="adSection" style="display:none">
-          <div class="result-section-title">Ad with Text Overlay</div>
-          <div class="result-canvas-wrap">
-            <canvas id="adCanvas"></canvas>
-          </div>
-          <div class="result-actions">
-            <button class="btn btn-primary btn-sm" style="width:auto" onclick="downloadAd()">Download Ad</button>
-          </div>
-        </div>
-
-        <div class="result-note" id="resultNote">Adjust your prompt or switch modes for different results.</div>
-
-        <div class="tips">
-          <div class="tips-title">Tips for better results</div>
-          <ul>
-            <li>Be specific about lighting, angle, and mood</li>
-            <li>Mention "professional photography" or "studio shot" for cleaner images</li>
-            <li>Describe colors you want: "warm tones", "cool blue palette"</li>
-            <li>Add context: "on white marble table" instead of just "coffee cup"</li>
-            <li>Try different style modifiers for varied looks</li>
-          </ul>
+          <div class="result-label" id="resultLabel"></div>
         </div>
       </div>
 
@@ -348,632 +226,325 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 
 <div class="toast" id="toast"></div>
 
-<script>
-(function(){
-  // --- State ---
-  let currentW = 1080, currentH = 1080;
-  let currentFont = "'Bebas Neue', sans-serif";
-  let currentFontName = 'bold';
-  let textPos = 'center';
-  let overlayOn = true;
-  let generatedImg = null;
-  let downloadFmt = 'png';
-  let generating = false;
-  let slowTimer = null;
-  let timeoutTimer = null;
-  let imageSource = 'local'; // 'local' or 'cloud'
+<script type="module">
+// === STATE ===
+let source = 'local';
+let genW = 512, genH = 512;
+let generating = false;
+let localPipeline = null;
+let generatedImg = null;
 
-  // --- DOM refs ---
-  const $ = id => document.getElementById(id);
-  const prompt = $('imgPrompt');
-  const headline = $('headline');
-  const subtext = $('subtext');
-  const ctaText = $('ctaText');
-  const textColor = $('textColor');
-  const textColorHex = $('textColorHex');
-  const overlayOpacity = $('overlayOpacity');
-  const overlayOpacityVal = $('overlayOpacityVal');
-  const brandName = $('brandName');
-  const generateBtn = $('generateBtn');
-  const regenerateBtn = $('regenerateBtn');
-  const imageCanvas = $('imageCanvas');
-  const adCanvas = $('adCanvas');
-  const toast = $('toast');
+const $ = id => document.getElementById(id);
+const canvas = $('resultCanvas');
 
-  // --- Preset buttons ---
-  document.querySelectorAll('.preset-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      prompt.value = btn.dataset.preset;
-      prompt.focus();
-    });
-  });
-
-  // --- Source toggle ---
-  document.querySelectorAll('#sourcePills .pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      document.querySelectorAll('#sourcePills .pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      imageSource = pill.dataset.source;
-      $('sourceNote').textContent = imageSource === 'local'
-        ? 'Procedural backgrounds — gradients, shapes, and patterns. Not AI-generated. Instant, always works.'
-        : 'Real AI-generated photographs via Pollinations. Takes 10-30 seconds, may rate-limit or fail.';
-    });
-  });
-
-  // --- Platform pills ---
-  document.querySelectorAll('#platformPills .pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      document.querySelectorAll('#platformPills .pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      currentW = parseInt(pill.dataset.w);
-      currentH = parseInt(pill.dataset.h);
-      if (generatedImg) renderComposite();
-    });
-  });
-
-  // --- Text position pills ---
-  document.querySelectorAll('#textPosPills .pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      document.querySelectorAll('#textPosPills .pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      textPos = pill.dataset.pos;
-      if (generatedImg) renderComposite();
-    });
-  });
-
-  // --- Font pills ---
-  document.querySelectorAll('#fontPills .pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      document.querySelectorAll('#fontPills .pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      currentFont = pill.dataset.font;
-      currentFontName = pill.dataset.name;
-      if (generatedImg) renderComposite();
-    });
-  });
-
-  // --- Overlay toggle ---
-  $('overlayToggle').addEventListener('click', () => {
-    overlayOn = !overlayOn;
-    $('overlayToggle').classList.toggle('active', overlayOn);
-    $('overlayOpacityWrap').style.display = overlayOn ? '' : 'none';
-    if (generatedImg) renderComposite();
-  });
-
-  // --- Overlay opacity ---
-  overlayOpacity.addEventListener('input', () => {
-    overlayOpacityVal.textContent = overlayOpacity.value + '%';
-    if (generatedImg) renderComposite();
-  });
-
-  // --- Text color ---
-  textColor.addEventListener('input', () => {
-    textColorHex.textContent = textColor.value;
-    if (generatedImg) renderComposite();
-  });
-
-  // --- Live re-render on text input ---
-  [headline, subtext, ctaText, brandName].forEach(el => {
-    el.addEventListener('input', () => {
-      if (generatedImg) renderComposite();
-    });
-  });
-
-  // --- Format toggle ---
-  document.querySelectorAll('#formatToggle button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#formatToggle button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      downloadFmt = btn.dataset.fmt;
-    });
-  });
-
-  // --- Generate ---
-  generateBtn.addEventListener('click', doGenerate);
-  regenerateBtn.addEventListener('click', doGenerate);
-
-  function getFullPrompt() {
-    let base = prompt.value.trim();
-    if (!base) base = 'A steaming latte on a rustic wooden table, warm morning light, cozy cafe atmosphere';
-    const modifiers = [];
-    document.querySelectorAll('#styleModifiers input[type=checkbox]:checked').forEach(cb => {
-      modifiers.push(cb.value);
-    });
-    if (modifiers.length) base += ', ' + modifiers.join(', ');
-    return base;
-  }
-
-  function setState(name) {
-    ['stateEmpty','stateLoading','stateError','stateResult'].forEach(id => {
-      $(id).style.display = 'none';
-    });
-    $(name).style.display = '';
-    $('mainActions').style.display = name === 'stateResult' ? '' : 'none';
-    // Re-center for empty/loading/error states
-    const scroll = $('mainScroll');
-    if (name === 'stateResult') {
-      scroll.style.justifyContent = 'flex-start';
-      scroll.style.alignItems = 'center';
-    } else {
-      scroll.style.justifyContent = 'center';
-      scroll.style.alignItems = 'center';
-    }
-  }
-
-  function doGenerate() {
-    if (generating) return;
-    if (imageSource === 'local') return doLocalGenerate();
-    return doCloudGenerate();
-  }
-
-  // --- LOCAL GENERATION (always works) ---
-  function doLocalGenerate() {
-    const promptText = prompt.value.trim() || 'professional ad background';
-    const words = promptText.toLowerCase().split(/[\s,]+/);
-
-    // Color intelligence: pick palette based on keywords
-    const palettes = {
-      warm:   ['#D4A574','#8B4513','#F5DEB3','#C4956A','#A0522D'],
-      cool:   ['#3B82F6','#06B6D4','#1E40AF','#0891B2','#E0F2FE'],
-      nature: ['#22C55E','#15803D','#86EFAC','#166534','#F0FDF4'],
-      sunset: ['#F97316','#EF4444','#F59E0B','#DC2626','#FEF3C7'],
-      luxury: ['#1a1a1a','#D4AF37','#2d2d2d','#B8860B','#F5F5DC'],
-      tech:   ['#8B5CF6','#3B82F6','#6D28D9','#1D4ED8','#EDE9FE'],
-      fresh:  ['#10B981','#06B6D4','#34D399','#22D3EE','#ECFDF5'],
-      bold:   ['#EF4444','#F97316','#DC2626','#EA580C','#FEF2F2'],
-      pastel: ['#F9A8D4','#C4B5FD','#93C5FD','#A5F3FC','#FDE68A'],
-      mono:   ['#374151','#6B7280','#9CA3AF','#D1D5DB','#F3F4F6'],
-    };
-
-    // Detect mood from keywords
-    let pal = palettes.cool;
-    const kwMap = {
-      warm: ['coffee','latte','warm','cozy','bakery','wood','rustic','autumn','brown'],
-      cool: ['tech','software','digital','modern','office','clean','blue'],
-      nature: ['nature','green','forest','plant','garden','organic','eco','tree'],
-      sunset: ['sunset','sunrise','orange','fire','energy','vibrant','hot'],
-      luxury: ['luxury','premium','gold','elegant','black','dark','exclusive','vip'],
-      tech: ['ai','data','cyber','cloud','space','neon','purple','innovation'],
-      fresh: ['health','fitness','fresh','mint','teal','spa','wellness','ocean'],
-      bold: ['sale','discount','urgent','red','attention','bold','power','strong'],
-      pastel: ['baby','soft','gentle','cute','sweet','candy','pink','pastel'],
-      mono: ['minimal','minimalist','simple','grayscale','neutral','professional'],
-    };
-    for (const [mood, kws] of Object.entries(kwMap)) {
-      if (kws.some(k => words.includes(k))) { pal = palettes[mood]; break; }
-    }
-
-    // Create off-screen canvas for the background
-    const bgCanvas = document.createElement('canvas');
-    bgCanvas.width = currentW;
-    bgCanvas.height = currentH;
-    const ctx = bgCanvas.getContext('2d');
-    const w = currentW, h = currentH;
-
-    // Pick a random design style (6 options)
-    const style = Math.floor(Math.random() * 6);
-
-    if (style === 0) {
-      // Gradient with bokeh circles
-      const grd = ctx.createLinearGradient(0, 0, w, h);
-      grd.addColorStop(0, pal[0]); grd.addColorStop(0.5, pal[1]); grd.addColorStop(1, pal[2]);
-      ctx.fillStyle = grd; ctx.fillRect(0, 0, w, h);
-      for (let i = 0; i < 12; i++) {
-        const r = 30 + Math.random() * 120;
-        const x = Math.random() * w, y = Math.random() * h;
-        const rg = ctx.createRadialGradient(x, y, 0, x, y, r);
-        rg.addColorStop(0, pal[3] + '40'); rg.addColorStop(1, pal[3] + '00');
-        ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
-      }
-    } else if (style === 1) {
-      // Mesh gradient (overlapping radial gradients)
-      ctx.fillStyle = pal[4] || '#f3f4f6'; ctx.fillRect(0, 0, w, h);
-      const pts = [[0.2,0.3],[0.8,0.2],[0.5,0.7],[0.1,0.8],[0.9,0.6]];
-      pts.forEach((p, i) => {
-        const r = Math.max(w, h) * 0.6;
-        const rg = ctx.createRadialGradient(p[0]*w, p[1]*h, 0, p[0]*w, p[1]*h, r);
-        rg.addColorStop(0, pal[i % pal.length] + '80'); rg.addColorStop(1, pal[i % pal.length] + '00');
-        ctx.fillStyle = rg; ctx.fillRect(0, 0, w, h);
-      });
-    } else if (style === 2) {
-      // Dark premium with accent line
-      ctx.fillStyle = '#1a1a1a'; ctx.fillRect(0, 0, w, h);
-      const rg = ctx.createRadialGradient(w*0.5, h*0.4, 0, w*0.5, h*0.4, w*0.7);
-      rg.addColorStop(0, pal[0] + '25'); rg.addColorStop(1, '#1a1a1a');
-      ctx.fillStyle = rg; ctx.fillRect(0, 0, w, h);
-      ctx.strokeStyle = pal[0]; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(w*0.2, h*0.55); ctx.lineTo(w*0.8, h*0.55); ctx.stroke();
-    } else if (style === 3) {
-      // Split layout
-      const isLandscape = w > h;
-      if (isLandscape) {
-        ctx.fillStyle = pal[0]; ctx.fillRect(0, 0, w/2, h);
-        ctx.fillStyle = pal[4] || '#f3f4f6'; ctx.fillRect(w/2, 0, w/2, h);
+// === WEBGPU CHECK ===
+(async () => {
+  const el = $('webgpuCheck');
+  if (navigator.gpu) {
+    try {
+      const adapter = await navigator.gpu.requestAdapter();
+      if (adapter) {
+        el.innerHTML = '<span style="color:var(--green)">&#10003; WebGPU available</span> — local AI model will work in this browser.';
       } else {
-        ctx.fillStyle = pal[0]; ctx.fillRect(0, 0, w, h/2);
-        ctx.fillStyle = pal[4] || '#f3f4f6'; ctx.fillRect(0, h/2, w, h/2);
+        el.innerHTML = '<span style="color:var(--yellow)">&#9888; WebGPU adapter not found</span> — local AI may not work. Try Cloud AI instead.';
       }
-      // Diagonal accent
-      ctx.strokeStyle = pal[1] + '60'; ctx.lineWidth = 2;
-      for (let i = 0; i < 8; i++) {
-        ctx.beginPath(); ctx.moveTo(i*w/8, 0); ctx.lineTo(i*w/8+w/4, h); ctx.stroke();
-      }
-    } else if (style === 4) {
-      // Geometric shapes
-      const grd = ctx.createLinearGradient(0, 0, w, h);
-      grd.addColorStop(0, pal[0]); grd.addColorStop(1, pal[1]);
-      ctx.fillStyle = grd; ctx.fillRect(0, 0, w, h);
-      for (let i = 0; i < 20; i++) {
-        ctx.save(); ctx.globalAlpha = 0.1 + Math.random() * 0.15;
-        const x = Math.random() * w, y = Math.random() * h, s = 20 + Math.random() * 100;
-        ctx.fillStyle = pal[Math.floor(Math.random() * pal.length)];
-        if (Math.random() > 0.5) {
-          ctx.beginPath(); ctx.arc(x, y, s/2, 0, Math.PI*2); ctx.fill();
-        } else {
-          ctx.translate(x, y); ctx.rotate(Math.random() * Math.PI);
-          ctx.fillRect(-s/2, -s/2, s, s);
-        }
-        ctx.restore();
-      }
-      // Frosted center panel
-      ctx.fillStyle = 'rgba(255,255,255,0.15)';
-      const pw = w * 0.7, ph = h * 0.5;
-      roundRect(ctx, (w-pw)/2, (h-ph)/2, pw, ph, 16);
-      ctx.fill();
+    } catch(e) {
+      el.innerHTML = '<span style="color:var(--yellow)">&#9888; WebGPU error</span> — use Cloud AI mode.';
+    }
+  } else {
+    el.innerHTML = '<span style="color:var(--accent)">&#10007; WebGPU not supported</span> — this browser can\'t run local AI. Use Cloud AI mode, or try Chrome/Edge 113+.';
+  }
+})();
+
+// === SOURCE SELECTION ===
+window.selectSource = function(s) {
+  source = s;
+  $('srcLocal').classList.toggle('active', s === 'local');
+  $('srcCloud').classList.toggle('active', s === 'cloud');
+};
+
+// === PRESETS ===
+document.querySelectorAll('#presets .pill').forEach(b => {
+  b.addEventListener('click', () => { $('prompt').value = b.dataset.p; });
+});
+
+// === SIZE PILLS ===
+document.querySelectorAll('#sizePills .pill').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#sizePills .pill').forEach(p => p.classList.remove('active'));
+    b.classList.add('active');
+    genW = parseInt(b.dataset.w); genH = parseInt(b.dataset.h);
+  });
+});
+
+// === OVERLAY SLIDER ===
+$('overlayAmt').addEventListener('input', () => {
+  $('overlayVal').textContent = $('overlayAmt').value + '%';
+  if (generatedImg) renderFinal();
+});
+['headline','cta','brand'].forEach(id => {
+  $(id).addEventListener('input', () => { if (generatedImg) renderFinal(); });
+});
+
+// === GENERATE ===
+window.generate = async function() {
+  if (generating) return;
+  generating = true;
+  $('genBtn').disabled = true;
+
+  const promptText = $('prompt').value.trim() || 'a beautiful product photo, professional lighting';
+
+  showState('stateLoading');
+
+  try {
+    if (source === 'local') {
+      await generateLocal(promptText);
     } else {
-      // Blurred photo simulation with layered gradients
-      const grd1 = ctx.createLinearGradient(0, 0, w, h);
-      grd1.addColorStop(0, pal[0]); grd1.addColorStop(0.3, pal[1]); grd1.addColorStop(0.7, pal[2]); grd1.addColorStop(1, pal[3]);
-      ctx.fillStyle = grd1; ctx.fillRect(0, 0, w, h);
-      // Soft light spots (bokeh)
-      for (let i = 0; i < 8; i++) {
-        const r = 60 + Math.random() * 200;
-        const x = Math.random() * w, y = Math.random() * h;
-        const rg = ctx.createRadialGradient(x, y, 0, x, y, r);
-        rg.addColorStop(0, '#ffffff20'); rg.addColorStop(1, '#ffffff00');
-        ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+      await generateCloud(promptText);
+    }
+  } catch(e) {
+    showError(e.message || 'Unknown error', e);
+  } finally {
+    generating = false;
+    $('genBtn').disabled = false;
+  }
+};
+
+// === LOCAL AI GENERATION ===
+async function generateLocal(promptText) {
+  // Check WebGPU
+  if (!navigator.gpu) {
+    throw new Error('WebGPU is not supported in this browser. Use Chrome or Edge 113+, or switch to Cloud AI mode.');
+  }
+
+  $('loadingTitle').textContent = localPipeline ? 'Generating image...' : 'Loading AI model...';
+  $('loadingText').textContent = localPipeline
+    ? 'Running diffusion model in your browser. This takes 30-90 seconds.'
+    : 'Downloading model (~2GB). This is a one-time download — it\'s cached after.';
+
+  if (!localPipeline) {
+    // Show progress
+    $('modelProgress').style.display = '';
+
+    try {
+      const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3');
+
+      // Use WebGPU
+      env.backends.onnx.wasm.proxy = false;
+
+      localPipeline = await pipeline('text-to-image', 'onnx-community/sd-turbo', {
+        device: 'webgpu',
+        dtype: 'fp16',
+        progress_callback: (p) => {
+          if (p.status === 'download' || p.status === 'progress') {
+            const pct = p.progress ? Math.round(p.progress) : 0;
+            $('modelProgressFill').style.width = pct + '%';
+            $('modelProgressText').textContent = p.file
+              ? `Downloading ${p.file}... ${pct}%`
+              : `Loading model... ${pct}%`;
+          } else if (p.status === 'done') {
+            $('modelProgressText').textContent = 'Model loaded!';
+          }
+        }
+      });
+
+      $('modelProgress').style.display = 'none';
+      $('loadingTitle').textContent = 'Generating image...';
+      $('loadingText').textContent = 'Running diffusion model in your browser. This takes 30-90 seconds.';
+    } catch(e) {
+      $('modelProgress').style.display = 'none';
+      throw new Error('Failed to load AI model: ' + e.message + '. Make sure WebGPU is enabled and you have enough memory.');
+    }
+  }
+
+  // Generate
+  try {
+    const result = await localPipeline(promptText, {
+      num_inference_steps: 4,
+      guidance_scale: 1.0,
+      width: genW,
+      height: genH,
+    });
+
+    // result is a RawImage — convert to canvas
+    const rawImg = result[0];
+    const imgCanvas = document.createElement('canvas');
+    imgCanvas.width = rawImg.width;
+    imgCanvas.height = rawImg.height;
+    const ctx = imgCanvas.getContext('2d');
+    const imageData = ctx.createImageData(rawImg.width, rawImg.height);
+    imageData.data.set(rawImg.data);
+    ctx.putImageData(imageData, 0, 0);
+
+    // Convert to Image element
+    const blob = await new Promise(r => imgCanvas.toBlob(r));
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = url;
+    });
+
+    generatedImg = img;
+    renderFinal();
+    showState('stateResult');
+    $('resultLabel').textContent = 'Generated locally with SD-Turbo via WebGPU — real AI, no cloud.';
+    showToast('Image generated with local AI');
+
+  } catch(e) {
+    throw new Error('Generation failed: ' + e.message);
+  }
+}
+
+// === CLOUD AI GENERATION ===
+async function generateCloud(promptText) {
+  $('loadingTitle').textContent = 'Generating with Cloud AI...';
+  $('loadingText').textContent = 'Calling Pollinations API. Takes 10-30 seconds.';
+
+  const url = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(promptText) + '?model=turbo&nologo=true';
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 90000);
+
+  try {
+    const resp = await fetch(url, {
+      mode: 'cors',
+      referrerPolicy: 'no-referrer',
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    if (!resp.ok) {
+      const status = resp.status;
+      if (status === 402 || status === 403) {
+        throw new Error('Cloud AI rate-limited (HTTP ' + status + '). The free Pollinations API has usage limits. Try Local AI mode instead — it always works.');
       }
-      // Vignette
-      const vg = ctx.createRadialGradient(w/2, h/2, w*0.2, w/2, h/2, w*0.8);
-      vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.4)');
-      ctx.fillStyle = vg; ctx.fillRect(0, 0, w, h);
+      throw new Error('Cloud API returned HTTP ' + status);
     }
 
-    // Convert canvas to image
-    bgCanvas.toBlob(blob => {
-      const objUrl = URL.createObjectURL(blob);
-      const img = new Image();
-      img.onload = () => {
-        generatedImg = img;
-        renderImageOnly();
-        renderComposite();
-        setState('stateResult');
-        regenerateBtn.style.display = '';
-        showToast('Background generated');
-      };
+    const blob = await resp.blob();
+    if (blob.size < 1000) throw new Error('Response too small — not a valid image');
+
+    const objUrl = URL.createObjectURL(blob);
+    const img = new Image();
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = () => reject(new Error('Returned data was not a valid image'));
       img.src = objUrl;
     });
+
+    generatedImg = img;
+    renderFinal();
+    showState('stateResult');
+    $('resultLabel').textContent = 'Generated by Pollinations AI (cloud). Real AI image.';
+    showToast('Image generated with Cloud AI');
+
+  } catch(e) {
+    clearTimeout(timeout);
+    if (e.name === 'AbortError') {
+      throw new Error('Request timed out after 90 seconds. The cloud service may be overloaded. Try Local AI mode — it always works.');
+    }
+    throw e;
+  }
+}
+
+// === RENDER FINAL (image + overlay) ===
+function renderFinal() {
+  if (!generatedImg) return;
+  const w = generatedImg.naturalWidth, h = generatedImg.naturalHeight;
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+
+  // Draw image
+  ctx.drawImage(generatedImg, 0, 0);
+
+  // Darken overlay
+  const amt = parseInt($('overlayAmt').value) / 100;
+  if (amt > 0) {
+    ctx.fillStyle = 'rgba(0,0,0,' + amt + ')';
+    ctx.fillRect(0, 0, w, h);
   }
 
-  // --- CLOUD GENERATION (Pollinations API) ---
-  function doCloudGenerate() {
-    generating = true;
-    generateBtn.disabled = true;
+  const scale = Math.min(w, h) / 512;
+  const color = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0,0,0,0.6)';
+  ctx.shadowBlur = 6 * scale;
 
-    setState('stateLoading');
-    $('slowMsg').style.display = 'none';
-
-    const fullPrompt = getFullPrompt();
-    // Use model=turbo (free tier). No width/height params — free tier returns default 768x768, we resize via Canvas.
-    const url = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(fullPrompt) + '?model=turbo&nologo=true';
-
-    // Show slow message after 15s
-    slowTimer = setTimeout(() => {
-      $('slowMsg').style.display = '';
-    }, 15000);
-
-    // Hard timeout after 90s
-    timeoutTimer = setTimeout(() => {
-      cleanup();
-      showError(
-        'Request timed out after 90 seconds.',
-        'The AI service took too long to respond. This usually means it is under heavy load.',
-        '<strong>What to try:</strong><br>1. Click Try Again — it often works on the second attempt<br>2. Use a shorter prompt (under 15 words works best)<br>3. Try the <a href="/create/ai-ad-generator/" style="color:var(--accent)">AI Ad Generator</a> for instant results'
-      );
-    }, 90000);
-
-    // Use fetch + blob to avoid CORS/referrer issues with Image element
-    console.log('[AI Image Ad] Fetching:', url);
-    fetch(url, { mode: 'cors', referrerPolicy: 'no-referrer' })
-      .then(r => {
-        console.log('[AI Image Ad] Response:', r.status, r.statusText);
-        if (!r.ok) {
-          const err = new Error(r.status);
-          err.httpStatus = r.status;
-          throw err;
-        }
-        return r.blob();
-      })
-      .then(blob => {
-        if (blob.size < 1000) throw new Error('Response too small (' + blob.size + ' bytes) — likely not an image');
-        const objUrl = URL.createObjectURL(blob);
-        const img = new Image();
-        img.onload = function() {
-          cleanup();
-          generatedImg = img;
-          renderImageOnly();
-          renderComposite();
-          setState('stateResult');
-          regenerateBtn.style.display = '';
-          showToast('Image generated');
-        };
-        img.onerror = function() {
-          cleanup();
-          showError('Image data was corrupt', 'The API returned data that could not be rendered as an image. Try a different prompt.');
-        };
-        img.src = objUrl;
-      })
-      .catch(e => {
-        cleanup();
-        const status = e.httpStatus || '';
-        let msg = 'Try a simpler prompt or try again in a moment.';
-        let detail = e.message || 'Unknown error';
-        let help = '';
-        if (status === 402 || status === 403) {
-          msg = 'The free AI image service is temporarily rate-limited.';
-          detail = 'HTTP ' + status + ' — the Pollinations API free tier has usage limits.';
-          help = '<strong>What to try:</strong><br>1. Switch to <strong>Local (instant)</strong> mode — always works, no API needed<br>2. Wait 30 seconds and try Cloud AI again<br>3. Use a shorter, simpler prompt';
-        } else if (status === 500 || status === 503) {
-          msg = 'The AI image service is temporarily overloaded.';
-          detail = 'HTTP ' + status + ' — server error. Usually resolves in a few minutes.';
-          help = '<strong>What to try:</strong><br>1. Wait a minute and click Try Again<br>2. Try a shorter prompt';
-        } else if (e.message && e.message.includes('Failed to fetch')) {
-          msg = 'Could not connect to the AI image service.';
-          detail = 'Network error — check your internet connection or try disabling your ad blocker.';
-          help = '<strong>Common causes:</strong><br>1. Ad blocker blocking the API request<br>2. Corporate firewall blocking external APIs<br>3. The Pollinations service is temporarily down';
-        }
-        showError(msg, detail, help);
-      });
-
-    function showError(msg, detail, help) {
-      setState('stateError');
-      $('errorMsg').textContent = msg;
-      if (detail) {
-        $('errorDetail').style.display = '';
-        $('errorDetailText').textContent = detail;
-      } else {
-        $('errorDetail').style.display = 'none';
-      }
-      if (help) {
-        $('errorHelp').style.display = '';
-        $('errorHelp').innerHTML = help;
-      } else {
-        $('errorHelp').style.display = 'none';
-      }
-    }
-
-    function cleanup() {
-      generating = false;
-      generateBtn.disabled = false;
-      clearTimeout(slowTimer);
-      clearTimeout(timeoutTimer);
-    }
+  // Headline
+  const hl = $('headline').value.trim();
+  if (hl) {
+    ctx.font = '800 ' + Math.round(48 * scale) + 'px "Bebas Neue", sans-serif';
+    ctx.fillStyle = color;
+    ctx.fillText(hl, w / 2, h * 0.4);
   }
 
-  // --- Render base image (resize to target platform dimensions) ---
-  function renderImageOnly() {
-    if (!generatedImg) return;
-    const c = imageCanvas;
-    c.width = currentW;
-    c.height = currentH;
-    const ctx = c.getContext('2d');
-    // Cover-fit: scale image to fill target dimensions, crop excess
-    const iw = generatedImg.naturalWidth, ih = generatedImg.naturalHeight;
-    const scale = Math.max(currentW / iw, currentH / ih);
-    const sw = iw * scale, sh = ih * scale;
-    const sx = (currentW - sw) / 2, sy = (currentH - sh) / 2;
-    ctx.drawImage(generatedImg, sx, sy, sw, sh);
-  }
-
-  // --- Render composite ad ---
-  function renderComposite() {
-    if (!generatedImg) return;
-    const hasText = headline.value.trim() || subtext.value.trim() || ctaText.value.trim() || brandName.value.trim();
-    $('adSection').style.display = hasText ? '' : 'none';
-    if (!hasText) return;
-
-    const w = generatedImg.naturalWidth;
-    const h = generatedImg.naturalHeight;
-    const c = adCanvas;
-    c.width = w;
-    c.height = h;
-    const ctx = c.getContext('2d');
-
-    // Draw base image
-    ctx.drawImage(generatedImg, 0, 0);
-
-    // Dark overlay
-    if (overlayOn) {
-      const alpha = parseInt(overlayOpacity.value) / 100;
-      ctx.fillStyle = 'rgba(0,0,0,' + alpha + ')';
-      ctx.fillRect(0, 0, w, h);
-    }
-
-    const color = textColor.value;
-    const scale = Math.min(w, h) / 1080; // scale text relative to 1080
-    const padX = 60 * scale;
-    const maxTextW = w - padX * 2;
-
-    // Calculate vertical positions
-    let headY, subY, ctaY, brandY;
-    const headSize = Math.round(72 * scale);
-    const subSize = Math.round(28 * scale);
-    const ctaSize = Math.round(22 * scale);
-    const brandSize = Math.round(16 * scale);
-    const lineGap = 16 * scale;
-    const ctaGap = 32 * scale;
-
-    // Measure total block height
-    let blockH = 0;
-    if (headline.value.trim()) blockH += headSize + lineGap;
-    if (subtext.value.trim()) blockH += subSize + lineGap;
-    if (ctaText.value.trim()) blockH += ctaGap + ctaSize + 24 * scale;
-
-    if (textPos === 'top') {
-      headY = 80 * scale + headSize;
-    } else if (textPos === 'bottom') {
-      headY = h - blockH - 80 * scale;
-    } else {
-      headY = (h - blockH) / 2 + headSize;
-    }
-
-    ctx.textAlign = 'center';
-    const cx = w / 2;
-    let curY = headY;
-
-    // Shadow for readability
-    ctx.shadowColor = 'rgba(0,0,0,0.5)';
-    ctx.shadowBlur = 8 * scale;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 2 * scale;
-
-    // Headline
-    if (headline.value.trim()) {
-      ctx.fillStyle = color;
-      if (currentFontName === 'bold') {
-        ctx.font = headSize + 'px ' + currentFont;
-      } else if (currentFontName === 'elegant') {
-        ctx.font = '700 ' + headSize + 'px ' + currentFont;
-      } else {
-        ctx.font = '800 ' + headSize + 'px ' + currentFont;
-      }
-      wrapText(ctx, headline.value.trim().toUpperCase(), cx, curY, maxTextW, headSize * 1.15);
-      const lines = getWrappedLines(ctx, headline.value.trim().toUpperCase(), maxTextW);
-      curY += (lines.length) * headSize * 1.15 + lineGap;
-    }
-
-    // Subtext
-    if (subtext.value.trim()) {
-      ctx.fillStyle = color;
-      ctx.font = '400 ' + subSize + 'px ' + (currentFontName === 'elegant' ? currentFont : "'Manrope', sans-serif");
-      ctx.shadowBlur = 4 * scale;
-      wrapText(ctx, subtext.value.trim(), cx, curY, maxTextW, subSize * 1.4);
-      const lines = getWrappedLines(ctx, subtext.value.trim(), maxTextW);
-      curY += lines.length * subSize * 1.4 + ctaGap;
-    }
-
-    // CTA button
-    if (ctaText.value.trim()) {
-      ctx.shadowBlur = 0;
-      ctx.shadowColor = 'transparent';
-      const ctaFontSize = ctaSize;
-      ctx.font = '700 ' + ctaFontSize + 'px ' + "'Manrope', sans-serif";
-      const ctaW = ctx.measureText(ctaText.value.trim().toUpperCase()).width + 48 * scale;
-      const ctaH = ctaFontSize + 24 * scale;
-      const ctaX = cx - ctaW / 2;
-      const ctaRound = 8 * scale;
-
-      // Button background
-      ctx.fillStyle = '#ef4444';
-      roundRect(ctx, ctaX, curY - ctaFontSize / 2 - 12 * scale, ctaW, ctaH, ctaRound);
-      ctx.fill();
-
-      // Button text
-      ctx.fillStyle = '#ffffff';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(ctaText.value.trim().toUpperCase(), cx, curY - ctaFontSize / 2 - 12 * scale + ctaH / 2);
-      ctx.textBaseline = 'alphabetic';
-      curY += ctaH + lineGap;
-    }
-
-    // Brand name (bottom-right corner)
-    if (brandName.value.trim()) {
-      ctx.shadowBlur = 4 * scale;
-      ctx.shadowColor = 'rgba(0,0,0,0.5)';
-      ctx.font = '600 ' + brandSize + 'px ' + "'Manrope', sans-serif";
-      ctx.fillStyle = color;
-      ctx.textAlign = 'right';
-      ctx.fillText(brandName.value.trim(), w - 24 * scale, h - 24 * scale);
-      ctx.textAlign = 'center';
-    }
-
-    // Reset shadow
+  // CTA
+  const ct = $('cta').value.trim();
+  if (ct) {
+    const fontSize = Math.round(20 * scale);
+    ctx.font = '700 ' + fontSize + 'px "Manrope", sans-serif';
+    const tw = ctx.measureText(ct.toUpperCase()).width + 32 * scale;
+    const th = fontSize + 16 * scale;
     ctx.shadowBlur = 0;
-    ctx.shadowColor = 'transparent';
-  }
-
-  // --- Text wrapping ---
-  function getWrappedLines(ctx, text, maxW) {
-    const words = text.split(' ');
-    const lines = [];
-    let line = '';
-    for (const word of words) {
-      const test = line ? line + ' ' + word : word;
-      if (ctx.measureText(test).width > maxW && line) {
-        lines.push(line);
-        line = word;
-      } else {
-        line = test;
-      }
-    }
-    if (line) lines.push(line);
-    return lines;
-  }
-
-  function wrapText(ctx, text, x, y, maxW, lineH) {
-    const lines = getWrappedLines(ctx, text, maxW);
-    for (let i = 0; i < lines.length; i++) {
-      ctx.fillText(lines[i], x, y + i * lineH);
-    }
-  }
-
-  // --- Rounded rect ---
-  function roundRect(ctx, x, y, w, h, r) {
+    ctx.fillStyle = '#ef4444';
+    const rx = (w - tw) / 2, ry = h * 0.55;
     ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    ctx.lineTo(x + r, y + h);
-    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-    ctx.lineTo(x, y + r);
-    ctx.quadraticCurveTo(x, y, x + r, y);
-    ctx.closePath();
+    ctx.roundRect(rx, ry, tw, th, 6 * scale);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.fillText(ct.toUpperCase(), w / 2, ry + th * 0.72);
+    ctx.shadowBlur = 6 * scale;
   }
 
-  // --- Downloads ---
-  function downloadCanvas(canvas, name) {
-    const mime = downloadFmt === 'jpg' ? 'image/jpeg' : 'image/png';
-    const ext = downloadFmt === 'jpg' ? '.jpg' : '.png';
-    const quality = downloadFmt === 'jpg' ? 0.92 : undefined;
-    const link = document.createElement('a');
-    link.download = name + ext;
-    link.href = canvas.toDataURL(mime, quality);
-    link.click();
-    showToast('Downloaded ' + name + ext);
+  // Brand
+  const br = $('brand').value.trim();
+  if (br) {
+    ctx.font = '600 ' + Math.round(14 * scale) + 'px "Manrope", sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.textAlign = 'right';
+    ctx.fillText(br, w - 16 * scale, h - 16 * scale);
   }
 
-  window.downloadImage = function() {
-    downloadCanvas(imageCanvas, 'ai-image');
-  };
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = 'transparent';
+}
 
-  window.downloadAd = function() {
-    downloadCanvas(adCanvas, 'ai-ad');
-  };
+// === DOWNLOAD ===
+window.download = function(fmt) {
+  const link = document.createElement('a');
+  link.download = 'ad-image.' + fmt;
+  link.href = canvas.toDataURL(fmt === 'jpg' ? 'image/jpeg' : 'image/png', 0.92);
+  link.click();
+};
 
-  // --- Toast ---
-  function showToast(msg) {
-    toast.textContent = msg;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2200);
+// === UI HELPERS ===
+function showState(name) {
+  ['stateEmpty','stateLoading','stateError','stateResult'].forEach(id => {
+    $(id).classList.toggle('visible', id === name);
+  });
+  $('mainScroll').style.justifyContent = name === 'stateResult' ? 'flex-start' : 'center';
+}
+
+function showError(msg, e) {
+  showState('stateError');
+  $('errorMsg').textContent = msg;
+  if (e && e.stack) {
+    $('errorDetail').style.display = '';
+    $('errorDetailText').textContent = e.stack.split('\n')[0];
   }
+  $('errorHelp').innerHTML = source === 'cloud'
+    ? 'Try switching to <strong>Local AI Model</strong> — it downloads a real model and always works.'
+    : 'Make sure you\'re using Chrome/Edge 113+ with WebGPU enabled. Or try <strong>Cloud AI</strong> mode.';
+}
 
-  // --- Expose doGenerate for error retry ---
-  window.doGenerate = doGenerate;
-
-})();
+function showToast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
 </script>
 </body>
 </html>
