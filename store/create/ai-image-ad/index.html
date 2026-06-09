@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Image Ad Generator - FreeAdStore</title>
+<meta name="description" content="Generate real AI images for ads using Pollinations AI. Add text overlays, choose platform sizes, download production-ready ad creatives. Free, no signup, no API key.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Bebas+Neue&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#fafafa;--text:#1a1a1a;--muted:#6b7280;--accent:#ef4444;--accent-light:rgba(239,68,68,.08);--accent-hover:#dc2626;--panel:#ffffff;--line:#e5e7eb;--radius:10px;--green:#22c55e;--yellow:#eab308;--red:#ef4444}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+a.back{display:inline-block;padding:14px 16px;color:var(--accent);text-decoration:none;font-weight:600;font-size:.85rem}
+a.back:hover{text-decoration:underline}
+a.back span{font-weight:400;color:var(--muted)}
+
+/* SPLIT LAYOUT */
+.app{display:flex;height:100vh}
+.sidebar{width:360px;min-width:360px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:0 20px 20px}
+.sidebar-head{padding:16px 20px 0;flex-shrink:0}
+.sidebar-head h1{font-family:'Fraunces',serif;font-size:1.35rem;font-weight:700;margin-bottom:2px;color:var(--text)}
+.sidebar-head p{font-size:.75rem;color:var(--muted);margin-bottom:14px;line-height:1.4}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--bg)}
+.main-header{padding:16px 24px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;flex-wrap:wrap;gap:8px}
+.main-header h2{font-size:.85rem;font-weight:700;color:var(--text)}
+.main-actions{display:flex;gap:8px;flex-wrap:wrap}
+.main-scroll{flex:1;overflow-y:auto;padding:16px 24px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+/* PANELS */
+.panel{margin-bottom:16px}
+.panel-title{font-size:.72rem;font-weight:700;color:var(--text);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 4px;font-weight:500}
+input[type=text],textarea,select{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);outline:none;transition:border-color .15s}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:80px}
+
+/* PILLS */
+.pill-row{display:flex;gap:5px;flex-wrap:wrap}
+.pill{padding:5px 12px;border:1px solid var(--line);border-radius:8px;font-size:.72rem;font-weight:600;cursor:pointer;background:var(--panel);font-family:inherit;transition:all .12s;color:var(--text)}
+.pill:hover{border-color:var(--accent);color:var(--accent)}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* BUTTONS */
+.btn{padding:10px 20px;border-radius:var(--radius);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff;width:100%}
+.btn-primary:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(239,68,68,.3)}
+.btn-primary:active{transform:translateY(0)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-outline{background:var(--panel);color:var(--text);border:1px solid var(--line);padding:7px 14px;font-size:.75rem;font-weight:600}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:6px 12px;font-size:.72rem}
+.btn-generate{padding:14px 20px;font-size:.9rem;margin-top:6px}
+
+/* PRESET BUTTONS */
+.preset-btn{display:block;width:100%;text-align:left;padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:.7rem;font-weight:500;cursor:pointer;background:var(--panel);font-family:inherit;transition:all .12s;color:var(--muted);margin-bottom:4px;line-height:1.3}
+.preset-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+
+/* CHECKBOXES */
+.check-list{display:flex;flex-direction:column;gap:4px}
+.check-item{display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer;font-size:.72rem;font-weight:500;color:var(--text)}
+.check-item input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;cursor:pointer;flex-shrink:0}
+.check-item:hover{color:var(--accent)}
+
+/* COLOR INPUTS */
+.color-row{display:flex;align-items:center;gap:8px}
+.color-input{width:40px;height:32px;border:1px solid var(--line);border-radius:6px;padding:2px;cursor:pointer;background:var(--panel)}
+.color-input::-webkit-color-swatch-wrapper{padding:0}
+.color-input::-webkit-color-swatch{border:none;border-radius:4px}
+
+/* RANGE SLIDER */
+input[type=range]{width:100%;height:4px;-webkit-appearance:none;appearance:none;background:var(--line);border-radius:2px;outline:none;margin:6px 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.range-row{display:flex;align-items:center;gap:10px}
+.range-row input[type=range]{flex:1}
+.range-val{font-size:.72rem;font-weight:600;color:var(--muted);min-width:32px;text-align:right}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;gap:10px;margin:6px 0}
+.toggle{position:relative;width:36px;height:20px;background:var(--line);border-radius:10px;cursor:pointer;transition:background .15s;flex-shrink:0}
+.toggle.active{background:var(--accent)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.toggle.active::after{transform:translateX(16px)}
+.toggle-label{font-size:.72rem;font-weight:600;color:var(--text)}
+
+/* SEPARATOR */
+.sep{height:1px;background:var(--line);margin:16px 0}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:40px 20px;max-width:420px}
+.empty-state-icon{font-size:3rem;margin-bottom:12px;opacity:.6}
+.empty-state h3{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;margin-bottom:8px}
+.empty-state p{font-size:.82rem;color:var(--muted);line-height:1.5}
+
+/* LOADING STATE */
+.loading-state{text-align:center;padding:40px 20px}
+.loading-spinner{width:48px;height:48px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-state h3{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;margin-bottom:6px}
+.loading-state p{font-size:.78rem;color:var(--muted)}
+.loading-state .slow-msg{margin-top:12px;font-size:.72rem;color:var(--yellow);font-weight:600;display:none}
+
+/* RESULT STATE */
+.result-state{width:100%;max-width:900px}
+.result-section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.result-section-title{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
+.result-canvas-wrap{display:flex;justify-content:center;align-items:center;overflow:hidden}
+.result-canvas-wrap canvas{display:block;max-width:100%;height:auto;border-radius:8px}
+.result-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center}
+.result-note{font-size:.7rem;color:var(--muted);line-height:1.5;margin-top:8px}
+
+/* ERROR STATE */
+.error-state{text-align:center;padding:40px 20px;max-width:420px}
+.error-state h3{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;color:var(--red);margin-bottom:8px}
+.error-state p{font-size:.82rem;color:var(--muted);line-height:1.5;margin-bottom:16px}
+
+/* PRO BANNER */
+.pro-banner{margin-top:24px;padding:16px 20px;background:linear-gradient(135deg,#1a1a1a 0%,#2d1f1f 100%);border-radius:12px;color:#fff;font-size:.72rem;line-height:1.5}
+.pro-banner strong{color:#f87171;font-size:.78rem}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;padding:10px 20px;border-radius:10px;font-size:.78rem;font-weight:600;opacity:0;transition:all .3s ease;z-index:1000;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* FORMAT TOGGLE */
+.format-toggle{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.format-toggle button{padding:5px 12px;font-size:.7rem;font-weight:600;border:none;background:var(--panel);cursor:pointer;font-family:inherit;color:var(--muted);transition:all .12s}
+.format-toggle button.active{background:var(--accent);color:#fff}
+.format-toggle button:not(:last-child){border-right:1px solid var(--line)}
+
+/* TIPS */
+.tips{background:var(--accent-light);border:1px solid rgba(239,68,68,.15);border-radius:var(--radius);padding:12px 14px;margin-top:12px}
+.tips-title{font-size:.7rem;font-weight:700;color:var(--accent);margin-bottom:6px}
+.tips ul{list-style:none;padding:0}
+.tips li{font-size:.7rem;color:var(--text);padding:2px 0;line-height:1.4}
+.tips li::before{content:'>';margin-right:6px;color:var(--accent);font-weight:700}
+
+@media(max-width:900px){
+  .app{flex-direction:column;height:auto}
+  .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line);max-height:none}
+  .main{min-height:60vh}
+  .main-scroll{padding:16px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT: Controls -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <a class="back" href="/"><span>&larr;</span> FreeAdStore</a>
+      <h1>AI Image Ad</h1>
+      <p>Generate real AI images for ads. Describe what you want, get a unique image in seconds. Add text overlays and download.</p>
+    </div>
+    <div class="sidebar-scroll">
+
+      <div class="panel">
+        <div class="panel-title">Image Prompt</div>
+        <textarea id="imgPrompt" placeholder="A steaming latte on a rustic wooden table, warm morning light, cozy cafe atmosphere" rows="4"></textarea>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Prompt Presets</div>
+        <button class="preset-btn" data-preset="Product on clean white background, studio lighting, professional product photography">Product on white background</button>
+        <button class="preset-btn" data-preset="Happy people using technology, modern office, natural lighting, diverse team collaborating">People using technology</button>
+        <button class="preset-btn" data-preset="Delicious food closeup, restaurant quality plating, shallow depth of field, warm lighting">Delicious food closeup</button>
+        <button class="preset-btn" data-preset="Fashion model in urban setting, editorial style photography, golden hour, city backdrop">Fashion editorial</button>
+        <button class="preset-btn" data-preset="Nature landscape, sunrise over mountains, inspirational, dramatic sky, vivid colors">Nature / inspirational</button>
+        <button class="preset-btn" data-preset="Minimalist flat lay arrangement, pastel colors, clean composition, top-down view">Minimalist flat lay</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Style Modifiers</div>
+        <div class="check-list" id="styleModifiers">
+          <label class="check-item"><input type="checkbox" value="professional advertising photography"> Professional ad photography</label>
+          <label class="check-item"><input type="checkbox" value="high quality, 8k, sharp detail"> High quality, 8k</label>
+          <label class="check-item"><input type="checkbox" value="clean background, product focus"> Clean background, product focus</label>
+          <label class="check-item"><input type="checkbox" value="vibrant colors, eye-catching composition"> Vibrant colors, eye-catching</label>
+          <label class="check-item"><input type="checkbox" value="soft lighting, warm tones"> Soft lighting, warm tones</label>
+          <label class="check-item"><input type="checkbox" value="modern, minimalist aesthetic"> Modern, minimalist</label>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="panel">
+        <div class="panel-title">Platform Size</div>
+        <div class="pill-row" id="platformPills">
+          <button class="pill active" data-w="1080" data-h="1080">Instagram</button>
+          <button class="pill" data-w="1200" data-h="628">Facebook</button>
+          <button class="pill" data-w="1080" data-h="1920">Story</button>
+          <button class="pill" data-w="1200" data-h="627">LinkedIn</button>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="panel">
+        <div class="panel-title">Ad Text Overlay</div>
+        <label>Headline</label>
+        <input type="text" id="headline" placeholder="Your Headline Here" maxlength="60">
+        <label>Subtext</label>
+        <input type="text" id="subtext" placeholder="Supporting message or tagline" maxlength="100">
+        <label>CTA Button Text</label>
+        <input type="text" id="ctaText" placeholder="Shop Now" maxlength="30">
+
+        <label>Text Color</label>
+        <div class="color-row">
+          <input type="color" class="color-input" id="textColor" value="#ffffff">
+          <span style="flex:1;font-size:.72rem;color:var(--muted)" id="textColorHex">#ffffff</span>
+        </div>
+
+        <label>Text Position</label>
+        <div class="pill-row" id="textPosPills">
+          <button class="pill" data-pos="top">Top</button>
+          <button class="pill active" data-pos="center">Center</button>
+          <button class="pill" data-pos="bottom">Bottom</button>
+        </div>
+
+        <div class="toggle-row" style="margin-top:10px">
+          <div class="toggle active" id="overlayToggle"></div>
+          <span class="toggle-label">Dark overlay</span>
+        </div>
+        <div id="overlayOpacityWrap">
+          <label>Overlay Opacity</label>
+          <div class="range-row">
+            <input type="range" id="overlayOpacity" min="0" max="80" value="40">
+            <span class="range-val" id="overlayOpacityVal">40%</span>
+          </div>
+        </div>
+
+        <label>Overlay Font</label>
+        <div class="pill-row" id="fontPills">
+          <button class="pill active" data-font="'Bebas Neue', sans-serif" data-name="bold">Bold</button>
+          <button class="pill" data-font="'Manrope', sans-serif" data-name="clean">Clean</button>
+          <button class="pill" data-font="'Playfair Display', serif" data-name="elegant">Elegant</button>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="panel">
+        <div class="panel-title">Brand</div>
+        <label>Brand Name</label>
+        <input type="text" id="brandName" placeholder="Your Brand" maxlength="40">
+      </div>
+
+      <div class="sep"></div>
+
+      <button class="btn btn-primary btn-generate" id="generateBtn">Generate Image</button>
+      <button class="btn btn-outline btn-generate" id="regenerateBtn" style="display:none;margin-top:6px;width:100%">Regenerate</button>
+
+      <div class="pro-banner">
+        <strong>Powered by Pollinations AI</strong> &mdash; free, open-source image generation. For production-quality AI ads, try ProAdStore (coming soon).
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Output -->
+  <div class="main">
+    <div class="main-header">
+      <h2 id="mainTitle">Preview</h2>
+      <div class="main-actions" id="mainActions" style="display:none">
+        <div class="format-toggle" id="formatToggle">
+          <button class="active" data-fmt="png">PNG</button>
+          <button data-fmt="jpg">JPG</button>
+        </div>
+      </div>
+    </div>
+    <div class="main-scroll" id="mainScroll">
+
+      <!-- EMPTY STATE -->
+      <div class="empty-state" id="stateEmpty">
+        <div class="empty-state-icon">&#x1F3A8;</div>
+        <h3>Describe your ad image</h3>
+        <p>AI generates a unique image in 10-15 seconds. Add text overlays to turn it into a finished ad creative.</p>
+      </div>
+
+      <!-- LOADING STATE -->
+      <div class="loading-state" id="stateLoading" style="display:none">
+        <div class="loading-spinner"></div>
+        <h3>Generating your ad image...</h3>
+        <p>This usually takes 10-15 seconds</p>
+        <p class="slow-msg" id="slowMsg">Taking longer than usual... hang tight.</p>
+      </div>
+
+      <!-- ERROR STATE -->
+      <div class="error-state" id="stateError" style="display:none">
+        <h3>Image generation failed</h3>
+        <p>Try a simpler prompt or try again in a moment.</p>
+        <button class="btn btn-primary" style="width:auto;display:inline-flex" onclick="doGenerate()">Try Again</button>
+      </div>
+
+      <!-- RESULT STATE -->
+      <div class="result-state" id="stateResult" style="display:none">
+        <div class="result-section">
+          <div class="result-section-title">AI-Generated Image</div>
+          <div class="result-canvas-wrap">
+            <canvas id="imageCanvas"></canvas>
+          </div>
+          <div class="result-actions">
+            <button class="btn btn-outline btn-sm" onclick="downloadImage()">Download Image Only</button>
+          </div>
+        </div>
+
+        <div class="result-section" id="adSection" style="display:none">
+          <div class="result-section-title">Ad with Text Overlay</div>
+          <div class="result-canvas-wrap">
+            <canvas id="adCanvas"></canvas>
+          </div>
+          <div class="result-actions">
+            <button class="btn btn-primary btn-sm" style="width:auto" onclick="downloadAd()">Download Ad</button>
+          </div>
+        </div>
+
+        <div class="result-note">Images are generated by AI and may not be perfect. Adjust your prompt for better results.</div>
+
+        <div class="tips">
+          <div class="tips-title">Tips for better results</div>
+          <ul>
+            <li>Be specific about lighting, angle, and mood</li>
+            <li>Mention "professional photography" or "studio shot" for cleaner images</li>
+            <li>Describe colors you want: "warm tones", "cool blue palette"</li>
+            <li>Add context: "on white marble table" instead of just "coffee cup"</li>
+            <li>Try different style modifiers for varied looks</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  // --- State ---
+  let currentW = 1080, currentH = 1080;
+  let currentFont = "'Bebas Neue', sans-serif";
+  let currentFontName = 'bold';
+  let textPos = 'center';
+  let overlayOn = true;
+  let generatedImg = null;
+  let downloadFmt = 'png';
+  let generating = false;
+  let slowTimer = null;
+  let timeoutTimer = null;
+
+  // --- DOM refs ---
+  const $ = id => document.getElementById(id);
+  const prompt = $('imgPrompt');
+  const headline = $('headline');
+  const subtext = $('subtext');
+  const ctaText = $('ctaText');
+  const textColor = $('textColor');
+  const textColorHex = $('textColorHex');
+  const overlayOpacity = $('overlayOpacity');
+  const overlayOpacityVal = $('overlayOpacityVal');
+  const brandName = $('brandName');
+  const generateBtn = $('generateBtn');
+  const regenerateBtn = $('regenerateBtn');
+  const imageCanvas = $('imageCanvas');
+  const adCanvas = $('adCanvas');
+  const toast = $('toast');
+
+  // --- Preset buttons ---
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      prompt.value = btn.dataset.preset;
+      prompt.focus();
+    });
+  });
+
+  // --- Platform pills ---
+  document.querySelectorAll('#platformPills .pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('#platformPills .pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      currentW = parseInt(pill.dataset.w);
+      currentH = parseInt(pill.dataset.h);
+      if (generatedImg) renderComposite();
+    });
+  });
+
+  // --- Text position pills ---
+  document.querySelectorAll('#textPosPills .pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('#textPosPills .pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      textPos = pill.dataset.pos;
+      if (generatedImg) renderComposite();
+    });
+  });
+
+  // --- Font pills ---
+  document.querySelectorAll('#fontPills .pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('#fontPills .pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      currentFont = pill.dataset.font;
+      currentFontName = pill.dataset.name;
+      if (generatedImg) renderComposite();
+    });
+  });
+
+  // --- Overlay toggle ---
+  $('overlayToggle').addEventListener('click', () => {
+    overlayOn = !overlayOn;
+    $('overlayToggle').classList.toggle('active', overlayOn);
+    $('overlayOpacityWrap').style.display = overlayOn ? '' : 'none';
+    if (generatedImg) renderComposite();
+  });
+
+  // --- Overlay opacity ---
+  overlayOpacity.addEventListener('input', () => {
+    overlayOpacityVal.textContent = overlayOpacity.value + '%';
+    if (generatedImg) renderComposite();
+  });
+
+  // --- Text color ---
+  textColor.addEventListener('input', () => {
+    textColorHex.textContent = textColor.value;
+    if (generatedImg) renderComposite();
+  });
+
+  // --- Live re-render on text input ---
+  [headline, subtext, ctaText, brandName].forEach(el => {
+    el.addEventListener('input', () => {
+      if (generatedImg) renderComposite();
+    });
+  });
+
+  // --- Format toggle ---
+  document.querySelectorAll('#formatToggle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#formatToggle button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      downloadFmt = btn.dataset.fmt;
+    });
+  });
+
+  // --- Generate ---
+  generateBtn.addEventListener('click', doGenerate);
+  regenerateBtn.addEventListener('click', doGenerate);
+
+  function getFullPrompt() {
+    let base = prompt.value.trim();
+    if (!base) base = 'A steaming latte on a rustic wooden table, warm morning light, cozy cafe atmosphere';
+    const modifiers = [];
+    document.querySelectorAll('#styleModifiers input[type=checkbox]:checked').forEach(cb => {
+      modifiers.push(cb.value);
+    });
+    if (modifiers.length) base += ', ' + modifiers.join(', ');
+    return base;
+  }
+
+  function setState(name) {
+    ['stateEmpty','stateLoading','stateError','stateResult'].forEach(id => {
+      $(id).style.display = 'none';
+    });
+    $(name).style.display = '';
+    $('mainActions').style.display = name === 'stateResult' ? '' : 'none';
+    // Re-center for empty/loading/error states
+    const scroll = $('mainScroll');
+    if (name === 'stateResult') {
+      scroll.style.justifyContent = 'flex-start';
+      scroll.style.alignItems = 'center';
+    } else {
+      scroll.style.justifyContent = 'center';
+      scroll.style.alignItems = 'center';
+    }
+  }
+
+  function doGenerate() {
+    if (generating) return;
+    generating = true;
+    generateBtn.disabled = true;
+
+    setState('stateLoading');
+    $('slowMsg').style.display = 'none';
+
+    const fullPrompt = getFullPrompt();
+    const url = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(fullPrompt) + '?width=' + currentW + '&height=' + currentH;
+
+    // Show slow message after 15s
+    slowTimer = setTimeout(() => {
+      $('slowMsg').style.display = '';
+    }, 15000);
+
+    // Hard timeout after 90s
+    timeoutTimer = setTimeout(() => {
+      cleanup();
+      setState('stateError');
+      $('stateError').querySelector('p').textContent = 'Request timed out. The AI service may be busy. Try again or simplify your prompt.';
+    }, 90000);
+
+    // Use fetch + blob to avoid CORS/referrer issues with Image element
+    fetch(url, { mode: 'cors', referrerPolicy: 'no-referrer' })
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.blob(); })
+      .then(blob => {
+        const objUrl = URL.createObjectURL(blob);
+        const img = new Image();
+        img.onload = function() {
+          cleanup();
+          generatedImg = img;
+          renderImageOnly();
+          renderComposite();
+          setState('stateResult');
+          regenerateBtn.style.display = '';
+          showToast('Image generated');
+        };
+        img.onerror = function() {
+          cleanup();
+          setState('stateError');
+        };
+        img.src = objUrl;
+      })
+      .catch(() => {
+        cleanup();
+        setState('stateError');
+      });
+
+    function cleanup() {
+      generating = false;
+      generateBtn.disabled = false;
+      clearTimeout(slowTimer);
+      clearTimeout(timeoutTimer);
+    }
+  }
+
+  // --- Render base image ---
+  function renderImageOnly() {
+    if (!generatedImg) return;
+    const c = imageCanvas;
+    c.width = generatedImg.naturalWidth;
+    c.height = generatedImg.naturalHeight;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(generatedImg, 0, 0);
+  }
+
+  // --- Render composite ad ---
+  function renderComposite() {
+    if (!generatedImg) return;
+    const hasText = headline.value.trim() || subtext.value.trim() || ctaText.value.trim() || brandName.value.trim();
+    $('adSection').style.display = hasText ? '' : 'none';
+    if (!hasText) return;
+
+    const w = generatedImg.naturalWidth;
+    const h = generatedImg.naturalHeight;
+    const c = adCanvas;
+    c.width = w;
+    c.height = h;
+    const ctx = c.getContext('2d');
+
+    // Draw base image
+    ctx.drawImage(generatedImg, 0, 0);
+
+    // Dark overlay
+    if (overlayOn) {
+      const alpha = parseInt(overlayOpacity.value) / 100;
+      ctx.fillStyle = 'rgba(0,0,0,' + alpha + ')';
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    const color = textColor.value;
+    const scale = Math.min(w, h) / 1080; // scale text relative to 1080
+    const padX = 60 * scale;
+    const maxTextW = w - padX * 2;
+
+    // Calculate vertical positions
+    let headY, subY, ctaY, brandY;
+    const headSize = Math.round(72 * scale);
+    const subSize = Math.round(28 * scale);
+    const ctaSize = Math.round(22 * scale);
+    const brandSize = Math.round(16 * scale);
+    const lineGap = 16 * scale;
+    const ctaGap = 32 * scale;
+
+    // Measure total block height
+    let blockH = 0;
+    if (headline.value.trim()) blockH += headSize + lineGap;
+    if (subtext.value.trim()) blockH += subSize + lineGap;
+    if (ctaText.value.trim()) blockH += ctaGap + ctaSize + 24 * scale;
+
+    if (textPos === 'top') {
+      headY = 80 * scale + headSize;
+    } else if (textPos === 'bottom') {
+      headY = h - blockH - 80 * scale;
+    } else {
+      headY = (h - blockH) / 2 + headSize;
+    }
+
+    ctx.textAlign = 'center';
+    const cx = w / 2;
+    let curY = headY;
+
+    // Shadow for readability
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 8 * scale;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 2 * scale;
+
+    // Headline
+    if (headline.value.trim()) {
+      ctx.fillStyle = color;
+      if (currentFontName === 'bold') {
+        ctx.font = headSize + 'px ' + currentFont;
+      } else if (currentFontName === 'elegant') {
+        ctx.font = '700 ' + headSize + 'px ' + currentFont;
+      } else {
+        ctx.font = '800 ' + headSize + 'px ' + currentFont;
+      }
+      wrapText(ctx, headline.value.trim().toUpperCase(), cx, curY, maxTextW, headSize * 1.15);
+      const lines = getWrappedLines(ctx, headline.value.trim().toUpperCase(), maxTextW);
+      curY += (lines.length) * headSize * 1.15 + lineGap;
+    }
+
+    // Subtext
+    if (subtext.value.trim()) {
+      ctx.fillStyle = color;
+      ctx.font = '400 ' + subSize + 'px ' + (currentFontName === 'elegant' ? currentFont : "'Manrope', sans-serif");
+      ctx.shadowBlur = 4 * scale;
+      wrapText(ctx, subtext.value.trim(), cx, curY, maxTextW, subSize * 1.4);
+      const lines = getWrappedLines(ctx, subtext.value.trim(), maxTextW);
+      curY += lines.length * subSize * 1.4 + ctaGap;
+    }
+
+    // CTA button
+    if (ctaText.value.trim()) {
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = 'transparent';
+      const ctaFontSize = ctaSize;
+      ctx.font = '700 ' + ctaFontSize + 'px ' + "'Manrope', sans-serif";
+      const ctaW = ctx.measureText(ctaText.value.trim().toUpperCase()).width + 48 * scale;
+      const ctaH = ctaFontSize + 24 * scale;
+      const ctaX = cx - ctaW / 2;
+      const ctaRound = 8 * scale;
+
+      // Button background
+      ctx.fillStyle = '#ef4444';
+      roundRect(ctx, ctaX, curY - ctaFontSize / 2 - 12 * scale, ctaW, ctaH, ctaRound);
+      ctx.fill();
+
+      // Button text
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(ctaText.value.trim().toUpperCase(), cx, curY - ctaFontSize / 2 - 12 * scale + ctaH / 2);
+      ctx.textBaseline = 'alphabetic';
+      curY += ctaH + lineGap;
+    }
+
+    // Brand name (bottom-right corner)
+    if (brandName.value.trim()) {
+      ctx.shadowBlur = 4 * scale;
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.font = '600 ' + brandSize + 'px ' + "'Manrope', sans-serif";
+      ctx.fillStyle = color;
+      ctx.textAlign = 'right';
+      ctx.fillText(brandName.value.trim(), w - 24 * scale, h - 24 * scale);
+      ctx.textAlign = 'center';
+    }
+
+    // Reset shadow
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
+  }
+
+  // --- Text wrapping ---
+  function getWrappedLines(ctx, text, maxW) {
+    const words = text.split(' ');
+    const lines = [];
+    let line = '';
+    for (const word of words) {
+      const test = line ? line + ' ' + word : word;
+      if (ctx.measureText(test).width > maxW && line) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = test;
+      }
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  function wrapText(ctx, text, x, y, maxW, lineH) {
+    const lines = getWrappedLines(ctx, text, maxW);
+    for (let i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], x, y + i * lineH);
+    }
+  }
+
+  // --- Rounded rect ---
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+
+  // --- Downloads ---
+  function downloadCanvas(canvas, name) {
+    const mime = downloadFmt === 'jpg' ? 'image/jpeg' : 'image/png';
+    const ext = downloadFmt === 'jpg' ? '.jpg' : '.png';
+    const quality = downloadFmt === 'jpg' ? 0.92 : undefined;
+    const link = document.createElement('a');
+    link.download = name + ext;
+    link.href = canvas.toDataURL(mime, quality);
+    link.click();
+    showToast('Downloaded ' + name + ext);
+  }
+
+  window.downloadImage = function() {
+    downloadCanvas(imageCanvas, 'ai-image');
+  };
+
+  window.downloadAd = function() {
+    downloadCanvas(adCanvas, 'ai-ad');
+  };
+
+  // --- Toast ---
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  // --- Expose doGenerate for error retry ---
+  window.doGenerate = doGenerate;
+
+})();
+</script>
+</body>
+</html>
