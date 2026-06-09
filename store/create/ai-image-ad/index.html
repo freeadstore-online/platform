@@ -152,9 +152,18 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
     <div class="sidebar-head">
       <a class="back" href="/"><span>&larr;</span> FreeAdStore</a>
       <h1>AI Image Ad</h1>
-      <p>Generate real AI images for ads. Describe what you want, get a unique image in seconds. Add text overlays and download.</p>
+      <p>Generate ad images with AI or locally in your browser. Add text overlays and download.</p>
     </div>
     <div class="sidebar-scroll">
+
+      <div class="panel">
+        <div class="panel-title">Image Source</div>
+        <div class="pill-row" id="sourcePills">
+          <button class="pill active" data-source="local" title="Instant, always works">Local (instant)</button>
+          <button class="pill" data-source="cloud" title="Real AI photos, may be slow or rate-limited">Cloud AI (photo)</button>
+        </div>
+        <div id="sourceNote" style="font-size:.68rem;color:var(--muted);margin-top:6px;line-height:1.4">Generates professional ad backgrounds locally in your browser. Instant, always works, no API needed.</div>
+      </div>
 
       <div class="panel">
         <div class="panel-title">Image Prompt</div>
@@ -352,6 +361,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
   let generating = false;
   let slowTimer = null;
   let timeoutTimer = null;
+  let imageSource = 'local'; // 'local' or 'cloud'
 
   // --- DOM refs ---
   const $ = id => document.getElementById(id);
@@ -375,6 +385,18 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
     btn.addEventListener('click', () => {
       prompt.value = btn.dataset.preset;
       prompt.focus();
+    });
+  });
+
+  // --- Source toggle ---
+  document.querySelectorAll('#sourcePills .pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('#sourcePills .pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      imageSource = pill.dataset.source;
+      $('sourceNote').textContent = imageSource === 'local'
+        ? 'Generates professional ad backgrounds locally in your browser. Instant, always works, no API needed.'
+        : 'Uses Pollinations AI to generate real photographs. Takes 10-30 seconds, may rate-limit.';
     });
   });
 
@@ -480,6 +502,161 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
 
   function doGenerate() {
     if (generating) return;
+    if (imageSource === 'local') return doLocalGenerate();
+    return doCloudGenerate();
+  }
+
+  // --- LOCAL GENERATION (always works) ---
+  function doLocalGenerate() {
+    const promptText = prompt.value.trim() || 'professional ad background';
+    const words = promptText.toLowerCase().split(/[\s,]+/);
+
+    // Color intelligence: pick palette based on keywords
+    const palettes = {
+      warm:   ['#D4A574','#8B4513','#F5DEB3','#C4956A','#A0522D'],
+      cool:   ['#3B82F6','#06B6D4','#1E40AF','#0891B2','#E0F2FE'],
+      nature: ['#22C55E','#15803D','#86EFAC','#166534','#F0FDF4'],
+      sunset: ['#F97316','#EF4444','#F59E0B','#DC2626','#FEF3C7'],
+      luxury: ['#1a1a1a','#D4AF37','#2d2d2d','#B8860B','#F5F5DC'],
+      tech:   ['#8B5CF6','#3B82F6','#6D28D9','#1D4ED8','#EDE9FE'],
+      fresh:  ['#10B981','#06B6D4','#34D399','#22D3EE','#ECFDF5'],
+      bold:   ['#EF4444','#F97316','#DC2626','#EA580C','#FEF2F2'],
+      pastel: ['#F9A8D4','#C4B5FD','#93C5FD','#A5F3FC','#FDE68A'],
+      mono:   ['#374151','#6B7280','#9CA3AF','#D1D5DB','#F3F4F6'],
+    };
+
+    // Detect mood from keywords
+    let pal = palettes.cool;
+    const kwMap = {
+      warm: ['coffee','latte','warm','cozy','bakery','wood','rustic','autumn','brown'],
+      cool: ['tech','software','digital','modern','office','clean','blue'],
+      nature: ['nature','green','forest','plant','garden','organic','eco','tree'],
+      sunset: ['sunset','sunrise','orange','fire','energy','vibrant','hot'],
+      luxury: ['luxury','premium','gold','elegant','black','dark','exclusive','vip'],
+      tech: ['ai','data','cyber','cloud','space','neon','purple','innovation'],
+      fresh: ['health','fitness','fresh','mint','teal','spa','wellness','ocean'],
+      bold: ['sale','discount','urgent','red','attention','bold','power','strong'],
+      pastel: ['baby','soft','gentle','cute','sweet','candy','pink','pastel'],
+      mono: ['minimal','minimalist','simple','grayscale','neutral','professional'],
+    };
+    for (const [mood, kws] of Object.entries(kwMap)) {
+      if (kws.some(k => words.includes(k))) { pal = palettes[mood]; break; }
+    }
+
+    // Create off-screen canvas for the background
+    const bgCanvas = document.createElement('canvas');
+    bgCanvas.width = currentW;
+    bgCanvas.height = currentH;
+    const ctx = bgCanvas.getContext('2d');
+    const w = currentW, h = currentH;
+
+    // Pick a random design style (6 options)
+    const style = Math.floor(Math.random() * 6);
+
+    if (style === 0) {
+      // Gradient with bokeh circles
+      const grd = ctx.createLinearGradient(0, 0, w, h);
+      grd.addColorStop(0, pal[0]); grd.addColorStop(0.5, pal[1]); grd.addColorStop(1, pal[2]);
+      ctx.fillStyle = grd; ctx.fillRect(0, 0, w, h);
+      for (let i = 0; i < 12; i++) {
+        const r = 30 + Math.random() * 120;
+        const x = Math.random() * w, y = Math.random() * h;
+        const rg = ctx.createRadialGradient(x, y, 0, x, y, r);
+        rg.addColorStop(0, pal[3] + '40'); rg.addColorStop(1, pal[3] + '00');
+        ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+      }
+    } else if (style === 1) {
+      // Mesh gradient (overlapping radial gradients)
+      ctx.fillStyle = pal[4] || '#f3f4f6'; ctx.fillRect(0, 0, w, h);
+      const pts = [[0.2,0.3],[0.8,0.2],[0.5,0.7],[0.1,0.8],[0.9,0.6]];
+      pts.forEach((p, i) => {
+        const r = Math.max(w, h) * 0.6;
+        const rg = ctx.createRadialGradient(p[0]*w, p[1]*h, 0, p[0]*w, p[1]*h, r);
+        rg.addColorStop(0, pal[i % pal.length] + '80'); rg.addColorStop(1, pal[i % pal.length] + '00');
+        ctx.fillStyle = rg; ctx.fillRect(0, 0, w, h);
+      });
+    } else if (style === 2) {
+      // Dark premium with accent line
+      ctx.fillStyle = '#1a1a1a'; ctx.fillRect(0, 0, w, h);
+      const rg = ctx.createRadialGradient(w*0.5, h*0.4, 0, w*0.5, h*0.4, w*0.7);
+      rg.addColorStop(0, pal[0] + '25'); rg.addColorStop(1, '#1a1a1a');
+      ctx.fillStyle = rg; ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = pal[0]; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(w*0.2, h*0.55); ctx.lineTo(w*0.8, h*0.55); ctx.stroke();
+    } else if (style === 3) {
+      // Split layout
+      const isLandscape = w > h;
+      if (isLandscape) {
+        ctx.fillStyle = pal[0]; ctx.fillRect(0, 0, w/2, h);
+        ctx.fillStyle = pal[4] || '#f3f4f6'; ctx.fillRect(w/2, 0, w/2, h);
+      } else {
+        ctx.fillStyle = pal[0]; ctx.fillRect(0, 0, w, h/2);
+        ctx.fillStyle = pal[4] || '#f3f4f6'; ctx.fillRect(0, h/2, w, h/2);
+      }
+      // Diagonal accent
+      ctx.strokeStyle = pal[1] + '60'; ctx.lineWidth = 2;
+      for (let i = 0; i < 8; i++) {
+        ctx.beginPath(); ctx.moveTo(i*w/8, 0); ctx.lineTo(i*w/8+w/4, h); ctx.stroke();
+      }
+    } else if (style === 4) {
+      // Geometric shapes
+      const grd = ctx.createLinearGradient(0, 0, w, h);
+      grd.addColorStop(0, pal[0]); grd.addColorStop(1, pal[1]);
+      ctx.fillStyle = grd; ctx.fillRect(0, 0, w, h);
+      for (let i = 0; i < 20; i++) {
+        ctx.save(); ctx.globalAlpha = 0.1 + Math.random() * 0.15;
+        const x = Math.random() * w, y = Math.random() * h, s = 20 + Math.random() * 100;
+        ctx.fillStyle = pal[Math.floor(Math.random() * pal.length)];
+        if (Math.random() > 0.5) {
+          ctx.beginPath(); ctx.arc(x, y, s/2, 0, Math.PI*2); ctx.fill();
+        } else {
+          ctx.translate(x, y); ctx.rotate(Math.random() * Math.PI);
+          ctx.fillRect(-s/2, -s/2, s, s);
+        }
+        ctx.restore();
+      }
+      // Frosted center panel
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      const pw = w * 0.7, ph = h * 0.5;
+      roundRect(ctx, (w-pw)/2, (h-ph)/2, pw, ph, 16);
+      ctx.fill();
+    } else {
+      // Blurred photo simulation with layered gradients
+      const grd1 = ctx.createLinearGradient(0, 0, w, h);
+      grd1.addColorStop(0, pal[0]); grd1.addColorStop(0.3, pal[1]); grd1.addColorStop(0.7, pal[2]); grd1.addColorStop(1, pal[3]);
+      ctx.fillStyle = grd1; ctx.fillRect(0, 0, w, h);
+      // Soft light spots (bokeh)
+      for (let i = 0; i < 8; i++) {
+        const r = 60 + Math.random() * 200;
+        const x = Math.random() * w, y = Math.random() * h;
+        const rg = ctx.createRadialGradient(x, y, 0, x, y, r);
+        rg.addColorStop(0, '#ffffff20'); rg.addColorStop(1, '#ffffff00');
+        ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+      }
+      // Vignette
+      const vg = ctx.createRadialGradient(w/2, h/2, w*0.2, w/2, h/2, w*0.8);
+      vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.4)');
+      ctx.fillStyle = vg; ctx.fillRect(0, 0, w, h);
+    }
+
+    // Convert canvas to image
+    bgCanvas.toBlob(blob => {
+      const objUrl = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        generatedImg = img;
+        renderImageOnly();
+        renderComposite();
+        setState('stateResult');
+        regenerateBtn.style.display = '';
+        showToast('Image generated locally');
+      };
+      img.src = objUrl;
+    });
+  }
+
+  // --- CLOUD GENERATION (Pollinations API) ---
+  function doCloudGenerate() {
     generating = true;
     generateBtn.disabled = true;
 
@@ -545,7 +722,7 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
         if (status === 402 || status === 403) {
           msg = 'The free AI image service is temporarily rate-limited.';
           detail = 'HTTP ' + status + ' — the Pollinations API free tier has usage limits.';
-          help = '<strong>What to try:</strong><br>1. Wait 30 seconds and try again<br>2. Use a shorter, simpler prompt<br>3. Try the <a href="/create/ai-ad-generator/" style="color:var(--accent)">AI Ad Generator</a> (uses procedural design, always works)<br>4. Try the <a href="/create/social-ad-maker/" style="color:var(--accent)">Social Ad Maker</a> for quick meme-style ads';
+          help = '<strong>What to try:</strong><br>1. Switch to <strong>Local (instant)</strong> mode — always works, no API needed<br>2. Wait 30 seconds and try Cloud AI again<br>3. Use a shorter, simpler prompt';
         } else if (status === 500 || status === 503) {
           msg = 'The AI image service is temporarily overloaded.';
           detail = 'HTTP ' + status + ' — server error. Usually resolves in a few minutes.';
