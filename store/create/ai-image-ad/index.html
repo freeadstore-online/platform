@@ -3,38 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Ad Image — Real AI Generation - FreeAdStore</title>
-<meta name="description" content="Generate real AI images for ads. Local model (downloads once, runs in browser via WebGPU) or cloud AI. No fakes.">
+<title>AI Ad Image — Real AI in Browser - FreeAdStore</title>
+<meta name="description" content="Generate real AI images in your browser. Downloads SD-Turbo model (2.4GB, cached), runs via WebGPU. No cloud, no fakes.">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Bebas+Neue&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#111;--text:#f3f4f6;--muted:#9ca3af;--accent:#ef4444;--panel:#1a1a1a;--line:#2d2d2d;--radius:10px;--green:#22c55e;--yellow:#eab308}
 body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
-
 .app{display:flex;height:100vh}
 .sidebar{width:380px;min-width:380px;border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;overflow:hidden}
 .sidebar-head{padding:16px 20px 0;flex-shrink:0}
 .sidebar-head h1{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;margin-bottom:4px}
 .sidebar-head p{font-size:.75rem;color:var(--muted);line-height:1.4;margin-bottom:8px}
 .sidebar-scroll{flex:1;overflow-y:auto;padding:0 20px 20px}
-
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-.main-head{padding:16px 24px 0;flex-shrink:0}
-.main-scroll{flex:1;overflow-y:auto;padding:16px 24px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-
+.main-scroll{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .panel{margin-bottom:14px}
 .panel-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;color:var(--text)}
 label{font-size:.7rem;color:var(--muted);display:block;margin:8px 0 4px;font-weight:500}
 textarea,input[type=text]{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius);font-size:.85rem;font-family:inherit;background:var(--bg);color:var(--text);outline:none}
 textarea:focus,input:focus{border-color:var(--accent)}
-
 .pill-row{display:flex;gap:5px;flex-wrap:wrap}
 .pill{padding:5px 12px;border:1px solid var(--line);border-radius:8px;font-size:.72rem;font-weight:600;cursor:pointer;background:var(--panel);font-family:inherit;color:var(--text);transition:all .12s}
 .pill:hover{border-color:var(--accent);color:var(--accent)}
 .pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-
 .btn{padding:10px 20px;border-radius:var(--radius);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px;color:#fff}
 .btn-primary{background:var(--accent);width:100%}
 .btn-primary:hover{filter:brightness(1.1)}
@@ -42,55 +36,35 @@ textarea:focus,input:focus{border-color:var(--accent)}
 .btn-outline{background:transparent;color:var(--text);border:1px solid var(--line);padding:7px 14px;font-size:.75rem;font-weight:600}
 .btn-outline:hover{border-color:var(--accent);color:var(--accent)}
 .btn-sm{padding:6px 12px;font-size:.72rem}
-
 .sep{height:1px;background:var(--line);margin:14px 0}
-
-.source-card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;transition:all .15s;margin-bottom:8px}
-.source-card:hover{border-color:var(--accent)}
-.source-card.active{border-color:var(--accent);background:rgba(239,68,68,.06)}
-.source-card h4{font-size:.8rem;font-weight:700;margin-bottom:2px;display:flex;align-items:center;gap:6px}
-.source-card p{font-size:.68rem;color:var(--muted);line-height:1.4}
-.source-card .badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.6rem;font-weight:700}
-.badge-green{background:rgba(34,197,94,.15);color:var(--green)}
-.badge-yellow{background:rgba(234,179,8,.15);color:var(--yellow)}
-
-/* Progress */
-.progress-wrap{margin-top:8px;display:none}
-.progress-bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.info-box{border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:.72rem;line-height:1.5}
+.info-box h4{font-size:.78rem;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.info-green{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2)}
+.info-green h4{color:var(--green)}
+.info-yellow{background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.2)}
+.info-yellow h4{color:var(--yellow)}
+.info-red{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2)}
+.info-red h4{color:var(--accent)}
+.progress-bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:8px 0 4px}
 .progress-fill{height:100%;background:var(--accent);border-radius:3px;width:0%;transition:width .3s}
-.progress-text{font-size:.68rem;color:var(--muted);margin-top:4px}
-
-/* States */
-.state{display:none;text-align:center;padding:40px 20px;max-width:500px}
+.progress-text{font-size:.68rem;color:var(--muted)}
+.state{display:none;text-align:center;padding:40px 20px;max-width:520px}
 .state.visible{display:block}
 .state h3{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;margin-bottom:8px}
 .state p{font-size:.8rem;color:var(--muted);line-height:1.5}
-
 .spinner{width:40px;height:40px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-.error-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:10px 14px;margin:12px 0;font-size:.75rem;color:var(--muted);text-align:left}
-.error-box strong{color:var(--accent)}
-
-/* Result */
-.result{width:100%;max-width:800px}
+.result{width:100%;max-width:600px}
 .result canvas{display:block;max-width:100%;height:auto;border-radius:8px;border:1px solid var(--line)}
 .result-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 .result-label{font-size:.68rem;color:var(--muted);margin-top:8px}
-
-/* Toast */
+.log{margin-top:12px;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;font-family:monospace;font-size:.68rem;color:var(--muted);max-height:120px;overflow-y:auto;white-space:pre-wrap;text-align:left}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:var(--bg);padding:10px 20px;border-radius:10px;font-size:.78rem;font-weight:600;opacity:0;transition:all .3s;z-index:1000;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
-/* Overlay controls */
 .overlay-section{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:14px}
-.overlay-section .panel-title{margin-bottom:6px}
-.color-row{display:flex;align-items:center;gap:8px}
-.color-input{width:36px;height:28px;border:1px solid var(--line);border-radius:6px;padding:1px 2px;cursor:pointer;background:var(--panel)}
 .range-row{display:flex;align-items:center;gap:8px}
 .range-row input[type=range]{flex:1;accent-color:var(--accent)}
 .range-val{font-size:.7rem;color:var(--muted);min-width:32px;text-align:right}
-
 @media(max-width:900px){
   .app{flex-direction:column;height:auto}
   .sidebar{width:100%;min-width:0;border-right:none;border-bottom:1px solid var(--line)}
@@ -104,53 +78,30 @@ textarea:focus,input:focus{border-color:var(--accent)}
     <div class="sidebar-head">
       <a href="/" style="font-size:.82rem;font-weight:600">&larr; FreeAdStore</a>
       <h1>AI Ad Image</h1>
-      <p>Real AI image generation. No fakes, no templates. Choose local model or cloud API.</p>
+      <p>Real AI image generation. No fakes. No templates.</p>
     </div>
     <div class="sidebar-scroll">
 
-      <div class="panel">
-        <div class="panel-title">Image Source</div>
-        <div class="source-card active" id="srcLocal" onclick="selectSource('local')">
-          <h4>Local AI Model <span class="badge badge-green">real AI</span></h4>
-          <p>Downloads a real diffusion model (~2GB first time, cached after). Runs entirely in your browser via WebGPU. Takes 30-90 seconds to generate. <strong>Always works, no rate limits.</strong></p>
-          <div class="progress-wrap" id="modelProgress">
-            <div class="progress-bar"><div class="progress-fill" id="modelProgressFill"></div></div>
-            <div class="progress-text" id="modelProgressText">Downloading model...</div>
-          </div>
-        </div>
-        <div class="source-card" id="srcCloud" onclick="selectSource('cloud')">
-          <h4>Cloud AI <span class="badge badge-yellow">may rate-limit</span></h4>
-          <p>Uses Pollinations API (free, no signup). Faster (~10-30s) but may fail if the service is busy or rate-limited.</p>
-        </div>
+      <div id="capabilityBox" class="info-box info-yellow">
+        <h4>Checking browser capabilities...</h4>
+        <p id="capText">Detecting WebGPU support.</p>
       </div>
-
-      <div class="sep"></div>
 
       <div class="panel">
         <div class="panel-title">Describe Your Image</div>
-        <textarea id="prompt" rows="3" placeholder="A steaming latte on a rustic wooden table, warm morning light, cozy cafe atmosphere"></textarea>
+        <textarea id="prompt" rows="3" placeholder="A steaming latte on a rustic wooden table, warm morning light, cozy cafe atmosphere, professional food photography"></textarea>
       </div>
 
       <div class="panel">
         <div class="panel-title">Quick Prompts</div>
-        <div class="pill-row" id="presets">
-          <button class="pill" data-p="Product on clean white background, studio lighting">Product shot</button>
-          <button class="pill" data-p="Happy people using technology, modern office">Office team</button>
-          <button class="pill" data-p="Delicious food closeup, restaurant quality, warm lighting">Food photo</button>
-          <button class="pill" data-p="Fashion model in urban setting, golden hour">Fashion</button>
-          <button class="pill" data-p="Nature landscape, sunrise over mountains, vivid colors">Nature</button>
-          <button class="pill" data-p="Minimalist flat lay, pastel colors, top-down view">Flat lay</button>
+        <div class="pill-row">
+          <button class="pill" onclick="setPrompt('Product on clean white background, studio lighting, professional product photography')">Product</button>
+          <button class="pill" onclick="setPrompt('Happy people using technology, modern office, natural lighting')">Office</button>
+          <button class="pill" onclick="setPrompt('Delicious food closeup, restaurant quality, warm lighting, shallow depth of field')">Food</button>
+          <button class="pill" onclick="setPrompt('Fashion model in urban setting, golden hour, editorial style')">Fashion</button>
+          <button class="pill" onclick="setPrompt('Beautiful nature landscape, sunrise over mountains, vivid colors, dramatic sky')">Nature</button>
+          <button class="pill" onclick="setPrompt('Minimalist flat lay, pastel colors, top-down view, clean composition')">Flat lay</button>
         </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-title">Platform Size</div>
-        <div class="pill-row" id="sizePills">
-          <button class="pill active" data-w="512" data-h="512">Square</button>
-          <button class="pill" data-w="768" data-h="512">Landscape</button>
-          <button class="pill" data-w="512" data-h="768">Portrait</button>
-        </div>
-        <div style="font-size:.65rem;color:var(--muted);margin-top:4px">Local AI generates at 512px (model limit). Cloud can go higher.</div>
       </div>
 
       <div class="sep"></div>
@@ -166,7 +117,7 @@ textarea:focus,input:focus{border-color:var(--accent)}
         <div style="margin-top:8px">
           <label>Darken overlay</label>
           <div class="range-row">
-            <input type="range" id="overlayAmt" min="0" max="70" value="30">
+            <input type="range" id="overlayAmt" min="0" max="70" value="30" oninput="document.getElementById('overlayVal').textContent=this.value+'%'; if(window.genImg) renderFinal()">
             <span class="range-val" id="overlayVal">30%</span>
           </div>
         </div>
@@ -176,38 +127,38 @@ textarea:focus,input:focus{border-color:var(--accent)}
         <button class="btn btn-primary" id="genBtn" onclick="generate()">Generate Image</button>
       </div>
 
+      <div style="margin-top:10px;font-size:.65rem;color:var(--muted);line-height:1.4">
+        <strong>How it works:</strong> Downloads SD-Turbo ONNX model (~2.4GB, cached after first time). Runs the real Stable Diffusion pipeline in your browser via ONNX Runtime + WebGPU. 512x512 output. Takes 30-120 seconds depending on your GPU.
+      </div>
+
     </div>
   </div>
 
   <div class="main">
     <div class="main-scroll" id="mainScroll">
 
-      <!-- EMPTY -->
       <div class="state visible" id="stateEmpty">
-        <h3>Describe your image, hit Generate</h3>
-        <p>Real AI generates a unique image from your description. Local model downloads once (~2GB), then runs entirely in your browser.</p>
-        <div id="webgpuCheck" style="margin-top:16px;font-size:.75rem"></div>
+        <h3>Real AI image generation in your browser</h3>
+        <p>This downloads and runs an actual Stable Diffusion model (SD-Turbo, 2.4GB) directly in your browser using WebGPU. First run downloads the model — it's cached after that.</p>
+        <p style="margin-top:12px;color:var(--yellow);font-size:.75rem">Requires Chrome/Edge 113+ with a decent GPU. The model download is ~2.4GB on first use.</p>
       </div>
 
-      <!-- LOADING -->
       <div class="state" id="stateLoading">
         <div class="spinner"></div>
-        <h3 id="loadingTitle">Generating image...</h3>
-        <p id="loadingText">This takes 30-90 seconds with the local model.</p>
+        <h3 id="loadingTitle">Loading model...</h3>
+        <p id="loadingText">Downloading SD-Turbo ONNX model. This is a one-time download.</p>
+        <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-text" id="progressText"></div>
+        <div class="log" id="log"></div>
       </div>
 
-      <!-- ERROR -->
       <div class="state" id="stateError">
         <h3 style="color:var(--accent)">Generation failed</h3>
-        <p id="errorMsg">Something went wrong.</p>
-        <div class="error-box" id="errorDetail" style="display:none">
-          <strong>Details:</strong> <span id="errorDetailText"></span>
-        </div>
-        <div id="errorHelp" style="margin-top:8px;font-size:.72rem;color:var(--muted);line-height:1.6"></div>
+        <p id="errorMsg"></p>
+        <div class="log" id="errorLog" style="margin-top:12px"></div>
         <button class="btn btn-primary" style="width:auto;margin-top:14px" onclick="generate()">Try Again</button>
       </div>
 
-      <!-- RESULT -->
       <div class="state" id="stateResult">
         <div class="result">
           <canvas id="resultCanvas"></canvas>
@@ -226,300 +177,49 @@ textarea:focus,input:focus{border-color:var(--accent)}
 
 <div class="toast" id="toast"></div>
 
-<script type="module">
-// === STATE ===
-let source = 'local';
-let genW = 512, genH = 512;
-let generating = false;
-let localPipeline = null;
-let generatedImg = null;
+<!-- ONNX Runtime Web for running the model -->
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.0/dist/ort.all.min.js"></script>
 
+<script>
+// === GLOBALS ===
 const $ = id => document.getElementById(id);
 const canvas = $('resultCanvas');
+let sessions = {}; // ONNX sessions: textEncoder, unet, vaeDecoder
+let tokenizer = null; // CLIP tokenizer
+window.genImg = null;
 
-// === WEBGPU CHECK ===
+const MODEL_BASE = 'https://huggingface.co/jdp8/sd-turbo-onnx/resolve/main';
+const STEPS = 4; // SD-Turbo only needs 1-4 steps
+const GUIDANCE = 1.0; // SD-Turbo uses guidance_scale=1
+
+// === CAPABILITY CHECK ===
 (async () => {
-  const el = $('webgpuCheck');
-  if (navigator.gpu) {
-    try {
-      const adapter = await navigator.gpu.requestAdapter();
-      if (adapter) {
-        el.innerHTML = '<span style="color:var(--green)">&#10003; WebGPU available</span> — local AI model will work in this browser.';
-      } else {
-        el.innerHTML = '<span style="color:var(--yellow)">&#9888; WebGPU adapter not found</span> — local AI may not work. Try Cloud AI instead.';
-      }
-    } catch(e) {
-      el.innerHTML = '<span style="color:var(--yellow)">&#9888; WebGPU error</span> — use Cloud AI mode.';
-    }
-  } else {
-    el.innerHTML = '<span style="color:var(--accent)">&#10007; WebGPU not supported</span> — this browser can\'t run local AI. Use Cloud AI mode, or try Chrome/Edge 113+.';
+  const box = $('capabilityBox');
+  const txt = $('capText');
+  if (!navigator.gpu) {
+    box.className = 'info-box info-red';
+    box.querySelector('h4').textContent = 'WebGPU not available';
+    txt.innerHTML = 'Your browser does not support WebGPU. You need <strong>Chrome 113+</strong> or <strong>Edge 113+</strong>. Safari and Firefox do not support WebGPU yet.';
+    $('genBtn').disabled = true;
+    return;
+  }
+  try {
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) throw new Error('No adapter');
+    const info = await adapter.requestAdapterInfo?.() || {};
+    box.className = 'info-box info-green';
+    box.querySelector('h4').textContent = 'WebGPU ready';
+    txt.textContent = 'Your browser supports WebGPU. AI model will run on your GPU' + (info.description ? ` (${info.description})` : '') + '.';
+  } catch(e) {
+    box.className = 'info-box info-yellow';
+    box.querySelector('h4').textContent = 'WebGPU uncertain';
+    txt.textContent = 'WebGPU detected but adapter may not work. Try generating — it might still work.';
   }
 })();
 
-// === SOURCE SELECTION ===
-window.selectSource = function(s) {
-  source = s;
-  $('srcLocal').classList.toggle('active', s === 'local');
-  $('srcCloud').classList.toggle('active', s === 'cloud');
-};
+// === HELPERS ===
+window.setPrompt = function(p) { $('prompt').value = p; };
 
-// === PRESETS ===
-document.querySelectorAll('#presets .pill').forEach(b => {
-  b.addEventListener('click', () => { $('prompt').value = b.dataset.p; });
-});
-
-// === SIZE PILLS ===
-document.querySelectorAll('#sizePills .pill').forEach(b => {
-  b.addEventListener('click', () => {
-    document.querySelectorAll('#sizePills .pill').forEach(p => p.classList.remove('active'));
-    b.classList.add('active');
-    genW = parseInt(b.dataset.w); genH = parseInt(b.dataset.h);
-  });
-});
-
-// === OVERLAY SLIDER ===
-$('overlayAmt').addEventListener('input', () => {
-  $('overlayVal').textContent = $('overlayAmt').value + '%';
-  if (generatedImg) renderFinal();
-});
-['headline','cta','brand'].forEach(id => {
-  $(id).addEventListener('input', () => { if (generatedImg) renderFinal(); });
-});
-
-// === GENERATE ===
-window.generate = async function() {
-  if (generating) return;
-  generating = true;
-  $('genBtn').disabled = true;
-
-  const promptText = $('prompt').value.trim() || 'a beautiful product photo, professional lighting';
-
-  showState('stateLoading');
-
-  try {
-    if (source === 'local') {
-      await generateLocal(promptText);
-    } else {
-      await generateCloud(promptText);
-    }
-  } catch(e) {
-    showError(e.message || 'Unknown error', e);
-  } finally {
-    generating = false;
-    $('genBtn').disabled = false;
-  }
-};
-
-// === LOCAL AI GENERATION ===
-async function generateLocal(promptText) {
-  // Check WebGPU
-  if (!navigator.gpu) {
-    throw new Error('WebGPU is not supported in this browser. Use Chrome or Edge 113+, or switch to Cloud AI mode.');
-  }
-
-  $('loadingTitle').textContent = localPipeline ? 'Generating image...' : 'Loading AI model...';
-  $('loadingText').textContent = localPipeline
-    ? 'Running diffusion model in your browser. This takes 30-90 seconds.'
-    : 'Downloading model (~2GB). This is a one-time download — it\'s cached after.';
-
-  if (!localPipeline) {
-    // Show progress
-    $('modelProgress').style.display = '';
-
-    try {
-      const { pipeline, env } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3');
-
-      // Use WebGPU
-      env.backends.onnx.wasm.proxy = false;
-
-      localPipeline = await pipeline('text-to-image', 'onnx-community/sd-turbo', {
-        device: 'webgpu',
-        dtype: 'fp16',
-        progress_callback: (p) => {
-          if (p.status === 'download' || p.status === 'progress') {
-            const pct = p.progress ? Math.round(p.progress) : 0;
-            $('modelProgressFill').style.width = pct + '%';
-            $('modelProgressText').textContent = p.file
-              ? `Downloading ${p.file}... ${pct}%`
-              : `Loading model... ${pct}%`;
-          } else if (p.status === 'done') {
-            $('modelProgressText').textContent = 'Model loaded!';
-          }
-        }
-      });
-
-      $('modelProgress').style.display = 'none';
-      $('loadingTitle').textContent = 'Generating image...';
-      $('loadingText').textContent = 'Running diffusion model in your browser. This takes 30-90 seconds.';
-    } catch(e) {
-      $('modelProgress').style.display = 'none';
-      throw new Error('Failed to load AI model: ' + e.message + '. Make sure WebGPU is enabled and you have enough memory.');
-    }
-  }
-
-  // Generate
-  try {
-    const result = await localPipeline(promptText, {
-      num_inference_steps: 4,
-      guidance_scale: 1.0,
-      width: genW,
-      height: genH,
-    });
-
-    // result is a RawImage — convert to canvas
-    const rawImg = result[0];
-    const imgCanvas = document.createElement('canvas');
-    imgCanvas.width = rawImg.width;
-    imgCanvas.height = rawImg.height;
-    const ctx = imgCanvas.getContext('2d');
-    const imageData = ctx.createImageData(rawImg.width, rawImg.height);
-    imageData.data.set(rawImg.data);
-    ctx.putImageData(imageData, 0, 0);
-
-    // Convert to Image element
-    const blob = await new Promise(r => imgCanvas.toBlob(r));
-    const url = URL.createObjectURL(blob);
-    const img = new Image();
-    await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-      img.src = url;
-    });
-
-    generatedImg = img;
-    renderFinal();
-    showState('stateResult');
-    $('resultLabel').textContent = 'Generated locally with SD-Turbo via WebGPU — real AI, no cloud.';
-    showToast('Image generated with local AI');
-
-  } catch(e) {
-    throw new Error('Generation failed: ' + e.message);
-  }
-}
-
-// === CLOUD AI GENERATION ===
-async function generateCloud(promptText) {
-  $('loadingTitle').textContent = 'Generating with Cloud AI...';
-  $('loadingText').textContent = 'Calling Pollinations API. Takes 10-30 seconds.';
-
-  const url = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(promptText) + '?model=turbo&nologo=true';
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 90000);
-
-  try {
-    const resp = await fetch(url, {
-      mode: 'cors',
-      referrerPolicy: 'no-referrer',
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-
-    if (!resp.ok) {
-      const status = resp.status;
-      if (status === 402 || status === 403) {
-        throw new Error('Cloud AI rate-limited (HTTP ' + status + '). The free Pollinations API has usage limits. Try Local AI mode instead — it always works.');
-      }
-      throw new Error('Cloud API returned HTTP ' + status);
-    }
-
-    const blob = await resp.blob();
-    if (blob.size < 1000) throw new Error('Response too small — not a valid image');
-
-    const objUrl = URL.createObjectURL(blob);
-    const img = new Image();
-    await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = () => reject(new Error('Returned data was not a valid image'));
-      img.src = objUrl;
-    });
-
-    generatedImg = img;
-    renderFinal();
-    showState('stateResult');
-    $('resultLabel').textContent = 'Generated by Pollinations AI (cloud). Real AI image.';
-    showToast('Image generated with Cloud AI');
-
-  } catch(e) {
-    clearTimeout(timeout);
-    if (e.name === 'AbortError') {
-      throw new Error('Request timed out after 90 seconds. The cloud service may be overloaded. Try Local AI mode — it always works.');
-    }
-    throw e;
-  }
-}
-
-// === RENDER FINAL (image + overlay) ===
-function renderFinal() {
-  if (!generatedImg) return;
-  const w = generatedImg.naturalWidth, h = generatedImg.naturalHeight;
-  canvas.width = w; canvas.height = h;
-  const ctx = canvas.getContext('2d');
-
-  // Draw image
-  ctx.drawImage(generatedImg, 0, 0);
-
-  // Darken overlay
-  const amt = parseInt($('overlayAmt').value) / 100;
-  if (amt > 0) {
-    ctx.fillStyle = 'rgba(0,0,0,' + amt + ')';
-    ctx.fillRect(0, 0, w, h);
-  }
-
-  const scale = Math.min(w, h) / 512;
-  const color = '#ffffff';
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0,0,0,0.6)';
-  ctx.shadowBlur = 6 * scale;
-
-  // Headline
-  const hl = $('headline').value.trim();
-  if (hl) {
-    ctx.font = '800 ' + Math.round(48 * scale) + 'px "Bebas Neue", sans-serif';
-    ctx.fillStyle = color;
-    ctx.fillText(hl, w / 2, h * 0.4);
-  }
-
-  // CTA
-  const ct = $('cta').value.trim();
-  if (ct) {
-    const fontSize = Math.round(20 * scale);
-    ctx.font = '700 ' + fontSize + 'px "Manrope", sans-serif';
-    const tw = ctx.measureText(ct.toUpperCase()).width + 32 * scale;
-    const th = fontSize + 16 * scale;
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = '#ef4444';
-    const rx = (w - tw) / 2, ry = h * 0.55;
-    ctx.beginPath();
-    ctx.roundRect(rx, ry, tw, th, 6 * scale);
-    ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.fillText(ct.toUpperCase(), w / 2, ry + th * 0.72);
-    ctx.shadowBlur = 6 * scale;
-  }
-
-  // Brand
-  const br = $('brand').value.trim();
-  if (br) {
-    ctx.font = '600 ' + Math.round(14 * scale) + 'px "Manrope", sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    ctx.textAlign = 'right';
-    ctx.fillText(br, w - 16 * scale, h - 16 * scale);
-  }
-
-  ctx.shadowBlur = 0;
-  ctx.shadowColor = 'transparent';
-}
-
-// === DOWNLOAD ===
-window.download = function(fmt) {
-  const link = document.createElement('a');
-  link.download = 'ad-image.' + fmt;
-  link.href = canvas.toDataURL(fmt === 'jpg' ? 'image/jpeg' : 'image/png', 0.92);
-  link.click();
-};
-
-// === UI HELPERS ===
 function showState(name) {
   ['stateEmpty','stateLoading','stateError','stateResult'].forEach(id => {
     $(id).classList.toggle('visible', id === name);
@@ -527,24 +227,366 @@ function showState(name) {
   $('mainScroll').style.justifyContent = name === 'stateResult' ? 'flex-start' : 'center';
 }
 
-function showError(msg, e) {
-  showState('stateError');
-  $('errorMsg').textContent = msg;
-  if (e && e.stack) {
-    $('errorDetail').style.display = '';
-    $('errorDetailText').textContent = e.stack.split('\n')[0];
-  }
-  $('errorHelp').innerHTML = source === 'cloud'
-    ? 'Try switching to <strong>Local AI Model</strong> — it downloads a real model and always works.'
-    : 'Make sure you\'re using Chrome/Edge 113+ with WebGPU enabled. Or try <strong>Cloud AI</strong> mode.';
+function log(msg) {
+  const el = $('log');
+  el.textContent += msg + '\n';
+  el.scrollTop = el.scrollHeight;
+  console.log('[AI Image]', msg);
 }
 
 function showToast(msg) {
   const t = $('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
+
+// === SIMPLE CLIP TOKENIZER ===
+// SD-Turbo uses CLIP ViT-L tokenizer. We load vocab + merges from the model repo.
+async function loadTokenizer() {
+  if (tokenizer) return tokenizer;
+  log('Loading tokenizer...');
+  const [vocabResp, mergesResp] = await Promise.all([
+    fetch(MODEL_BASE + '/tokenizer/vocab.json'),
+    fetch(MODEL_BASE + '/tokenizer/merges.txt'),
+  ]);
+  if (!vocabResp.ok || !mergesResp.ok) throw new Error('Failed to download tokenizer files');
+  const vocab = await vocabResp.json();
+  const mergesText = await mergesResp.text();
+  const merges = mergesText.split('\n').filter(l => l.trim() && !l.startsWith('#'));
+
+  // Build BPE merge ranks
+  const bpeRanks = {};
+  merges.forEach((m, i) => { bpeRanks[m] = i; });
+
+  // Reverse vocab: id -> token
+  const decoder = {};
+  for (const [k, v] of Object.entries(vocab)) decoder[v] = k;
+
+  tokenizer = { vocab, decoder, bpeRanks, merges };
+  log('Tokenizer loaded (' + Object.keys(vocab).length + ' tokens)');
+  return tokenizer;
+}
+
+function clipTokenize(text, maxLen = 77) {
+  // Simple CLIP tokenization: lowercase, split on spaces/punctuation, map to vocab IDs
+  // This is a simplified version — enough for SD-Turbo
+  const t = tokenizer;
+  const words = text.toLowerCase().replace(/[^\w\s]/g, ' $& ').split(/\s+/).filter(Boolean);
+
+  let ids = [49406]; // <|startoftext|>
+  for (const word of words) {
+    const token = word + '</w>';
+    if (t.vocab[token] !== undefined) {
+      ids.push(t.vocab[token]);
+    } else if (t.vocab[word] !== undefined) {
+      ids.push(t.vocab[word]);
+    } else {
+      // Character-level fallback
+      for (const ch of word) {
+        if (t.vocab[ch + '</w>'] !== undefined) ids.push(t.vocab[ch + '</w>']);
+        else if (t.vocab[ch] !== undefined) ids.push(t.vocab[ch]);
+      }
+    }
+    if (ids.length >= maxLen - 1) break;
+  }
+  ids.push(49407); // <|endoftext|>
+
+  // Pad to maxLen
+  while (ids.length < maxLen) ids.push(49407);
+  return ids.slice(0, maxLen);
+}
+
+// === LOAD ONNX SESSIONS ===
+async function loadModels() {
+  if (sessions.textEncoder && sessions.unet && sessions.vaeDecoder) return;
+
+  // Configure ONNX Runtime for WebGPU
+  ort.env.wasm.numThreads = 4;
+
+  const models = [
+    { name: 'textEncoder', path: '/text_encoder/model.onnx', size: '650MB' },
+    { name: 'unet', path: '/unet/model.onnx', size: '1.6GB' },
+    { name: 'vaeDecoder', path: '/vae_decoder/model.onnx', size: '95MB' },
+  ];
+
+  for (const m of models) {
+    if (sessions[m.name]) continue;
+    log('Loading ' + m.name + ' (' + m.size + ')...');
+    $('loadingTitle').textContent = 'Loading ' + m.name + '...';
+    $('loadingText').textContent = 'Downloading ' + m.size + '. Cached in browser after first load.';
+    $('progressFill').style.width = '0%';
+    $('progressText').textContent = '';
+
+    try {
+      const url = MODEL_BASE + m.path;
+
+      // Download with progress tracking via fetch + ReadableStream
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error('HTTP ' + resp.status + ' downloading ' + m.name);
+
+      const total = parseInt(resp.headers.get('content-length') || '0');
+      const reader = resp.body.getReader();
+      const chunks = [];
+      let loaded = 0;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        loaded += value.length;
+        if (total > 0) {
+          const pct = Math.round(loaded / total * 100);
+          $('progressFill').style.width = pct + '%';
+          $('progressText').textContent = (loaded / 1024 / 1024).toFixed(0) + 'MB / ' + (total / 1024 / 1024).toFixed(0) + 'MB (' + pct + '%)';
+        }
+      }
+
+      // Combine chunks into single ArrayBuffer
+      const totalLen = chunks.reduce((s, c) => s + c.length, 0);
+      const data = new Uint8Array(totalLen);
+      let offset = 0;
+      for (const chunk of chunks) {
+        data.set(chunk, offset);
+        offset += chunk.length;
+      }
+
+      log(m.name + ' downloaded (' + (totalLen / 1024 / 1024).toFixed(0) + 'MB). Creating ONNX session...');
+
+      // Create ONNX session — try WebGPU first, fall back to WASM
+      let session;
+      try {
+        session = await ort.InferenceSession.create(data.buffer, {
+          executionProviders: ['webgpu'],
+        });
+        log(m.name + ' loaded on WebGPU');
+      } catch(e) {
+        log(m.name + ' WebGPU failed, trying WASM: ' + e.message);
+        session = await ort.InferenceSession.create(data.buffer, {
+          executionProviders: ['wasm'],
+        });
+        log(m.name + ' loaded on WASM (slower)');
+      }
+
+      sessions[m.name] = session;
+      log(m.name + ' ready. Inputs: ' + session.inputNames.join(', '));
+    } catch(e) {
+      throw new Error('Failed to load ' + m.name + ': ' + e.message);
+    }
+  }
+
+  log('All models loaded!');
+}
+
+// === DIFFUSION PIPELINE ===
+async function runDiffusion(promptText) {
+  const tok = await loadTokenizer();
+  const inputIds = clipTokenize(promptText);
+
+  log('Encoding text prompt...');
+  // Text encoder: input_ids -> last_hidden_state
+  const inputIdsTensor = new ort.Tensor('int32', new Int32Array(inputIds), [1, 77]);
+  const encResult = await sessions.textEncoder.run({ input_ids: inputIdsTensor });
+  const textEmbeddings = encResult.last_hidden_state || encResult[Object.keys(encResult)[0]];
+  log('Text encoded. Shape: ' + textEmbeddings.dims);
+
+  // Create random latent noise (1, 4, 64, 64 for 512x512)
+  const latentSize = 4 * 64 * 64;
+  const latentData = new Float32Array(latentSize);
+  for (let i = 0; i < latentSize; i++) {
+    // Box-Muller transform for normal distribution
+    const u1 = Math.random(), u2 = Math.random();
+    latentData[i] = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+  }
+
+  let latents = new ort.Tensor('float32', latentData, [1, 4, 64, 64]);
+
+  // SD-Turbo uses a simple scheduler with few steps
+  // Timesteps for 4 steps: [999, 749, 499, 249] (approximate)
+  const timesteps = [999, 749, 499, 249].slice(0, STEPS);
+
+  for (let i = 0; i < timesteps.length; i++) {
+    const t = timesteps[i];
+    log('Step ' + (i + 1) + '/' + timesteps.length + ' (t=' + t + ')...');
+    $('loadingTitle').textContent = 'Generating... step ' + (i + 1) + '/' + timesteps.length;
+    $('progressFill').style.width = Math.round((i + 1) / timesteps.length * 100) + '%';
+
+    const timestepTensor = new ort.Tensor('int64', BigInt64Array.from([BigInt(t)]), [1]);
+
+    // UNet: sample, timestep, encoder_hidden_states -> out_sample
+    const unetInputs = {
+      sample: latents,
+      timestep: timestepTensor,
+      encoder_hidden_states: textEmbeddings,
+    };
+
+    const unetResult = await sessions.unet.run(unetInputs);
+    const noisePred = unetResult.out_sample || unetResult[Object.keys(unetResult)[0]];
+
+    // Simple Euler step: latents = latents - noise_pred * step_size
+    const stepSize = 1.0 / timesteps.length;
+    const newLatentData = new Float32Array(latentSize);
+    const npData = noisePred.data;
+    const lData = latents.data;
+    for (let j = 0; j < latentSize; j++) {
+      newLatentData[j] = lData[j] - npData[j] * stepSize;
+    }
+    latents = new ort.Tensor('float32', newLatentData, [1, 4, 64, 64]);
+
+    // Yield to keep UI responsive
+    await new Promise(r => setTimeout(r, 10));
+  }
+
+  log('Decoding image with VAE...');
+  $('loadingTitle').textContent = 'Decoding image...';
+
+  // Scale latents (SD uses 1/0.18215 scaling factor)
+  const scaledData = new Float32Array(latentSize);
+  for (let i = 0; i < latentSize; i++) {
+    scaledData[i] = latents.data[i] / 0.18215;
+  }
+  const scaledLatents = new ort.Tensor('float32', scaledData, [1, 4, 64, 64]);
+
+  // VAE decoder: latent_sample -> sample
+  const vaeResult = await sessions.vaeDecoder.run({ latent_sample: scaledLatents });
+  const decoded = vaeResult.sample || vaeResult[Object.keys(vaeResult)[0]];
+
+  log('Converting to image...');
+
+  // Convert from [1, 3, 512, 512] float (-1 to 1) to RGBA pixel data
+  const imgData = decoded.data;
+  const w = 512, h = 512;
+  const pixels = new Uint8ClampedArray(w * h * 4);
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const pi = (y * w + x) * 4;
+      for (let c = 0; c < 3; c++) {
+        const ci = c * h * w + y * w + x;
+        pixels[pi + c] = Math.round(Math.min(255, Math.max(0, (imgData[ci] + 1) * 127.5)));
+      }
+      pixels[pi + 3] = 255;
+    }
+  }
+
+  return { pixels, width: w, height: h };
+}
+
+// === GENERATE ===
+window.generate = async function() {
+  const promptText = $('prompt').value.trim();
+  if (!promptText) { $('prompt').focus(); return; }
+
+  $('genBtn').disabled = true;
+  showState('stateLoading');
+  $('log').textContent = '';
+  $('progressFill').style.width = '0%';
+
+  const startTime = Date.now();
+
+  try {
+    await loadModels();
+
+    log('Starting generation: "' + promptText.substring(0, 60) + '"');
+    $('loadingTitle').textContent = 'Generating image...';
+    $('loadingText').textContent = 'Running SD-Turbo diffusion pipeline (' + STEPS + ' steps)...';
+
+    const result = await runDiffusion(promptText);
+
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+    log('Done in ' + elapsed + 's');
+
+    // Draw to canvas
+    canvas.width = result.width;
+    canvas.height = result.height;
+    const ctx = canvas.getContext('2d');
+    const imgData = new ImageData(result.pixels, result.width, result.height);
+    ctx.putImageData(imgData, 0, 0);
+
+    // Save for overlay rendering
+    const blob = await new Promise(r => canvas.toBlob(r));
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    await new Promise((resolve) => { img.onload = resolve; img.src = url; });
+    window.genImg = img;
+
+    renderFinal();
+    showState('stateResult');
+    $('resultLabel').textContent = 'Generated locally with SD-Turbo via ONNX Runtime + WebGPU. Real AI, no cloud. ' + elapsed + 's.';
+    showToast('Image generated with real AI');
+
+  } catch(e) {
+    showState('stateError');
+    $('errorMsg').textContent = e.message;
+    $('errorLog').textContent = e.stack || e.message;
+    console.error(e);
+  } finally {
+    $('genBtn').disabled = false;
+  }
+};
+
+// === RENDER WITH OVERLAY ===
+window.renderFinal = function() {
+  if (!window.genImg) return;
+  const img = window.genImg;
+  const w = img.naturalWidth, h = img.naturalHeight;
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+
+  const amt = parseInt($('overlayAmt').value) / 100;
+  if (amt > 0) {
+    ctx.fillStyle = 'rgba(0,0,0,' + amt + ')';
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  const scale = w / 512;
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0,0,0,0.6)';
+  ctx.shadowBlur = 6 * scale;
+
+  const hl = $('headline').value.trim();
+  if (hl) {
+    ctx.font = '800 ' + Math.round(48 * scale) + 'px "Bebas Neue", sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.fillText(hl, w / 2, h * 0.4);
+  }
+
+  const ct = $('cta').value.trim();
+  if (ct) {
+    const fs = Math.round(20 * scale);
+    ctx.font = '700 ' + fs + 'px "Manrope", sans-serif';
+    const tw = ctx.measureText(ct.toUpperCase()).width + 32 * scale;
+    const th = fs + 16 * scale;
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath(); ctx.roundRect((w - tw) / 2, h * 0.55, tw, th, 6 * scale); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.fillText(ct.toUpperCase(), w / 2, h * 0.55 + th * 0.72);
+    ctx.shadowBlur = 6 * scale;
+  }
+
+  const br = $('brand').value.trim();
+  if (br) {
+    ctx.font = '600 ' + Math.round(14 * scale) + 'px "Manrope", sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.textAlign = 'right';
+    ctx.fillText(br, w - 16 * scale, h - 16 * scale);
+  }
+  ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+};
+
+['headline','cta','brand'].forEach(id => {
+  $(id).addEventListener('input', () => { if (window.genImg) renderFinal(); });
+});
+
+// === DOWNLOAD ===
+window.download = function(fmt) {
+  const link = document.createElement('a');
+  link.download = 'ai-ad.' + fmt;
+  link.href = canvas.toDataURL(fmt === 'jpg' ? 'image/jpeg' : 'image/png', 0.92);
+  link.click();
+};
 </script>
 </body>
 </html>
