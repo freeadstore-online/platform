@@ -539,13 +539,20 @@ async function runDiffusion(promptText) {
     timesteps.push(Math.round(999 - i * (999 / numSteps)));
   }
 
+  let useInt64Timestep = (currentModelId === 'sd-turbo'); // SD-Turbo uses int64, others float32
+
   for (let i = 0; i < timesteps.length; i++) {
     const t = timesteps[i];
     log('Step ' + (i + 1) + '/' + timesteps.length + ' (t=' + t + ')...');
     $('loadingTitle').textContent = 'Generating... step ' + (i + 1) + '/' + timesteps.length;
     $('progressFill').style.width = Math.round((i + 1) / timesteps.length * 100) + '%';
 
-    const timestepTensor = new ort.Tensor('int64', BigInt64Array.from([BigInt(t)]), [1]);
+    let timestepTensor;
+    if (useInt64Timestep) {
+      timestepTensor = new ort.Tensor('int64', BigInt64Array.from([BigInt(t)]), [1]);
+    } else {
+      timestepTensor = new ort.Tensor('float32', new Float32Array([t]), [1]);
+    }
 
     // UNet: sample, timestep, encoder_hidden_states -> out_sample
     const unetInputs = {
@@ -554,7 +561,26 @@ async function runDiffusion(promptText) {
       encoder_hidden_states: textEmbeddings,
     };
 
-    const unetResult = await sessions.unet.run(unetInputs);
+    let unetResult;
+    try {
+      unetResult = await sessions.unet.run(unetInputs);
+    } catch(e) {
+      // If type mismatch on first step, retry with the other type
+      if (e.message && e.message.includes('data type') && i === 0) {
+        useInt64Timestep = !useInt64Timestep;
+        log('Retrying with ' + (useInt64Timestep ? 'int64' : 'float32') + ' timestep...');
+        if (useInt64Timestep) {
+          timestepTensor = new ort.Tensor('int64', BigInt64Array.from([BigInt(t)]), [1]);
+        } else {
+          timestepTensor = new ort.Tensor('float32', new Float32Array([t]), [1]);
+        }
+        unetInputs.timestep = timestepTensor;
+        unetResult = await sessions.unet.run(unetInputs);
+        log('Using ' + (useInt64Timestep ? 'int64' : 'float32') + ' for all timesteps');
+      } else {
+        throw e;
+      }
+    }
     const noisePred = unetResult.out_sample || unetResult[Object.keys(unetResult)[0]];
 
     // Simple Euler step: latents = latents - noise_pred * step_size
