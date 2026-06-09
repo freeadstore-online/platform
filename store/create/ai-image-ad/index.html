@@ -483,7 +483,8 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
     $('slowMsg').style.display = 'none';
 
     const fullPrompt = getFullPrompt();
-    const url = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(fullPrompt) + '?width=' + currentW + '&height=' + currentH;
+    // Use model=turbo (free tier). No width/height params — free tier returns default 768x768, we resize via Canvas.
+    const url = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(fullPrompt) + '?model=turbo&nologo=true';
 
     // Show slow message after 15s
     slowTimer = setTimeout(() => {
@@ -531,14 +532,19 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
     }
   }
 
-  // --- Render base image ---
+  // --- Render base image (resize to target platform dimensions) ---
   function renderImageOnly() {
     if (!generatedImg) return;
     const c = imageCanvas;
-    c.width = generatedImg.naturalWidth;
-    c.height = generatedImg.naturalHeight;
+    c.width = currentW;
+    c.height = currentH;
     const ctx = c.getContext('2d');
-    ctx.drawImage(generatedImg, 0, 0);
+    // Cover-fit: scale image to fill target dimensions, crop excess
+    const iw = generatedImg.naturalWidth, ih = generatedImg.naturalHeight;
+    const scale = Math.max(currentW / iw, currentH / ih);
+    const sw = iw * scale, sh = ih * scale;
+    const sx = (currentW - sw) / 2, sy = (currentH - sh) / 2;
+    ctx.drawImage(generatedImg, sx, sy, sw, sh);
   }
 
   // --- Render composite ad ---
