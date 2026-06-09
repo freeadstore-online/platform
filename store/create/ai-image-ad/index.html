@@ -90,15 +90,15 @@ textarea:focus,input:focus{border-color:var(--accent)}
       <div class="panel">
         <div class="panel-title">AI Model</div>
         <select id="modelSelect" onchange="onModelChange()" style="width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius);font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--text);cursor:pointer;appearance:none;outline:none">
-          <option value="sd-turbo" selected>SD-Turbo — General (2.4GB, 4 steps, fastest)</option>
+          <option value="tiny" selected>Tiny SD — Test (9MB, instant, low quality)</option>
           <option value="sd-1.5">SD 1.5 FP16 — General (2.0GB, 20 steps)</option>
-          <option value="inkpunk">Inkpunk — Ink &amp; comic art (4.0GB, 20 steps)</option>
-          <option value="ghibli">Ghibli — Studio Ghibli anime (4.0GB, 20 steps)</option>
-          <option value="modi">Mo-Di — Modern Disney (4.0GB, 20 steps)</option>
-          <option value="redshift">Redshift — 3D render (4.0GB, 20 steps)</option>
-          <option value="tiny">Tiny SD — Test only (9MB, fast, low quality)</option>
+          <option value="sd-turbo">SD-Turbo — General (2.4GB, 4 steps, fast)</option>
+          <option value="inkpunk" disabled>Inkpunk — (4.0GB, too large for browser)</option>
+          <option value="ghibli" disabled>Ghibli — (4.0GB, too large for browser)</option>
+          <option value="modi" disabled>Mo-Di — (4.0GB, too large for browser)</option>
+          <option value="redshift" disabled>Redshift — (4.0GB, too large for browser)</option>
         </select>
-        <div id="modelNote" style="font-size:.65rem;color:var(--muted);margin-top:5px;line-height:1.4">Fast general model. 4 denoising steps, good for realistic photos. Best all-rounder.</div>
+        <div id="modelNote" style="font-size:.65rem;color:var(--muted);margin-top:5px;line-height:1.4">Tiny test model (9MB). Very low quality — use to verify your browser works, then switch to SD 1.5 or SD-Turbo.</div>
         <div id="modelTip" style="display:none;font-size:.65rem;color:var(--yellow);margin-top:4px;line-height:1.4"></div>
       </div>
 
@@ -156,7 +156,7 @@ textarea:focus,input:focus{border-color:var(--accent)}
         <h3>Real AI image generation in your browser</h3>
         <p>Pick a model, describe your image, hit Generate. Downloads a real Stable Diffusion model and runs it entirely in your browser via WebGPU. First run downloads the model — cached after that.</p>
         <p style="margin-top:12px;color:var(--yellow);font-size:.75rem">Requires Chrome/Edge 113+ with a decent GPU. Models range from 9MB (Tiny) to 4GB (styled models).</p>
-        <p style="margin-top:8px;font-size:.72rem;color:var(--muted)">7 models available: SD-Turbo (fast), SD 1.5 (quality), Inkpunk (comic art), Ghibli (anime), Modern Disney, Redshift (3D), Tiny (test).</p>
+        <p style="margin-top:8px;font-size:.72rem;color:var(--muted)">3 models: Tiny SD (9MB test), SD 1.5 (2GB, good quality), SD-Turbo (2.4GB, fastest). Styled models (4GB+) disabled — too large for browser memory.</p>
       </div>
 
       <div class="state" id="stateLoading">
@@ -278,7 +278,7 @@ const MODELS = {
   },
 };
 
-let currentModelId = 'sd-turbo';
+let currentModelId = 'tiny';
 let loadedModelId = null; // which model's sessions are loaded
 
 // === CAPABILITY CHECK ===
