@@ -289,7 +289,11 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
       <!-- ERROR STATE -->
       <div class="error-state" id="stateError" style="display:none">
         <h3>Image generation failed</h3>
-        <p>Try a simpler prompt or try again in a moment.</p>
+        <p id="errorMsg">Try a simpler prompt or try again in a moment.</p>
+        <div id="errorDetail" style="margin:12px 0;padding:10px 14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;font-size:.75rem;color:var(--muted);display:none">
+          <strong style="color:var(--accent)">Details:</strong> <span id="errorDetailText"></span>
+        </div>
+        <div id="errorHelp" style="margin-bottom:14px;font-size:.75rem;color:var(--muted);line-height:1.6;display:none"></div>
         <button class="btn btn-primary" style="width:auto;display:inline-flex" onclick="doGenerate()">Try Again</button>
       </div>
 
@@ -494,14 +498,27 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
     // Hard timeout after 90s
     timeoutTimer = setTimeout(() => {
       cleanup();
-      setState('stateError');
-      $('stateError').querySelector('p').textContent = 'Request timed out. The AI service may be busy. Try again or simplify your prompt.';
+      showError(
+        'Request timed out after 90 seconds.',
+        'The AI service took too long to respond. This usually means it is under heavy load.',
+        '<strong>What to try:</strong><br>1. Click Try Again — it often works on the second attempt<br>2. Use a shorter prompt (under 15 words works best)<br>3. Try the <a href="/create/ai-ad-generator/" style="color:var(--accent)">AI Ad Generator</a> for instant results'
+      );
     }, 90000);
 
     // Use fetch + blob to avoid CORS/referrer issues with Image element
+    console.log('[AI Image Ad] Fetching:', url);
     fetch(url, { mode: 'cors', referrerPolicy: 'no-referrer' })
-      .then(r => { if (!r.ok) throw new Error(r.status); return r.blob(); })
+      .then(r => {
+        console.log('[AI Image Ad] Response:', r.status, r.statusText);
+        if (!r.ok) {
+          const err = new Error(r.status);
+          err.httpStatus = r.status;
+          throw err;
+        }
+        return r.blob();
+      })
       .then(blob => {
+        if (blob.size < 1000) throw new Error('Response too small (' + blob.size + ' bytes) — likely not an image');
         const objUrl = URL.createObjectURL(blob);
         const img = new Image();
         img.onload = function() {
@@ -515,14 +532,48 @@ input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;bac
         };
         img.onerror = function() {
           cleanup();
-          setState('stateError');
+          showError('Image data was corrupt', 'The API returned data that could not be rendered as an image. Try a different prompt.');
         };
         img.src = objUrl;
       })
-      .catch(() => {
+      .catch(e => {
         cleanup();
-        setState('stateError');
+        const status = e.httpStatus || '';
+        let msg = 'Try a simpler prompt or try again in a moment.';
+        let detail = e.message || 'Unknown error';
+        let help = '';
+        if (status === 402 || status === 403) {
+          msg = 'The free AI image service is temporarily rate-limited.';
+          detail = 'HTTP ' + status + ' — the Pollinations API free tier has usage limits.';
+          help = '<strong>What to try:</strong><br>1. Wait 30 seconds and try again<br>2. Use a shorter, simpler prompt<br>3. Try the <a href="/create/ai-ad-generator/" style="color:var(--accent)">AI Ad Generator</a> (uses procedural design, always works)<br>4. Try the <a href="/create/social-ad-maker/" style="color:var(--accent)">Social Ad Maker</a> for quick meme-style ads';
+        } else if (status === 500 || status === 503) {
+          msg = 'The AI image service is temporarily overloaded.';
+          detail = 'HTTP ' + status + ' — server error. Usually resolves in a few minutes.';
+          help = '<strong>What to try:</strong><br>1. Wait a minute and click Try Again<br>2. Try a shorter prompt';
+        } else if (e.message && e.message.includes('Failed to fetch')) {
+          msg = 'Could not connect to the AI image service.';
+          detail = 'Network error — check your internet connection or try disabling your ad blocker.';
+          help = '<strong>Common causes:</strong><br>1. Ad blocker blocking the API request<br>2. Corporate firewall blocking external APIs<br>3. The Pollinations service is temporarily down';
+        }
+        showError(msg, detail, help);
       });
+
+    function showError(msg, detail, help) {
+      setState('stateError');
+      $('errorMsg').textContent = msg;
+      if (detail) {
+        $('errorDetail').style.display = '';
+        $('errorDetailText').textContent = detail;
+      } else {
+        $('errorDetail').style.display = 'none';
+      }
+      if (help) {
+        $('errorHelp').style.display = '';
+        $('errorHelp').innerHTML = help;
+      } else {
+        $('errorHelp').style.display = 'none';
+      }
+    }
 
     function cleanup() {
       generating = false;
