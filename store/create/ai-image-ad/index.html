@@ -88,6 +88,21 @@ textarea:focus,input:focus{border-color:var(--accent)}
       </div>
 
       <div class="panel">
+        <div class="panel-title">AI Model</div>
+        <select id="modelSelect" onchange="onModelChange()" style="width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:var(--radius);font-size:.82rem;font-family:inherit;background:var(--bg);color:var(--text);cursor:pointer;appearance:none;outline:none">
+          <option value="sd-turbo" selected>SD-Turbo — General (2.4GB, 4 steps, fastest)</option>
+          <option value="sd-1.5">SD 1.5 FP16 — General (2.0GB, 20 steps)</option>
+          <option value="inkpunk">Inkpunk — Ink &amp; comic art (4.0GB, 20 steps)</option>
+          <option value="ghibli">Ghibli — Studio Ghibli anime (4.0GB, 20 steps)</option>
+          <option value="modi">Mo-Di — Modern Disney (4.0GB, 20 steps)</option>
+          <option value="redshift">Redshift — 3D render (4.0GB, 20 steps)</option>
+          <option value="tiny">Tiny SD — Test only (9MB, fast, low quality)</option>
+        </select>
+        <div id="modelNote" style="font-size:.65rem;color:var(--muted);margin-top:5px;line-height:1.4">Fast general model. 4 denoising steps, good for realistic photos. Best all-rounder.</div>
+        <div id="modelTip" style="display:none;font-size:.65rem;color:var(--yellow);margin-top:4px;line-height:1.4"></div>
+      </div>
+
+      <div class="panel">
         <div class="panel-title">Describe Your Image</div>
         <textarea id="prompt" rows="3" placeholder="A steaming latte on a rustic wooden table, warm morning light, cozy cafe atmosphere, professional food photography"></textarea>
       </div>
@@ -128,7 +143,7 @@ textarea:focus,input:focus{border-color:var(--accent)}
       </div>
 
       <div style="margin-top:10px;font-size:.65rem;color:var(--muted);line-height:1.4">
-        <strong>How it works:</strong> Downloads SD-Turbo ONNX model (~2.4GB, cached after first time). Runs the real Stable Diffusion pipeline in your browser via ONNX Runtime + WebGPU. 512x512 output. Takes 30-120 seconds depending on your GPU.
+        <strong>How it works:</strong> Downloads the selected ONNX model (cached after first time). Runs the real Stable Diffusion pipeline in your browser via ONNX Runtime + WebGPU. 512x512 output. Speed depends on model + GPU.
       </div>
 
     </div>
@@ -139,14 +154,15 @@ textarea:focus,input:focus{border-color:var(--accent)}
 
       <div class="state visible" id="stateEmpty">
         <h3>Real AI image generation in your browser</h3>
-        <p>This downloads and runs an actual Stable Diffusion model (SD-Turbo, 2.4GB) directly in your browser using WebGPU. First run downloads the model — it's cached after that.</p>
-        <p style="margin-top:12px;color:var(--yellow);font-size:.75rem">Requires Chrome/Edge 113+ with a decent GPU. The model download is ~2.4GB on first use.</p>
+        <p>Pick a model, describe your image, hit Generate. Downloads a real Stable Diffusion model and runs it entirely in your browser via WebGPU. First run downloads the model — cached after that.</p>
+        <p style="margin-top:12px;color:var(--yellow);font-size:.75rem">Requires Chrome/Edge 113+ with a decent GPU. Models range from 9MB (Tiny) to 4GB (styled models).</p>
+        <p style="margin-top:8px;font-size:.72rem;color:var(--muted)">7 models available: SD-Turbo (fast), SD 1.5 (quality), Inkpunk (comic art), Ghibli (anime), Modern Disney, Redshift (3D), Tiny (test).</p>
       </div>
 
       <div class="state" id="stateLoading">
         <div class="spinner"></div>
         <h3 id="loadingTitle">Loading model...</h3>
-        <p id="loadingText">Downloading SD-Turbo ONNX model. This is a one-time download.</p>
+        <p id="loadingText">Downloading model. This is a one-time download.</p>
         <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
         <div class="progress-text" id="progressText"></div>
         <div class="log" id="log"></div>
@@ -188,9 +204,82 @@ let sessions = {}; // ONNX sessions: textEncoder, unet, vaeDecoder
 let tokenizer = null; // CLIP tokenizer
 window.genImg = null;
 
-const MODEL_BASE = 'https://huggingface.co/jdp8/sd-turbo-onnx/resolve/main';
-const STEPS = 4; // SD-Turbo only needs 1-4 steps
-const GUIDANCE = 1.0; // SD-Turbo uses guidance_scale=1
+// === MODEL REGISTRY ===
+const MODELS = {
+  'sd-turbo': {
+    name: 'SD-Turbo',
+    base: 'https://huggingface.co/jdp8/sd-turbo-onnx/resolve/main',
+    steps: 4, guidance: 1.0,
+    files: { textEncoder: '/text_encoder/model.onnx', unet: '/unet/model.onnx', vaeDecoder: '/vae_decoder/model.onnx' },
+    sizes: { textEncoder: '650MB', unet: '1.6GB', vaeDecoder: '95MB' },
+    tokenizer: { vocab: '/tokenizer/vocab.json', merges: '/tokenizer/merges.txt' },
+    note: 'Fast general model. 4 denoising steps, good for realistic photos. Best all-rounder.',
+    styleTip: '',
+  },
+  'sd-1.5': {
+    name: 'SD 1.5 FP16',
+    base: 'https://huggingface.co/nmkd/stable-diffusion-1.5-onnx-fp16/resolve/main',
+    steps: 20, guidance: 7.5,
+    files: { textEncoder: '/text_encoder/model.onnx', unet: '/unet/model.onnx', unetWeights: '/unet/weights.pb', vaeDecoder: '/vae_decoder/model.onnx' },
+    sizes: { textEncoder: '235MB', unet: '1.6GB', vaeDecoder: '95MB' },
+    tokenizer: { vocab: '/tokenizer/vocab.json', merges: '/tokenizer/merges.txt' },
+    note: 'Classic SD 1.5 at FP16. Higher quality than Turbo but much slower (20 steps).',
+    styleTip: '',
+  },
+  'inkpunk': {
+    name: 'Inkpunk Diffusion',
+    base: 'https://huggingface.co/TheyCallMeHex/Inkpunk-Diffusion-ONNX/resolve/main',
+    steps: 20, guidance: 7.5,
+    files: { textEncoder: '/text_encoder/model.onnx', unet: '/unet/model.onnx', unetData: '/unet/model.onnx_data', vaeDecoder: '/vae_decoder/model.onnx' },
+    sizes: { textEncoder: '470MB', unet: '3.3GB', vaeDecoder: '189MB' },
+    tokenizer: { vocab: '/tokenizer/vocab.json', merges: '/tokenizer/merges.txt' },
+    note: 'Ink and comic art style. Produces stylized illustrations perfect for creative ads.',
+    styleTip: 'Add "nvinkpunk" to your prompt for best results.',
+  },
+  'ghibli': {
+    name: 'Ghibli Diffusion',
+    base: 'https://huggingface.co/TheyCallMeHex/Ghibli-Diffusion-ONNX/resolve/main',
+    steps: 20, guidance: 7.5,
+    files: { textEncoder: '/text_encoder/model.onnx', unet: '/unet/model.onnx', unetData: '/unet/model.onnx_data', vaeDecoder: '/vae_decoder/model.onnx' },
+    sizes: { textEncoder: '470MB', unet: '3.3GB', vaeDecoder: '189MB' },
+    tokenizer: { vocab: '/tokenizer/vocab.json', merges: '/tokenizer/merges.txt' },
+    note: 'Studio Ghibli anime style. Beautiful hand-drawn aesthetic for illustration ads.',
+    styleTip: 'Add "ghibli style" to your prompt for best results.',
+  },
+  'modi': {
+    name: 'Mo-Di (Modern Disney)',
+    base: 'https://huggingface.co/TheyCallMeHex/Mo-Di-Diffusion-ONNX/resolve/main',
+    steps: 20, guidance: 7.5,
+    files: { textEncoder: '/text_encoder/model.onnx', unet: '/unet/model.onnx', unetData: '/unet/model.onnx_data', vaeDecoder: '/vae_decoder/model.onnx' },
+    sizes: { textEncoder: '470MB', unet: '3.3GB', vaeDecoder: '189MB' },
+    tokenizer: { vocab: '/tokenizer/vocab.json', merges: '/tokenizer/merges.txt' },
+    note: 'Modern Disney / Pixar 3D animation style. Great for fun, friendly ad creatives.',
+    styleTip: 'Add "modern disney style" to your prompt for best results.',
+  },
+  'redshift': {
+    name: 'Redshift (3D Render)',
+    base: 'https://huggingface.co/TheyCallMeHex/Redshift-Diffusion-ONNX/resolve/main',
+    steps: 20, guidance: 7.5,
+    files: { textEncoder: '/text_encoder/model.onnx', unet: '/unet/model.onnx', unetData: '/unet/model.onnx_data', vaeDecoder: '/vae_decoder/model.onnx' },
+    sizes: { textEncoder: '470MB', unet: '3.3GB', vaeDecoder: '189MB' },
+    tokenizer: { vocab: '/tokenizer/vocab.json', merges: '/tokenizer/merges.txt' },
+    note: '3D render / CGI style. Produces polished 3D-looking visuals for product ads.',
+    styleTip: 'Add "redshift style" to your prompt for best results.',
+  },
+  'tiny': {
+    name: 'Tiny SD (Test)',
+    base: 'https://huggingface.co/IlyasMoutawwakil/tiny-stable-diffusion-onnx/resolve/main',
+    steps: 20, guidance: 7.5,
+    files: { textEncoder: '/text_encoder/model.onnx', unet: '/unet/model.onnx', vaeDecoder: '/vae_decoder/model.onnx' },
+    sizes: { textEncoder: '0.4MB', unet: '6MB', vaeDecoder: '1.6MB' },
+    tokenizer: { vocab: '/tokenizer/vocab.json', merges: '/tokenizer/merges.txt' },
+    note: 'Tiny test model (9MB total). Very low quality output — use only to test if your browser works.',
+    styleTip: '',
+  },
+};
+
+let currentModelId = 'sd-turbo';
+let loadedModelId = null; // which model's sessions are loaded
 
 // === CAPABILITY CHECK ===
 (async () => {
@@ -216,6 +305,26 @@ const GUIDANCE = 1.0; // SD-Turbo uses guidance_scale=1
     txt.textContent = 'WebGPU detected but adapter may not work. Try generating — it might still work.';
   }
 })();
+
+// === MODEL CHANGE ===
+window.onModelChange = function() {
+  const sel = $('modelSelect');
+  currentModelId = sel.value;
+  const m = MODELS[currentModelId];
+  $('modelNote').textContent = m.note;
+  if (m.styleTip) {
+    $('modelTip').style.display = '';
+    $('modelTip').textContent = m.styleTip;
+  } else {
+    $('modelTip').style.display = 'none';
+  }
+  // If a different model is loaded, clear sessions so next generate reloads
+  if (loadedModelId && loadedModelId !== currentModelId) {
+    sessions = {};
+    tokenizer = null;
+    log('Model changed to ' + m.name + ' — will download on next generate.');
+  }
+};
 
 // === HELPERS ===
 window.setPrompt = function(p) { $('prompt').value = p; };
@@ -245,10 +354,11 @@ function showToast(msg) {
 // SD-Turbo uses CLIP ViT-L tokenizer. We load vocab + merges from the model repo.
 async function loadTokenizer() {
   if (tokenizer) return tokenizer;
+  const m = MODELS[currentModelId];
   log('Loading tokenizer...');
   const [vocabResp, mergesResp] = await Promise.all([
-    fetch(MODEL_BASE + '/tokenizer/vocab.json'),
-    fetch(MODEL_BASE + '/tokenizer/merges.txt'),
+    fetch(m.base + m.tokenizer.vocab),
+    fetch(m.base + m.tokenizer.merges),
   ]);
   if (!vocabResp.ok || !mergesResp.ok) throw new Error('Failed to download tokenizer files');
   const vocab = await vocabResp.json();
@@ -299,27 +409,36 @@ function clipTokenize(text, maxLen = 77) {
 
 // === LOAD ONNX SESSIONS ===
 async function loadModels() {
-  if (sessions.textEncoder && sessions.unet && sessions.vaeDecoder) return;
+  if (sessions.textEncoder && sessions.unet && sessions.vaeDecoder && loadedModelId === currentModelId) return;
+
+  // If switching models, clear old sessions
+  if (loadedModelId !== currentModelId) {
+    sessions = {};
+    tokenizer = null;
+  }
+
+  const cfg = MODELS[currentModelId];
+  log('Loading model: ' + cfg.name);
 
   // Configure ONNX Runtime for WebGPU
   ort.env.wasm.numThreads = 4;
 
-  const models = [
-    { name: 'textEncoder', path: '/text_encoder/model.onnx', size: '650MB' },
-    { name: 'unet', path: '/unet/model.onnx', size: '1.6GB' },
-    { name: 'vaeDecoder', path: '/vae_decoder/model.onnx', size: '95MB' },
+  const parts = [
+    { name: 'textEncoder', path: cfg.files.textEncoder, size: cfg.sizes.textEncoder },
+    { name: 'unet', path: cfg.files.unet, size: cfg.sizes.unet },
+    { name: 'vaeDecoder', path: cfg.files.vaeDecoder, size: cfg.sizes.vaeDecoder },
   ];
 
-  for (const m of models) {
+  for (const m of parts) {
     if (sessions[m.name]) continue;
     log('Loading ' + m.name + ' (' + m.size + ')...');
-    $('loadingTitle').textContent = 'Loading ' + m.name + '...';
+    $('loadingTitle').textContent = cfg.name + ': loading ' + m.name + '...';
     $('loadingText').textContent = 'Downloading ' + m.size + '. Cached in browser after first load.';
     $('progressFill').style.width = '0%';
     $('progressText').textContent = '';
 
     try {
-      const url = MODEL_BASE + m.path;
+      const url = cfg.base + m.path;
 
       // Download with progress tracking via fetch + ReadableStream
       const resp = await fetch(url);
@@ -375,12 +494,24 @@ async function loadModels() {
     }
   }
 
-  log('All models loaded!');
+  loadedModelId = currentModelId;
+  log('All models loaded for ' + cfg.name + '!');
 }
 
 // === DIFFUSION PIPELINE ===
 async function runDiffusion(promptText) {
+  const cfg = MODELS[currentModelId];
   const tok = await loadTokenizer();
+
+  // Auto-apply style trigger word if the model has one and it's not already in the prompt
+  if (cfg.styleTip) {
+    const trigger = cfg.styleTip.match(/"([^"]+)"/);
+    if (trigger && !promptText.toLowerCase().includes(trigger[1].toLowerCase())) {
+      promptText = trigger[1] + ', ' + promptText;
+      log('Auto-added style trigger: ' + trigger[1]);
+    }
+  }
+
   const inputIds = clipTokenize(promptText);
 
   log('Encoding text prompt...');
@@ -401,9 +532,12 @@ async function runDiffusion(promptText) {
 
   let latents = new ort.Tensor('float32', latentData, [1, 4, 64, 64]);
 
-  // SD-Turbo uses a simple scheduler with few steps
-  // Timesteps for 4 steps: [999, 749, 499, 249] (approximate)
-  const timesteps = [999, 749, 499, 249].slice(0, STEPS);
+  // Generate timestep schedule based on model config
+  const numSteps = cfg.steps;
+  const timesteps = [];
+  for (let i = 0; i < numSteps; i++) {
+    timesteps.push(Math.round(999 - i * (999 / numSteps)));
+  }
 
   for (let i = 0; i < timesteps.length; i++) {
     const t = timesteps[i];
@@ -489,7 +623,8 @@ window.generate = async function() {
 
     log('Starting generation: "' + promptText.substring(0, 60) + '"');
     $('loadingTitle').textContent = 'Generating image...';
-    $('loadingText').textContent = 'Running SD-Turbo diffusion pipeline (' + STEPS + ' steps)...';
+    const cfg2 = MODELS[currentModelId];
+    $('loadingText').textContent = 'Running ' + cfg2.name + ' diffusion pipeline (' + cfg2.steps + ' steps)...';
 
     const result = await runDiffusion(promptText);
 
@@ -512,7 +647,7 @@ window.generate = async function() {
 
     renderFinal();
     showState('stateResult');
-    $('resultLabel').textContent = 'Generated locally with SD-Turbo via ONNX Runtime + WebGPU. Real AI, no cloud. ' + elapsed + 's.';
+    $('resultLabel').textContent = 'Generated locally with ' + MODELS[currentModelId].name + ' via ONNX Runtime + WebGPU. Real AI, no cloud. ' + elapsed + 's.';
     showToast('Image generated with real AI');
 
   } catch(e) {
