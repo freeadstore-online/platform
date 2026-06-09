@@ -58,7 +58,7 @@ textarea:focus,input:focus{border-color:var(--accent)}
 .result canvas{display:block;max-width:100%;height:auto;border-radius:8px;border:1px solid var(--line)}
 .result-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 .result-label{font-size:.68rem;color:var(--muted);margin-top:8px}
-.log{margin-top:12px;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;font-family:monospace;font-size:.68rem;color:var(--muted);max-height:120px;overflow-y:auto;white-space:pre-wrap;text-align:left}
+.log{margin-top:12px;padding:10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;font-family:monospace;font-size:.65rem;color:var(--muted);max-height:300px;overflow-y:auto;white-space:pre-wrap;text-align:left;line-height:1.5}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:var(--bg);padding:10px 20px;border-radius:10px;font-size:.78rem;font-weight:600;opacity:0;transition:all .3s;z-index:1000;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .overlay-section{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:14px}
@@ -429,9 +429,40 @@ async function loadModels() {
     { name: 'vaeDecoder', path: cfg.files.vaeDecoder, size: cfg.sizes.vaeDecoder },
   ];
 
+  // Helper: download a file with progress
+  async function downloadFile(url, label) {
+    log('  Downloading ' + label + ': ' + url.split('/').slice(-2).join('/'));
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status + ' downloading ' + label + ' from ' + url);
+    const total = parseInt(resp.headers.get('content-length') || '0');
+    log('  Response: ' + resp.status + ', size: ' + (total > 0 ? (total/1024/1024).toFixed(0)+'MB' : 'unknown'));
+    const reader = resp.body.getReader();
+    const chunks = [];
+    let loaded = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      loaded += value.length;
+      if (total > 0) {
+        const pct = Math.round(loaded / total * 100);
+        $('progressFill').style.width = pct + '%';
+        $('progressText').textContent = label + ': ' + (loaded/1024/1024).toFixed(0) + 'MB / ' + (total/1024/1024).toFixed(0) + 'MB (' + pct + '%)';
+      } else {
+        $('progressText').textContent = label + ': ' + (loaded/1024/1024).toFixed(0) + 'MB downloaded...';
+      }
+    }
+    const totalLen = chunks.reduce((s, c) => s + c.length, 0);
+    const data = new Uint8Array(totalLen);
+    let off = 0;
+    for (const chunk of chunks) { data.set(chunk, off); off += chunk.length; }
+    log('  ' + label + ' downloaded: ' + (totalLen/1024/1024).toFixed(1) + 'MB');
+    return data;
+  }
+
   for (const m of parts) {
     if (sessions[m.name]) continue;
-    log('Loading ' + m.name + ' (' + m.size + ')...');
+    log('--- Loading ' + m.name + ' (' + m.size + ') ---');
     $('loadingTitle').textContent = cfg.name + ': loading ' + m.name + '...';
     $('loadingText').textContent = 'Downloading ' + m.size + '. Cached in browser after first load.';
     $('progressFill').style.width = '0%';
@@ -439,63 +470,53 @@ async function loadModels() {
 
     try {
       const url = cfg.base + m.path;
+      const data = await downloadFile(url, m.name);
 
-      // Download with progress tracking via fetch + ReadableStream
-      const resp = await fetch(url);
-      if (!resp.ok) throw new Error('HTTP ' + resp.status + ' downloading ' + m.name);
-
-      const total = parseInt(resp.headers.get('content-length') || '0');
-      const reader = resp.body.getReader();
-      const chunks = [];
-      let loaded = 0;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-        loaded += value.length;
-        if (total > 0) {
-          const pct = Math.round(loaded / total * 100);
-          $('progressFill').style.width = pct + '%';
-          $('progressText').textContent = (loaded / 1024 / 1024).toFixed(0) + 'MB / ' + (total / 1024 / 1024).toFixed(0) + 'MB (' + pct + '%)';
-        }
+      // Check if this model component has an external data file (e.g., model.onnx_data)
+      // The styled models (Inkpunk, Ghibli, etc.) split weights into separate files
+      const dataFileKey = m.name + 'Data'; // e.g., 'unetData'
+      let externalData = undefined;
+      if (cfg.files[dataFileKey]) {
+        const extUrl = cfg.base + cfg.files[dataFileKey];
+        log('  This model has external weights file...');
+        $('loadingText').textContent = 'Downloading model weights (this is the big file)...';
+        const extData = await downloadFile(extUrl, m.name + ' weights');
+        // Extract the filename from the path for ONNX Runtime
+        const extFileName = cfg.files[dataFileKey].split('/').pop();
+        externalData = [{ path: extFileName, data: extData.buffer }];
+        log('  External data loaded: ' + extFileName + ' (' + (extData.length/1024/1024).toFixed(0) + 'MB)');
       }
 
-      // Combine chunks into single ArrayBuffer
-      const totalLen = chunks.reduce((s, c) => s + c.length, 0);
-      const data = new Uint8Array(totalLen);
-      let offset = 0;
-      for (const chunk of chunks) {
-        data.set(chunk, offset);
-        offset += chunk.length;
-      }
-
-      log(m.name + ' downloaded (' + (totalLen / 1024 / 1024).toFixed(0) + 'MB). Creating ONNX session...');
+      log('  Creating ONNX session for ' + m.name + '...');
 
       // Create ONNX session — try WebGPU first, fall back to WASM
+      const sessionOpts = { executionProviders: ['webgpu'] };
+      if (externalData) sessionOpts.externalData = externalData;
+
       let session;
       try {
-        session = await ort.InferenceSession.create(data.buffer, {
-          executionProviders: ['webgpu'],
-        });
-        log(m.name + ' loaded on WebGPU');
+        session = await ort.InferenceSession.create(data.buffer, sessionOpts);
+        log('  ' + m.name + ' loaded on WebGPU');
       } catch(e) {
-        log(m.name + ' WebGPU failed, trying WASM: ' + e.message);
-        session = await ort.InferenceSession.create(data.buffer, {
-          executionProviders: ['wasm'],
-        });
-        log(m.name + ' loaded on WASM (slower)');
+        log('  WebGPU failed: ' + e.message.substring(0, 100));
+        log('  Retrying with WASM...');
+        sessionOpts.executionProviders = ['wasm'];
+        session = await ort.InferenceSession.create(data.buffer, sessionOpts);
+        log('  ' + m.name + ' loaded on WASM (slower)');
       }
 
       sessions[m.name] = session;
-      log(m.name + ' ready. Inputs: ' + session.inputNames.join(', '));
+      log('  ' + m.name + ' ready');
+      log('    Inputs: ' + session.inputNames.join(', '));
+      log('    Outputs: ' + session.outputNames.join(', '));
     } catch(e) {
+      log('  FAILED: ' + e.message);
       throw new Error('Failed to load ' + m.name + ': ' + e.message);
     }
   }
 
   loadedModelId = currentModelId;
-  log('All models loaded for ' + cfg.name + '!');
+  log('=== All models loaded for ' + cfg.name + ' ===');
 }
 
 // === DIFFUSION PIPELINE ===
@@ -513,22 +534,42 @@ async function runDiffusion(promptText) {
   }
 
   const inputIds = clipTokenize(promptText);
+  log('Prompt: "' + promptText.substring(0, 80) + '"');
+  log('Token IDs (first 10): ' + inputIds.slice(0, 10).join(', ') + '...');
+  log('Model: ' + cfg.name + ' | Steps: ' + cfg.steps + ' | Guidance: ' + cfg.guidance);
 
-  log('Encoding text prompt...');
-  // Text encoder: input_ids -> last_hidden_state
+  log('--- Text Encoding ---');
   const inputIdsTensor = new ort.Tensor('int32', new Int32Array(inputIds), [1, 77]);
-  const encResult = await sessions.textEncoder.run({ input_ids: inputIdsTensor });
-  const textEmbeddings = encResult.last_hidden_state || encResult[Object.keys(encResult)[0]];
-  log('Text encoded. Shape: ' + textEmbeddings.dims);
+  log('Input tensor: int32 [1, 77]');
+
+  const textEncInputs = { input_ids: inputIdsTensor };
+  log('Text encoder inputs expected: ' + sessions.textEncoder.inputNames.join(', '));
+  const encResult = await sessions.textEncoder.run(textEncInputs);
+  const encOutputKeys = Object.keys(encResult);
+  log('Text encoder output keys: ' + encOutputKeys.join(', '));
+  const textEmbeddings = encResult.last_hidden_state || encResult[encOutputKeys[0]];
+  log('Text embeddings shape: [' + textEmbeddings.dims.join(', ') + '], dtype: ' + textEmbeddings.type);
+  // Stats on embeddings
+  let eMin = Infinity, eMax = -Infinity;
+  for (let i = 0; i < Math.min(100, textEmbeddings.data.length); i++) {
+    eMin = Math.min(eMin, textEmbeddings.data[i]);
+    eMax = Math.max(eMax, textEmbeddings.data[i]);
+  }
+  log('Embedding stats (first 100): min=' + eMin.toFixed(4) + ' max=' + eMax.toFixed(4));
 
   // Create random latent noise (1, 4, 64, 64 for 512x512)
+  log('--- Initializing Latents ---');
   const latentSize = 4 * 64 * 64;
+  log('Latent size: ' + latentSize + ' (' + 4 + 'x' + 64 + 'x' + 64 + ')');
   const latentData = new Float32Array(latentSize);
   for (let i = 0; i < latentSize; i++) {
-    // Box-Muller transform for normal distribution
     const u1 = Math.random(), u2 = Math.random();
     latentData[i] = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
   }
+  // Log noise stats
+  let nMin = Infinity, nMax = -Infinity, nSum = 0;
+  for (let i = 0; i < latentSize; i++) { nMin = Math.min(nMin, latentData[i]); nMax = Math.max(nMax, latentData[i]); nSum += latentData[i]; }
+  log('Initial noise: min=' + nMin.toFixed(3) + ' max=' + nMax.toFixed(3) + ' mean=' + (nSum/latentSize).toFixed(4) + ' std~1.0');
 
   let latents = new ort.Tensor('float32', latentData, [1, 4, 64, 64]);
 
@@ -598,9 +639,6 @@ async function runDiffusion(promptText) {
     const noisePred = unetResult.out_sample || unetResult[Object.keys(unetResult)[0]];
 
     // === DDPM SAMPLING STEP ===
-    // noise_pred is the predicted noise (epsilon)
-    // predicted_x0 = (sample - sqrt(1-alpha_t) * noise_pred) / sqrt(alpha_t)
-    // sample_prev = sqrt(alpha_{t-1}) * predicted_x0 + sqrt(1-alpha_{t-1}) * noise_pred
     const alphaT = alphasCumprod[t];
     const alphaPrev = tPrev > 0 ? alphasCumprod[tPrev] : 1.0;
     const sqrtAlphaT = Math.sqrt(alphaT);
@@ -608,34 +646,41 @@ async function runDiffusion(promptText) {
     const sqrtAlphaPrev = Math.sqrt(alphaPrev);
     const sqrtOneMinusAlphaPrev = Math.sqrt(1 - alphaPrev);
 
-    const newLatentData = new Float32Array(latentSize);
+    if (i === 0 || i === timesteps.length - 1) {
+      log('  alpha_t=' + alphaT.toFixed(6) + ' alpha_prev=' + alphaPrev.toFixed(6));
+      log('  sqrt_alpha_t=' + sqrtAlphaT.toFixed(4) + ' sqrt(1-alpha_t)=' + sqrtOneMinusAlphaT.toFixed(4));
+    }
+
+    // Log noise prediction stats
     const npData = noisePred.data;
+    if (i === 0) {
+      let npMin = Infinity, npMax = -Infinity, npSum = 0;
+      for (let j = 0; j < Math.min(1000, npData.length); j++) {
+        npMin = Math.min(npMin, npData[j]); npMax = Math.max(npMax, npData[j]); npSum += npData[j];
+      }
+      log('  Noise pred stats: min=' + npMin.toFixed(3) + ' max=' + npMax.toFixed(3) + ' mean=' + (npSum/1000).toFixed(4));
+    }
+
+    const newLatentData = new Float32Array(latentSize);
     const lData = latents.data;
     for (let j = 0; j < latentSize; j++) {
-      // Predict clean image
       const predX0 = (lData[j] - sqrtOneMinusAlphaT * npData[j]) / sqrtAlphaT;
-      // Clamp predicted x0 for stability
       const clampedX0 = Math.max(-5, Math.min(5, predX0));
-      // Step to previous timestep
       newLatentData[j] = sqrtAlphaPrev * clampedX0 + sqrtOneMinusAlphaPrev * npData[j];
     }
     latents = new ort.Tensor('float32', newLatentData, [1, 4, 64, 64]);
 
-    // Log some stats for debugging
-    if (i === 0) {
-      let minV = Infinity, maxV = -Infinity, sumV = 0;
-      for (let j = 0; j < Math.min(1000, latentSize); j++) {
-        minV = Math.min(minV, newLatentData[j]);
-        maxV = Math.max(maxV, newLatentData[j]);
-        sumV += newLatentData[j];
-      }
-      log('  Latent stats: min=' + minV.toFixed(3) + ' max=' + maxV.toFixed(3) + ' mean=' + (sumV/1000).toFixed(3));
+    // Log latent stats every step
+    let minV = Infinity, maxV = -Infinity, sumV = 0;
+    for (let j = 0; j < Math.min(1000, latentSize); j++) {
+      minV = Math.min(minV, newLatentData[j]); maxV = Math.max(maxV, newLatentData[j]); sumV += newLatentData[j];
     }
+    log('  -> Latent: min=' + minV.toFixed(3) + ' max=' + maxV.toFixed(3) + ' mean=' + (sumV/1000).toFixed(4));
 
     await new Promise(r => setTimeout(r, 10));
   }
 
-  log('Decoding image with VAE...');
+  log('--- VAE Decoding ---');
   $('loadingTitle').textContent = 'Decoding image...';
 
   // Scale latents for VAE (SD uses 1/0.18215 scaling factor)
@@ -643,17 +688,33 @@ async function runDiffusion(promptText) {
   for (let i = 0; i < latentSize; i++) {
     scaledData[i] = latents.data[i] / 0.18215;
   }
+  // Log scaled latent stats
+  let sMin = Infinity, sMax = -Infinity;
+  for (let i = 0; i < Math.min(1000, latentSize); i++) { sMin = Math.min(sMin, scaledData[i]); sMax = Math.max(sMax, scaledData[i]); }
+  log('Scaled latents: min=' + sMin.toFixed(3) + ' max=' + sMax.toFixed(3));
   const scaledLatents = new ort.Tensor('float32', scaledData, [1, 4, 64, 64]);
 
   // VAE decoder: latent_sample -> sample
+  log('VAE decoder inputs expected: ' + sessions.vaeDecoder.inputNames.join(', '));
   const vaeResult = await sessions.vaeDecoder.run({ latent_sample: scaledLatents });
-  const decoded = vaeResult.sample || vaeResult[Object.keys(vaeResult)[0]];
+  const vaeOutputKeys = Object.keys(vaeResult);
+  log('VAE output keys: ' + vaeOutputKeys.join(', '));
+  const decoded = vaeResult.sample || vaeResult[vaeOutputKeys[0]];
+  log('Decoded shape: [' + decoded.dims.join(', ') + '], dtype: ' + decoded.type);
 
-  log('Converting to image...');
-
-  // Convert from [1, 3, 512, 512] float (-1 to 1) to RGBA pixel data
+  // Log decoded value range
   const imgData = decoded.data;
-  const w = 512, h = 512;
+  let dMin = Infinity, dMax = -Infinity, dSum = 0;
+  for (let i = 0; i < Math.min(10000, imgData.length); i++) {
+    dMin = Math.min(dMin, imgData[i]); dMax = Math.max(dMax, imgData[i]); dSum += imgData[i];
+  }
+  log('Decoded pixel range: min=' + dMin.toFixed(3) + ' max=' + dMax.toFixed(3) + ' mean=' + (dSum/10000).toFixed(4));
+  log('Expected range: [-1, 1] for standard SD VAE');
+
+  log('--- Converting to RGB pixels ---');
+  const w = decoded.dims[3] || 512;
+  const h = decoded.dims[2] || 512;
+  log('Output image: ' + w + 'x' + h);
   const pixels = new Uint8ClampedArray(w * h * 4);
 
   for (let y = 0; y < h; y++) {
@@ -666,6 +727,17 @@ async function runDiffusion(promptText) {
       pixels[pi + 3] = 255;
     }
   }
+
+  // Log pixel stats
+  let pMin = 255, pMax = 0, pSum = 0;
+  for (let i = 0; i < w * h * 4; i += 4) {
+    const r = pixels[i], g = pixels[i+1], b = pixels[i+2];
+    const avg = (r + g + b) / 3;
+    pMin = Math.min(pMin, avg); pMax = Math.max(pMax, avg); pSum += avg;
+  }
+  log('Pixel stats: min=' + pMin.toFixed(0) + ' max=' + pMax.toFixed(0) + ' mean=' + (pSum/(w*h)).toFixed(1));
+  if (pMax < 10) log('WARNING: Image is very dark! Likely a scheduler or VAE issue.');
+  if (pMin > 245) log('WARNING: Image is very bright! Likely a scheduler issue.');
 
   return { pixels, width: w, height: h };
 }
