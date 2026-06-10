@@ -472,17 +472,19 @@ async function loadModels() {
       const url = cfg.base + m.path;
       const data = await downloadFile(url, m.name);
 
-      // Check if this model component has an external data file (e.g., model.onnx_data)
-      // The styled models (Inkpunk, Ghibli, etc.) split weights into separate files
-      const dataFileKey = m.name + 'Data'; // e.g., 'unetData'
+      // Check if this model component has an external data/weights file
+      // Styled models use model.onnx_data, SD 1.5 uses weights.pb
+      const dataKey = m.name + 'Data';      // e.g., 'unetData' → model.onnx_data
+      const weightsKey = m.name + 'Weights'; // e.g., 'unetWeights' → weights.pb
+      const extFileKey = cfg.files[dataKey] ? dataKey : cfg.files[weightsKey] ? weightsKey : null;
       let externalData = undefined;
-      if (cfg.files[dataFileKey]) {
-        const extUrl = cfg.base + cfg.files[dataFileKey];
-        log('  This model has external weights file...');
-        $('loadingText').textContent = 'Downloading model weights (this is the big file)...';
+      if (extFileKey) {
+        const extPath = cfg.files[extFileKey];
+        const extUrl = cfg.base + extPath;
+        const extFileName = extPath.split('/').pop();
+        log('  External weights file: ' + extFileName);
+        $('loadingText').textContent = 'Downloading model weights (' + extFileName + ')...';
         const extData = await downloadFile(extUrl, m.name + ' weights');
-        // Extract the filename from the path for ONNX Runtime
-        const extFileName = cfg.files[dataFileKey].split('/').pop();
         externalData = [{ path: extFileName, data: extData.buffer }];
         log('  External data loaded: ' + extFileName + ' (' + (extData.length/1024/1024).toFixed(0) + 'MB)');
       }
